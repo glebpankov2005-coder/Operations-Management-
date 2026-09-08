@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "purpose": "Single source of parameters for capacity calc + parametric Blender model. Values marked null are OUTPUTS of Phase 1-5 analysis and must NOT be guessed yet.",
+    "status": "SKELETON - Phase 0. Only hard constraints are fixed."
+  },
+  "building": {
+    "max_footprint_m2": 7000,
+    "max_height_m": 12.2,
+    "length_m": null,
+    "width_m": null,
+    "clear_height_m": null,
+    "note": "Facility architecture is OUT OF SCOPE; internal layout only."
+  },
+  "pallet": {
+    "primary_type": "EURO",
+    "euro_len_cm": 120,
+    "euro_wid_cm": 80,
+    "observed_asset_types": ["EURO", "K3", "XLONGPALLET", "K1", "K2", "K5", "CONS"],
+    "note": "Mixed pallet population measured from storage snapshots; XLONGPALLET implies long-goods handling."
+  },
+  "racking": {
+    "type": null,
+    "rack_length_m": null,
+    "rack_depth_m": null,
+    "levels": null,
+    "aisle_width_m": null,
+    "cross_aisle_width_m": null,
+    "note": "All null - to be derived in Phase 5 capacity calc from pallet dims, MHE and height."
+  },
+  "zones": {
+    "receiving_m2": null,
+    "inbound_staging_m2": null,
+    "reserve_storage_m2": null,
+    "forward_pick_m2": null,
+    "packing_m2": null,
+    "outbound_staging_m2": null,
+    "shipping_m2": null
+  },
+  "equipment": {
+    "reach_truck": {"count": null, "aisle_width_m": null},
+    "counterbalance": {"count": null},
+    "pallet_truck": {"count": null},
+    "order_picker": {"count": null},
+    "note": "Fleet sizing is a Phase 5 output."
+  }
+}

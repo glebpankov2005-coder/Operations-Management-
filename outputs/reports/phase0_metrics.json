@@ -1,0 +1,288 @@
+{
+  "storage": {
+    "ASSA STORAGE DETAILS (01-04-2025).xlsx": {
+      "records": 16575,
+      "snapshot_date": "2025-04-01",
+      "unique_dtlnum": 16575,
+      "unique_part": 5164,
+      "unique_location": 7715,
+      "unique_lodnum": 10176,
+      "total_qty_eaches": 2898322.0,
+      "dtlnum_duplicated": 0,
+      "qty_le_zero": 0,
+      "loc_type_counts": {
+        "RACK": 15632,
+        "SF_STAGING": 342,
+        "S_STAGING": 221,
+        "S_AMA_STAGING": 167,
+        "PND": 100,
+        "PACK": 97,
+        "R_STAGING": 16
+      },
+      "part_abccod_counts": {
+        "C": 9570,
+        "A": 3701,
+        "B": 3304
+      },
+      "hazmat_counts": {
+        "0": 14475,
+        "1": 2100
+      },
+      "asset_type_counts": {
+        "EURO": 10101,
+        "K3": 4984,
+        "XLONGPALLET": 346,
+        "K1": 171,
+        "CONS": 133,
+        "K2": 102,
+        "K5": 1
+      },
+      "area_counts": {
+        "STGAREA": 15632,
+        "STGL": 730,
+        "PACK": 97,
+        "PND": 89,
+        "RCVL": 16,
+        "HOP": 11
+      }
+    },
+    "ASSA STORAGE DETAILS (01-05-2025).xlsx": {
+      "records": 16793,
+      "snapshot_date": "2025-05-01",
+      "unique_dtlnum": 16793,
+      "unique_part": 5273,
+      "unique_location": 8149,
+      "unique_lodnum": 10534,
+      "total_qty_eaches": 2876129.0,
+      "dtlnum_duplicated": 0,
+      "qty_le_zero": 0,
+      "loc_type_counts": {
+        "RACK": 16019,
+        "S_AMA_STAGING": 275,
+        "SF_STAGING": 275,
+        "PND": 105,
+        "PACK": 60,
+        "S_STAGING": 54,
+        "R_STAGING": 5
+      },
+      "part_abccod_counts": {
+        "C": 10044,
+        "A": 3531,
+        "B": 3218
+      },
+      "hazmat_counts": {
+        "0": 14487,
+        "1": 2306
+      },
+      "asset_type_counts": {
+        "EURO": 10557,
+        "K3": 4884,
+        "XLONGPALLET": 327,
+        "K1": 169,
+        "CONS": 130,
+        "K2": 106,
+        "K5": 1
+      },
+      "area_counts": {
+        "STGAREA": 16019,
+        "STGL": 604,
+        "PND": 95,
+        "PACK": 60,
+        "HOP": 10,
+        "RCVL": 5
+      }
+    },
+    "ASSA STORAGE DETAILS (01-06-2025).xlsx": {
+      "records": 17290,
+      "snapshot_date": "2025-06-01",
+      "unique_dtlnum": 17290,
+      "unique_part": 5291,
+      "unique_location": 8512,
+      "unique_lodnum": 11015,
+      "total_qty_eaches": 2890698.0,
+      "dtlnum_duplicated": 0,
+      "qty_le_zero": 0,
+      "loc_type_counts": {
+        "RACK": 15890,
+        "S_STAGING": 418,
+        "SF_STAGING": 407,
+        "S_AMA_STAGING": 270,
+        "PACK": 147,
+        "PND": 117,
+        "R_STAGING": 31,
+        "SHIP": 10
+      },
+      "part_abccod_counts": {
+        "C": 10346,
+        "A": 3816,
+        "B": 3128
+      },
+      "hazmat_counts": {
+        "0": 14612,
+        "1": 2678
+      },
+      "asset_type_counts": {
+        "EURO": 11140,
+        "K3": 4318,
+        "XLONGPALLET": 339,
+        "K1": 154,
+        "CONS": 128,
+        "K2": 98,
+        "K5": 1
+      },
+      "area_counts": {
+        "STGAREA": 15890,
+        "STGL": 1095,
+        "PACK": 147,
+        "PND": 102,
+        "RCVL": 31,
+        "HOP": 15,
+        "SHIP": 10
+      }
+    },
+    "_latest_checks": {
+      "Records": 17290,
+      "Duplicate DTLNUM (should be 0)": 0,
+      "QTY missing": 0,
+      "QTY <= 0": 0,
+      "PA QTY missing": 6,
+      "PA WGT missing": 6,
+      "CS QTY missing (each-pick SKUs w/o case)": 7535,
+      "PART VELOCITY missing": 1866,
+      "AISLE/ZONE missing (loose/staging?)": 1400,
+      "EA dims present": 17290
+    },
+    "_latest_file": "ASSA STORAGE DETAILS (01-06-2025).xlsx"
+  },
+  "outbound": {
+    "202504 ASSA OUTBOUND DETAILS.xlsx": {
+      "order_lines": 12868,
+      "unique_orders": 3171,
+      "unique_shipments": 2968,
+      "unique_parts": 3019,
+      "unique_shipto": 1211,
+      "unique_carriers": 17,
+      "unique_countries": 30,
+      "date_min": "2025-04-01",
+      "date_max": "2025-04-30",
+      "total_picked_qty": 460850,
+      "picked_qty_le0": 0,
+      "dup_order_line": 0,
+      "staged_status_counts": {
+        "OK": 7546,
+        "LATE": 5322
+      },
+      "order_type_counts": {
+        "NLD": 6845,
+        "BEL": 1592,
+        "EDC": 1582,
+        "DIRECT": 1282,
+        "AMADE": 656,
+        "WEBDE": 299,
+        "DACH": 219,
+        "WEB": 182,
+        "WEBFR": 137,
+        "JUM": 74
+      },
+      "pick_date_missing": 0,
+      "unit_price_missing": 132
+    },
+    "202505 ASSA OUTBOUND DETAILS.xlsx": {
+      "order_lines": 13061,
+      "unique_orders": 2737,
+      "unique_shipments": 2515,
+      "unique_parts": 3011,
+      "unique_shipto": 1085,
+      "unique_carriers": 17,
+      "unique_countries": 32,
+      "date_min": "2025-05-01",
+      "date_max": "2025-05-30",
+      "total_picked_qty": 492940,
+      "picked_qty_le0": 0,
+      "dup_order_line": 0,
+      "staged_status_counts": {
+        "LATE": 6957,
+        "OK": 6104
+      },
+      "order_type_counts": {
+        "NLD": 6976,
+        "EDC": 1541,
+        "BEL": 1461,
+        "DIRECT": 1439,
+        "AMADE": 844,
+        "DACH": 199,
+        "WEB": 197,
+        "WEBDE": 186,
+        "WEBFR": 140,
+        "JUM": 78
+      },
+      "pick_date_missing": 228,
+      "unit_price_missing": 176
+    },
+    "202506 ASSA OUTBOUND DETAILS.xlsx": {
+      "order_lines": 13140,
+      "unique_orders": 2873,
+      "unique_shipments": 2692,
+      "unique_parts": 2972,
+      "unique_shipto": 1164,
+      "unique_carriers": 17,
+      "unique_countries": 29,
+      "date_min": "2025-06-02",
+      "date_max": "2025-06-30",
+      "total_picked_qty": 404593,
+      "picked_qty_le0": 0,
+      "dup_order_line": 0,
+      "staged_status_counts": {
+        "LATE": 7305,
+        "OK": 5835
+      },
+      "order_type_counts": {
+        "NLD": 7123,
+        "EDC": 1580,
+        "BEL": 1543,
+        "DIRECT": 1282,
+        "AMADE": 716,
+        "WEBFR": 234,
+        "WEB": 228,
+        "WEBDE": 202,
+        "DACH": 157,
+        "JUM": 64,
+        "AMANL": 9,
+        "WEBIT": 2
+      },
+      "pick_date_missing": 336,
+      "unit_price_missing": 246
+    }
+  },
+  "cross": {
+    "outbound_combined": {
+      "total_order_lines": 39069,
+      "unique_orders_all": 8781,
+      "unique_parts_all": 4354,
+      "date_min": "2025-04-01",
+      "date_max": "2025-06-30",
+      "distinct_ship_days": 61,
+      "total_picked_qty": 1358383,
+      "pct_lines_single_unit": 23.6,
+      "staged_LATE_pct": 50.1
+    },
+    "lines_per_order": {
+      "mean": 4.45,
+      "median": 1.0,
+      "p95": 19.0,
+      "max": 191
+    },
+    "daily_shipped_lines": {
+      "mean": 640.5,
+      "median": 608.0,
+      "peak": 1171,
+      "peak_day": "2025-05-27",
+      "peak_over_avg": 1.83
+    },
+    "pick_leadtime_hours": {
+      "median": 21.9,
+      "mean": 40.0,
+      "p90": 91.9
+    }
+  }
+}

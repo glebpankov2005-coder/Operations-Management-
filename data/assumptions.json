@@ -1,0 +1,73 @@
+{
+  "_meta": {
+    "project": "Assa Abloy warehouse redesign @ DHL Bemmel (NL_0032)",
+    "created": "2026-09-08",
+    "rule": "Every externally-sourced or estimated number used in the report must appear here with a source or be labelled an assumption. No fabricated data.",
+    "impact_scale": ["low", "medium", "high"]
+  },
+  "assumptions": [
+    {
+      "id": "A001",
+      "assumption": "Max facility footprint",
+      "value": "7000",
+      "unit": "m2",
+      "reason": "Given hard project constraint",
+      "source": "Project brief (client-provided)",
+      "impact": "high"
+    },
+    {
+      "id": "A002",
+      "assumption": "Max clear/building height",
+      "value": "12.2",
+      "unit": "m",
+      "reason": "Given hard project constraint",
+      "source": "Project brief (client-provided)",
+      "impact": "high"
+    },
+    {
+      "id": "A003",
+      "assumption": "Analysis period is representative of normal operation",
+      "value": "Apr-Jun 2025 (Q2)",
+      "unit": "quarter",
+      "reason": "Only 3 months of outbound + 3 storage snapshots were provided; seasonality outside Q2 is unknown",
+      "source": "Data provided",
+      "impact": "high"
+    },
+    {
+      "id": "A004",
+      "assumption": "One LODNUM (load) occupies one pallet position",
+      "value": "1:1",
+      "unit": "load:position",
+      "reason": "Needed to convert inventory loads into required pallet positions; to be validated against PA QTY and multi-detail loads",
+      "source": "Working assumption",
+      "impact": "high"
+    },
+    {
+      "id": "A005",
+      "assumption": "STAGED STATUS 'LATE' reflects staging vs the LATE SHIP window, i.e. a genuine on-time-staging miss",
+      "value": "50.1% LATE (Q2)",
+      "unit": "% of order lines",
+      "reason": "50.1% LATE is very high; definition of the threshold must be confirmed before treating as a service failure",
+      "source": "Measured, definition to confirm with DHL",
+      "impact": "high"
+    },
+    {
+      "id": "A006",
+      "assumption": "No labour-productivity, MHE-fleet or cost data was provided",
+      "value": "to be sourced",
+      "unit": "-",
+      "reason": "Picks/hour, putaway/hour, FTE, MHE counts, CAPEX/OPEX rates are absent; will use benchmarked values with sources and sensitivity analysis",
+      "source": "Gap - external benchmarks + DHL confirmation required",
+      "impact": "high"
+    },
+    {
+      "id": "A007",
+      "assumption": "No dedicated inbound/receiving transaction file was provided",
+      "value": "derive proxy",
+      "unit": "-",
+      "reason": "Receiving volume will be approximated from ADD DATE / RECEIVE KEY / INBOUND TRUCK NO in storage snapshots and snapshot-to-snapshot inventory growth",
+      "source": "Gap - proxy method, confirmation required",
+      "impact": "medium"
+    }
+  ]
+}
