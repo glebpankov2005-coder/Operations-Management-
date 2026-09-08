@@ -68,6 +68,24 @@
       "reason": "Receiving volume will be approximated from ADD DATE / RECEIVE KEY / INBOUND TRUCK NO in storage snapshots and snapshot-to-snapshot inventory growth",
       "source": "Gap - proxy method, confirmation required",
       "impact": "medium"
+    },
+    {
+      "id": "A008",
+      "assumption": "The 7,000 m2 / 12.2 m envelope is the space available to DESIGN THE ASSA ABLOY operation within",
+      "value": "7000 m2 for Assa Abloy",
+      "unit": "m2",
+      "reason": "Official brief calls 7,000 m2 'the new site', but the site historically served 4 clients (Tiel). If 7,000 m2 is the whole shared building, the Assa Abloy envelope is smaller. Materially changes capacity feasibility.",
+      "source": "Official brief (Project OTM) - to confirm with DHL",
+      "impact": "high"
+    },
+    {
+      "id": "A009",
+      "assumption": "Current state = the existing post-move Bemmel layout captured in the storage snapshots (WH NL_0032)",
+      "value": "storage snapshots = current state",
+      "unit": "-",
+      "reason": "Brief states the warehouse was recently relocated to Bemmel under time pressure and the current design is believed suboptimal; the provided inventory data is the current Bemmel operation",
+      "source": "Official brief (Project OTM) + data",
+      "impact": "medium"
     }
   ]
 }
