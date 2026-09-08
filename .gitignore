@@ -1,9 +1,6 @@
-# ---- Confidential raw data (customer PII / commercial data) ----
-# Do NOT commit while the repo is public. Kept local only.
-data/raw/
-*.xlsx
-*.xls
-*.csv
+# ---- Raw data ----
+# Confidential DHL/Assa Abloy data + customer PII. Safe to store ONLY because
+# this repository is PRIVATE. If it is ever made public, re-exclude data/raw/.
 
 # ---- Python ----
 __pycache__/

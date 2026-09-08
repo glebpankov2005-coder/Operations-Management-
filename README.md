@@ -13,9 +13,9 @@ within a **7,000 m²** footprint and **12.2 m** height.
 - **Storage snapshots** ×3 (01-04/05/06) — inventory details, ~16.6k–17.3k records each.
 - **Outbound** ×3 months — 39,069 order lines, 8,781 orders, 61 ship-days.
 
-> ⚠️ **Raw data is confidential** (DHL/Assa Abloy operational data + customer PII) and is
-> **git-ignored** (`data/raw/`). It is not stored in this public repo. To back it up online,
-> the repository must be made **private** first.
+> ⚠️ **Raw data is confidential** (DHL/Assa Abloy operational data + customer PII). It is
+> stored in `data/raw/` **only because this repository is private**. If the repo is ever
+> made public, re-exclude `data/raw/` in `.gitignore` before pushing.
 
 ## Layout
 ```
