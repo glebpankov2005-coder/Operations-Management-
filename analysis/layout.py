@@ -192,78 +192,105 @@ fig.savefig(os.path.join(FIGS, "layout_3d.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
 # ============================ 2D WORKER-MOVEMENT MODEL ============================
-fig, ax = plt.subplots(figsize=(12.5, 7.6))
-ax.set_xlim(-3, L + 3); ax.set_ylim(-8, DEPTH + 6); ax.set_aspect("equal"); ax.axis("off")
-ax.set_title("Option B — worker movement (zone picking)\n"
-             "Each picker works a defined zone → short, non-crossing travel; reach trucks shuttle putaway & replenishment",
-             fontsize=12, weight="bold")
+import matplotlib.patheffects as pe
 
+fig, ax = plt.subplots(figsize=(13, 7.8))
+ax.set_xlim(-3, L + 3); ax.set_ylim(-9, DEPTH + 7); ax.set_aspect("equal"); ax.axis("off")
+ax.set_title("Option B — worker movement (zone picking)", fontsize=13, weight="bold")
+ax.text(L/2, DEPTH + 3.2, "Each picker is confined to one zone → short, non-crossing travel; "
+        "reach trucks handle putaway & replenishment; a handler runs pack → ship.",
+        ha="center", fontsize=8.5, color="#555", style="italic")
+
+# ---- context: all zones drawn faintly (no centre text), building outline + docks ----
 Z = {}
 def stack_bg(x0, w, items, top=DEPTH):
     y = top
     for name, area, col in items:
         h = area / w
-        ax.add_patch(Rectangle((x0, y - h), w, h, facecolor=col, edgecolor="white", lw=1.2, alpha=0.45))
-        ax.text(x0 + w/2, y - h/2, name.replace("\n", " "), ha="center", va="center",
-                fontsize=7.5, color="#33415a", alpha=0.9)
+        ax.add_patch(Rectangle((x0, y - h), w, h, facecolor=col, edgecolor="white", lw=1.2, alpha=0.28))
         Z[name] = (x0, x0 + w, y - h, y)
         y -= h
 stack_bg(0, left_w, left)
 stack_bg(left_w + aisle, core_w, core)
 stack_bg(left_w + aisle + core_w + aisle, right_w, right)
+ax.add_patch(Rectangle((0, 0), L, DEPTH, fill=False, edgecolor="#33415a", lw=1.6))
+for ax0 in (left_w, left_w + aisle + core_w):
+    ax.add_patch(Rectangle((ax0, 0), aisle, DEPTH, facecolor="#eef2fb", edgecolor="none", hatch="//", alpha=0.5))
 for dx in np.arange(2, L, 8):
-    ax.add_patch(Rectangle((dx, -1.4), 2.4, 1.4, facecolor="#33415a", edgecolor="none"))
-ax.text(left_w/2, -3.6, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
-ax.text(L - right_w/2, -3.6, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
-
-def serpentine(x0, x1, y0, y1, n):
-    lanes = np.linspace(x0 + 2, x1 - 2, n)
-    pts = []
-    for i, xl in enumerate(lanes):
-        pts += [(xl, y0 + 2), (xl, y1 - 2)] if i % 2 == 0 else [(xl, y1 - 2), (xl, y0 + 2)]
-    return pts
-
-def wpath(pts, color, lw=2.0):
-    xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
-    ax.plot(xs, ys, color=color, lw=lw, alpha=0.9, zorder=6, solid_capstyle="round")
-    ax.scatter([xs[0]], [ys[0]], s=34, color=color, edgecolor="white", lw=1, zorder=7)  # start
-    for i in range(1, len(pts), max(1, len(pts)//4)):
-        ax.annotate("", xy=pts[i], xytext=pts[i-1],
-                    arrowprops=dict(arrowstyle="-|>", color=color, lw=lw))
+    ax.add_patch(Rectangle((dx, -1.6), 2.6, 1.6, facecolor="#33415a", edgecolor="none"))
+ax.text(left_w/2, -3.9, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
+ax.text(L - right_w/2, -3.9, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
 
 cx0 = left_w + aisle; cx1 = cx0 + core_w; cmid = (cx0 + cx1) / 2
-dd0, dd1 = Z["Double-deep reserve (A/B)"][2], Z["Double-deep reserve (A/B)"][3]
-sel0 = Z["Selective + cantilever"][2]
-fp0 = Z["Forward-pick module"][2]
-recv = Z["Receiving &\ninbound staging"]; pack = Z["Packing &\nconsolidation"]; shipz = Z["Outbound staging\n& shipping"]
+fast_top = Z["Selective + cantilever"][3]          # top of fast band (= bottom of reserve)
+res_top = Z["Double-deep reserve (A/B)"][3]        # 70
+recv, pack, shipz = Z["Receiving &\ninbound staging"], Z["Packing &\nconsolidation"], Z["Outbound staging\n& shipping"]
 
-RTRUCK, PICK_A, PICK_B, DISPATCH = "#2f855a", "#d40011", "#6b21a8", "#b45309"
-# reach truck: putaway from receiving into reserve + replenishment shuttles reserve->forward
-wpath([(recv[0]+ (recv[1]-recv[0])/2, recv[2]+3), (cx0+6, dd0+6), (cx0+6, dd1-4),
-       (cmid, dd1-4), (cmid, dd0+4)], RTRUCK, lw=2.4)
-for xr in (cx0+10, cmid, cx1-10):
-    wpath([(xr, dd0), (xr, fp0+3)], RTRUCK, lw=1.6)
-# picker zone A - forward-pick + selective (fast movers), serpentine across full width
-wpath(serpentine(cx0, cx1, fp0, sel0 + (dd0-sel0)*0.0 + (Z["Selective + cantilever"][3]-fp0), 6), PICK_A, lw=2.2)
-# picker zone B (left reserve) and B' (right reserve) - two zoned pickers, same colour
-wpath(serpentine(cx0, cmid-1, dd0, dd1, 5), PICK_B, lw=2.2)
-wpath(serpentine(cmid+1, cx1, dd0, dd1, 5), PICK_B, lw=2.2)
-# dispatch handler: pack <-> outbound staging <-> ship dock
-wpath([(pack[0]+(pack[1]-pack[0])/2, pack[3]-4), (pack[0]+(pack[1]-pack[0])/2, shipz[3]-2),
-       (shipz[0]+(shipz[1]-shipz[0])/2, shipz[2]+3), (shipz[0]+(shipz[1]-shipz[0])/2, -1.2)], DISPATCH, lw=2.2)
+# ---- pick-zone tints + dashed boundaries (clearly separated, non-overlapping) ----
+ax.add_patch(Rectangle((cx0, 0), core_w, fast_top, facecolor="#d97706", alpha=0.10, zorder=1))
+ax.add_patch(Rectangle((cx0, fast_top), core_w/2, res_top - fast_top, facecolor="#7c3aed", alpha=0.10, zorder=1))
+ax.add_patch(Rectangle((cmid, fast_top), core_w/2, res_top - fast_top, facecolor="#0891b2", alpha=0.10, zorder=1))
+ax.plot([cx0, cx1], [fast_top, fast_top], ls=(0, (6, 4)), color="#94a3b8", lw=1.1, zorder=2)
+ax.plot([cmid, cmid], [fast_top, res_top], ls=(0, (6, 4)), color="#94a3b8", lw=1.1, zorder=2)
+
+def serp(lanes, lo, hi, axis="v", m=2.6):
+    pts = []
+    for i, c in enumerate(lanes):
+        a, b = (lo + m, hi - m) if i % 2 == 0 else (hi - m, lo + m)
+        pts += [(c, a), (c, b)] if axis == "v" else [(a, c), (b, c)]
+    return pts
+
+def wpath(pts, color, lw=2.6, dashed=False):
+    xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
+    ln, = ax.plot(xs, ys, color=color, lw=lw, zorder=6, solid_capstyle="round", solid_joinstyle="round",
+                  linestyle=(0, (5, 3)) if dashed else "-")
+    ln.set_path_effects([pe.Stroke(linewidth=lw + 2.4, foreground="white"), pe.Normal()])
+    ax.scatter([xs[0]], [ys[0]], s=48, color=color, edgecolor="white", lw=1.5, zorder=8)  # start ●
+    step = max(1, (len(pts) - 1) // 3)
+    for i in range(step, len(pts), step):
+        ax.annotate("", xy=pts[i], xytext=pts[i - 1], zorder=8,
+                    arrowprops=dict(arrowstyle="-|>", color=color, lw=lw, mutation_scale=15))
+
+Z1, Z2, Z3, RT, DP = "#d97706", "#7c3aed", "#0891b2", "#16a34a", "#dc2626"
+# pickers - each contained in its own zone
+wpath(serp(np.linspace(3.5, fast_top - 3, 3), cx0, cx1, axis="h"), Z1)          # zone 1 fast/forward
+wpath(serp(np.linspace(cx0 + 6, cmid - 6, 3), fast_top, res_top, axis="v"), Z2)  # zone 2 reserve-left
+wpath(serp(np.linspace(cmid + 6, cx1 - 6, 3), fast_top, res_top, axis="v"), Z3)  # zone 3 reserve-right
+# reach truck putaway: receiving -> reserve (up the left aisle)
+wpath([( (recv[0]+recv[1])/2, (recv[2]+recv[3])/2 ), (left_w + aisle/2, 40), (cx0 + 5, 60)], RT)
+# replenishment: reserve -> forward pick (short dashed down-shuttles)
+for xr in (cx0 + core_w*0.25, cmid, cx0 + core_w*0.75):
+    wpath([(xr, fast_top + 6), (xr, 4.5)], RT, lw=2.1, dashed=True)
+# dispatch handler: pack -> outbound staging -> ship dock
+dcx = (shipz[0] + shipz[1]) / 2
+wpath([((pack[0]+pack[1])/2, pack[3] - 4), (dcx, (shipz[2]+shipz[3])/2), (dcx, -1.4)], DP)
+
+# ---- labels (white boxes so they read over tints/lines) ----
+def lbl(x, y, t, fs=8):
+    ax.text(x, y, t, ha="center", va="center", fontsize=fs, weight="bold", color="#12203a",
+            bbox=dict(boxstyle="round,pad=0.28", fc="white", ec="#cbd5e1", lw=0.8), zorder=9)
+lbl(cx0 + core_w*0.5, fast_top - 1.5, "ZONE 1 · fast / forward pick")
+lbl(cx0 + (cmid-cx0)*0.5, res_top - 3, "ZONE 2 · reserve (left)")
+lbl(cmid + (cx1-cmid)*0.5, res_top - 3, "ZONE 3 · reserve (right)")
+lbl((recv[0]+recv[1])/2, (recv[2]+recv[3])/2, "Receiving", 7.5)
+lbl((Z["Offices &\namenities"][0]+Z["Offices &\namenities"][1])/2, (Z["Offices &\namenities"][2]+Z["Offices &\namenities"][3])/2, "Offices", 7.5)
+lbl((Z["Returns / VAS"][0]+Z["Returns / VAS"][1])/2, (Z["Returns / VAS"][2]+Z["Returns / VAS"][3])/2, "Returns / VAS", 7)
+lbl((pack[0]+pack[1])/2, pack[3] - 2.5, "Packing", 7.5)
+lbl((shipz[0]+shipz[1])/2, shipz[2] + 3.5, "Shipping", 7.5)
 
 handles = [
-    Line2D([0], [0], color=RTRUCK, lw=3, label="Reach truck — putaway & replenishment"),
-    Line2D([0], [0], color=PICK_A, lw=3, label="Picker zone A — forward/fast pick"),
-    Line2D([0], [0], color=PICK_B, lw=3, label="Pickers zone B — reserve (left & right)"),
-    Line2D([0], [0], color=DISPATCH, lw=3, label="Pack & dispatch handler"),
+    Line2D([0], [0], color=Z1, lw=3, label="Picker · Zone 1 (fast / forward)"),
+    Line2D([0], [0], color=Z2, lw=3, label="Picker · Zone 2 (reserve left)"),
+    Line2D([0], [0], color=Z3, lw=3, label="Picker · Zone 3 (reserve right)"),
+    Line2D([0], [0], color=RT, lw=3, label="Reach truck · putaway"),
+    Line2D([0], [0], color=RT, lw=3, ls="--", label="Reach truck · replenishment"),
+    Line2D([0], [0], color=DP, lw=3, label="Handler · pack → ship"),
+    Line2D([0], [0], marker="o", color="w", markerfacecolor="#333", markeredgecolor="white",
+           markersize=9, label="● start of route", lw=0),
 ]
-ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.12), ncol=2,
-          fontsize=8.5, frameon=False)
-ax.scatter([], [])
-fig.text(0.5, 0.02, "● = start of route.  Zoning keeps picker paths short and separated; "
-         "long-goods (cantilever) served by the reserve reach truck.", ha="center", fontsize=8, color="#555", style="italic")
-fig.savefig(os.path.join(FIGS, "layout_worker_flow.png"), dpi=115, bbox_inches="tight")
+ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.145), ncol=4,
+          fontsize=8, frameon=False, handlelength=2.4, columnspacing=1.6)
+fig.savefig(os.path.join(FIGS, "layout_worker_flow.png"), dpi=120, bbox_inches="tight")
 plt.close(fig)
 
 update_metrics("layout", {
