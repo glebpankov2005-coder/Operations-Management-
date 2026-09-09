@@ -1,0 +1,4 @@
+,"Space fit (7,000 m2)",Labour efficiency,CAPEX (lower=better),Travel / throughput,Flexibility,Simplicity / low risk,Peak resilience,WEIGHTED TOTAL,rationale
+B - Hybrid density,4,4,3,4,4,3,4,3.75,fits with buffer; batching+slotting cut labour; moderate cost/risk
+C - Semi-automated,5,5,1,5,2,2,4,3.7,"densest & lowest labour, but high CAPEX, complex, less flexible"
+A - Conventional+,2,2,5,2,5,5,2,3.05,"cheapest & simplest, but borderline on space and high travel/labour"

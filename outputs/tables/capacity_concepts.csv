@@ -1,0 +1,6 @@
+concept,mhe,levels,deep,util_%,aisle_m,m2_per_position,storage_area_m2,total_area_m2 (incl 35% non-storage),"% of 7,000 m2",fits_7000
+Selective - wide aisle (counterbalance),Counterbalance FLT,6,1,95,3.7,0.466,6555,10085,144.0,TIGHT/NO
+Selective - narrow aisle (reach truck),Reach truck,7,1,95,2.9,0.345,4857,7472,107.0,TIGHT/NO
+Double-deep (reach + deep forks),Reach truck (deep),7,2,80,2.9,0.293,4128,6351,91.0,YES
+VNA (man-up turret),VNA turret truck,8,1,97,1.8,0.232,3264,5022,72.0,YES
+Drive-in (block),Counterbalance FLT,5,4,65,3.7,0.433,6090,9369,134.0,TIGHT/NO

@@ -86,6 +86,42 @@
       "reason": "Brief states the warehouse was recently relocated to Bemmel under time pressure and the current design is believed suboptimal; the provided inventory data is the current Bemmel operation",
       "source": "Official brief (Project OTM) + data",
       "impact": "medium"
+    },
+    {
+      "id": "A010",
+      "assumption": "Design pallet-position target",
+      "value": "~14,000",
+      "unit": "positions",
+      "reason": "Peak concurrent loads 11,015 x 1.15 growth/safety buffer / 0.90 target utilisation. Buffer is a judgement; +8.2%/quarter observed growth is not annualised (may be seasonal build-up).",
+      "source": "Derived (capacity.py); buffer to confirm",
+      "impact": "high"
+    },
+    {
+      "id": "A011",
+      "assumption": "Rack level pitch and count",
+      "value": "1.41 m pitch; up to 6-8 levels",
+      "unit": "m / levels",
+      "reason": "Measured p90 pallet+load height 1.16 m + 0.25 m beam/clearance; usable height 12.2 - 0.5 top - 0.15 base. MHE reach caps levels per concept.",
+      "source": "Measured (storage PA HGT) + standard clearances",
+      "impact": "medium"
+    },
+    {
+      "id": "A012",
+      "assumption": "Aisle widths & location utilisation by concept",
+      "value": "wide 3.7 / reach 2.9 / VNA 1.8 m; util 95/80/97%",
+      "unit": "m / %",
+      "reason": "Standard MHE operating aisles and honeycombing/selectivity losses used in the capacity model",
+      "source": "Industry-standard specs - to cite per equipment manufacturer",
+      "impact": "medium"
+    },
+    {
+      "id": "A013",
+      "assumption": "Non-storage area share of building",
+      "value": "35",
+      "unit": "% of floor",
+      "reason": "Receiving, staging, pick, pack, ship, offices and circulation allowance in the footprint check",
+      "source": "Planning assumption - to refine in Phase 5 layout",
+      "impact": "medium"
     }
   ]
 }

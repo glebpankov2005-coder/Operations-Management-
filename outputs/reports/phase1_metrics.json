@@ -295,5 +295,168 @@
       "Friday": 663.0
     },
     "design_note": "Design to PEAK day, not average."
+  },
+  "capacity": {
+    "measured": {
+      "pa_hgt_median_cm": 95.6,
+      "pa_hgt_p90_cm": 116.0,
+      "pa_hgt_p95_cm": 132.3,
+      "loc_height_mode_cm": 110.0
+    },
+    "peak_loads": 11015,
+    "assumptions": {
+      "clear_height_m": 12.2,
+      "top_clearance_m": 0.5,
+      "floor_level_base_m": 0.15,
+      "pallet_euro_face_m": 0.8,
+      "pallet_depth_m": 1.2,
+      "pallet_pitch_m": 0.9,
+      "rack_depth_single_m": 1.1,
+      "beam_plus_clear_m": 0.25,
+      "level_load_height_m": 1.16,
+      "growth_safety_buffer": 1.15,
+      "target_utilisation": 0.9,
+      "footprint_envelope_m2": 7000,
+      "non_storage_share": 0.35
+    },
+    "level_pitch_m": 1.41,
+    "base_levels_height_limited": 8,
+    "required_loads_peak_plus_buffer": 12667,
+    "design_positions_target": 14074,
+    "concepts": [
+      {
+        "concept": "Selective - wide aisle (counterbalance)",
+        "mhe": "Counterbalance FLT",
+        "levels": 6,
+        "deep": 1,
+        "util_%": 95,
+        "aisle_m": 3.7,
+        "m2_per_position": 0.466,
+        "storage_area_m2": 6555,
+        "total_area_m2 (incl 35% non-storage)": 10085,
+        "% of 7,000 m2": 144.0,
+        "fits_7000": "TIGHT/NO"
+      },
+      {
+        "concept": "Selective - narrow aisle (reach truck)",
+        "mhe": "Reach truck",
+        "levels": 7,
+        "deep": 1,
+        "util_%": 95,
+        "aisle_m": 2.9,
+        "m2_per_position": 0.345,
+        "storage_area_m2": 4857,
+        "total_area_m2 (incl 35% non-storage)": 7472,
+        "% of 7,000 m2": 107.0,
+        "fits_7000": "TIGHT/NO"
+      },
+      {
+        "concept": "Double-deep (reach + deep forks)",
+        "mhe": "Reach truck (deep)",
+        "levels": 7,
+        "deep": 2,
+        "util_%": 80,
+        "aisle_m": 2.9,
+        "m2_per_position": 0.293,
+        "storage_area_m2": 4128,
+        "total_area_m2 (incl 35% non-storage)": 6351,
+        "% of 7,000 m2": 91.0,
+        "fits_7000": "YES"
+      },
+      {
+        "concept": "VNA (man-up turret)",
+        "mhe": "VNA turret truck",
+        "levels": 8,
+        "deep": 1,
+        "util_%": 97,
+        "aisle_m": 1.8,
+        "m2_per_position": 0.232,
+        "storage_area_m2": 3264,
+        "total_area_m2 (incl 35% non-storage)": 5022,
+        "% of 7,000 m2": 72.0,
+        "fits_7000": "YES"
+      },
+      {
+        "concept": "Drive-in (block)",
+        "mhe": "Counterbalance FLT",
+        "levels": 5,
+        "deep": 4,
+        "util_%": 65,
+        "aisle_m": 3.7,
+        "m2_per_position": 0.433,
+        "storage_area_m2": 6090,
+        "total_area_m2 (incl 35% non-storage)": 9369,
+        "% of 7,000 m2": 134.0,
+        "fits_7000": "TIGHT/NO"
+      }
+    ]
+  },
+  "decision": {
+    "weights": {
+      "Space fit (7,000 m2)": 0.2,
+      "Labour efficiency": 0.2,
+      "CAPEX (lower=better)": 0.15,
+      "Travel / throughput": 0.15,
+      "Flexibility": 0.1,
+      "Simplicity / low risk": 0.1,
+      "Peak resilience": 0.1
+    },
+    "scores": {
+      "A - Conventional+": [
+        2,
+        2,
+        5,
+        2,
+        5,
+        5,
+        2
+      ],
+      "B - Hybrid density": [
+        4,
+        4,
+        3,
+        4,
+        4,
+        3,
+        4
+      ],
+      "C - Semi-automated": [
+        5,
+        5,
+        1,
+        5,
+        2,
+        2,
+        4
+      ]
+    },
+    "weighted_totals": {
+      "A - Conventional+": 3.05,
+      "B - Hybrid density": 3.75,
+      "C - Semi-automated": 3.7
+    },
+    "ranking": [
+      "B - Hybrid density",
+      "C - Semi-automated",
+      "A - Conventional+"
+    ],
+    "winner": "B - Hybrid density",
+    "sensitivity": {
+      "A - Conventional+": {
+        "base": 3.05,
+        "cost_driven": 3.35,
+        "space_driven": 3.55
+      },
+      "B - Hybrid density": {
+        "base": 3.75,
+        "cost_driven": 3.65,
+        "space_driven": 4.75
+      },
+      "C - Semi-automated": {
+        "base": 3.7,
+        "cost_driven": 3.35,
+        "space_driven": 4.85
+      }
+    }
   }
 }
