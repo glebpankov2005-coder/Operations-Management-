@@ -122,6 +122,24 @@
       "reason": "Receiving, staging, pick, pack, ship, offices and circulation allowance in the footprint check",
       "source": "Planning assumption - to refine in Phase 5 layout",
       "impact": "medium"
+    },
+    {
+      "id": "A014",
+      "assumption": "Labour productivity benchmarks (units/person-hour)",
+      "value": "receiving 25, putaway 20, replen 18, case-pick 80, each-pick 55, pallet-pick 22, pack 45, ship 30",
+      "unit": "pallets or lines per hour",
+      "reason": "No DHL productivity data was provided (A006). Benchmark ranges from warehouse-engineering literature; drive the labour/MHE plan. MUST be replaced with DHL actuals when available.",
+      "source": "Industry benchmark (e.g. Bartholdi & Hackman, Warehouse & Distribution Science) - to validate",
+      "impact": "high"
+    },
+    {
+      "id": "A015",
+      "assumption": "Shift & equipment parameters",
+      "value": "7.5 productive h/FTE/shift; 80% MHE utilisation; single main shift",
+      "unit": "h / %",
+      "reason": "8h shift less breaks/PF&D; equipment availability allowance. Peak may need overtime or a partial 2nd shift.",
+      "source": "Planning assumption",
+      "impact": "medium"
     }
   ]
 }

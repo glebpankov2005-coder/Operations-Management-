@@ -1,0 +1,10 @@
+Zone,Area m2,% of building
+Receiving & inbound staging,700,9%
+Offices & amenities,300,4%
+Returns / VAS,300,4%
+Double-deep reserve (A/B),3505,47%
+Selective + cantilever (irregular/XLONG/C),728,10%
+Forward-pick module (carton-flow/shelving),400,5%
+Packing & consolidation,700,9%
+Outbound staging & shipping,300,4%
+Circulation / aisles,560,7%

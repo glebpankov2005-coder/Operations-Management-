@@ -1,0 +1,9 @@
+Process,Driver/day (avg),Unit,Rate/h,Hours (avg),Hours (peak),FTE avg,FTE peak,FTE (ceil peak)
+Receiving (unload+check),32.0,pallets,25,1.3,3.6,0.17,0.48,1
+Putaway (reach),32.0,pallets,20,1.6,4.5,0.21,0.6,1
+Replenishment,22.0,pallets,18,1.2,3.5,0.16,0.47,1
+Case picking,521.0,lines,80,6.5,11.9,0.87,1.59,2
+Each picking,102.0,lines,55,1.9,3.4,0.25,0.45,1
+Full-pallet picking,17.0,pallets,22,0.8,1.4,0.1,0.18,1
+Packing/consolidation,623.0,lines,45,13.9,25.3,1.85,3.38,4
+Shipping/loading,18.0,pallets,30,0.6,1.7,0.08,0.22,1

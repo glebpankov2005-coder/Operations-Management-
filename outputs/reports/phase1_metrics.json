@@ -458,5 +458,219 @@
         "space_driven": 4.85
       }
     }
+  },
+  "capacity_plan": {
+    "measured": {
+      "outbound_pallets_day": 17.7,
+      "inbound_pallets_day": 31.7,
+      "net_growth_loads_day": 14.0,
+      "replen_pallets_day": 22.3,
+      "lines_case_day": 521.0,
+      "lines_each_day": 102.0
+    },
+    "assumptions_productivity": {
+      "Receiving (unload+check)": {
+        "unit": "pallets",
+        "rate_per_h": 25
+      },
+      "Putaway (reach)": {
+        "unit": "pallets",
+        "rate_per_h": 20
+      },
+      "Replenishment": {
+        "unit": "pallets",
+        "rate_per_h": 18
+      },
+      "Case picking": {
+        "unit": "lines",
+        "rate_per_h": 80
+      },
+      "Each picking": {
+        "unit": "lines",
+        "rate_per_h": 55
+      },
+      "Full-pallet picking": {
+        "unit": "pallets",
+        "rate_per_h": 22
+      },
+      "Packing/consolidation": {
+        "unit": "lines",
+        "rate_per_h": 45
+      },
+      "Shipping/loading": {
+        "unit": "pallets",
+        "rate_per_h": 30
+      }
+    },
+    "net_hours_per_fte": 7.5,
+    "mhe_util": 0.8,
+    "total_fte_avg": 3.7,
+    "total_fte_peak": 7.4,
+    "total_fte_ceil_peak": 12,
+    "labour_table": [
+      {
+        "Process": "Receiving (unload+check)",
+        "Driver/day (avg)": 32.0,
+        "Unit": "pallets",
+        "Rate/h": 25,
+        "Hours (avg)": 1.3,
+        "Hours (peak)": 3.6,
+        "FTE avg": 0.17,
+        "FTE peak": 0.48,
+        "FTE (ceil peak)": 1
+      },
+      {
+        "Process": "Putaway (reach)",
+        "Driver/day (avg)": 32.0,
+        "Unit": "pallets",
+        "Rate/h": 20,
+        "Hours (avg)": 1.6,
+        "Hours (peak)": 4.5,
+        "FTE avg": 0.21,
+        "FTE peak": 0.6,
+        "FTE (ceil peak)": 1
+      },
+      {
+        "Process": "Replenishment",
+        "Driver/day (avg)": 22.0,
+        "Unit": "pallets",
+        "Rate/h": 18,
+        "Hours (avg)": 1.2,
+        "Hours (peak)": 3.5,
+        "FTE avg": 0.16,
+        "FTE peak": 0.47,
+        "FTE (ceil peak)": 1
+      },
+      {
+        "Process": "Case picking",
+        "Driver/day (avg)": 521.0,
+        "Unit": "lines",
+        "Rate/h": 80,
+        "Hours (avg)": 6.5,
+        "Hours (peak)": 11.9,
+        "FTE avg": 0.87,
+        "FTE peak": 1.59,
+        "FTE (ceil peak)": 2
+      },
+      {
+        "Process": "Each picking",
+        "Driver/day (avg)": 102.0,
+        "Unit": "lines",
+        "Rate/h": 55,
+        "Hours (avg)": 1.9,
+        "Hours (peak)": 3.4,
+        "FTE avg": 0.25,
+        "FTE peak": 0.45,
+        "FTE (ceil peak)": 1
+      },
+      {
+        "Process": "Full-pallet picking",
+        "Driver/day (avg)": 17.0,
+        "Unit": "pallets",
+        "Rate/h": 22,
+        "Hours (avg)": 0.8,
+        "Hours (peak)": 1.4,
+        "FTE avg": 0.1,
+        "FTE peak": 0.18,
+        "FTE (ceil peak)": 1
+      },
+      {
+        "Process": "Packing/consolidation",
+        "Driver/day (avg)": 623.0,
+        "Unit": "lines",
+        "Rate/h": 45,
+        "Hours (avg)": 13.9,
+        "Hours (peak)": 25.3,
+        "FTE avg": 1.85,
+        "FTE peak": 3.38,
+        "FTE (ceil peak)": 4
+      },
+      {
+        "Process": "Shipping/loading",
+        "Driver/day (avg)": 18.0,
+        "Unit": "pallets",
+        "Rate/h": 30,
+        "Hours (avg)": 0.6,
+        "Hours (peak)": 1.7,
+        "FTE avg": 0.08,
+        "FTE peak": 0.22,
+        "FTE (ceil peak)": 1
+      }
+    ],
+    "mhe_table": [
+      {
+        "Equipment": "Reach truck (putaway/replen/pallet pick)",
+        "Peak equip-hours/day": 9.4,
+        "Units (peak)": 2
+      },
+      {
+        "Equipment": "Low-level order picker (case/each)",
+        "Peak equip-hours/day": 15.3,
+        "Units (peak)": 3
+      },
+      {
+        "Equipment": "Pallet truck (receiving/shipping)",
+        "Peak equip-hours/day": 5.3,
+        "Units (peak)": 1
+      }
+    ]
+  },
+  "layout": {
+    "building_L_m": 108.2,
+    "building_depth_m": 70.0,
+    "total_area_m2": 7493,
+    "pct_of_7000": 107.0,
+    "positions_capacity": 14074,
+    "positions_target": 14074,
+    "fits_7000": false,
+    "zones": [
+      {
+        "Zone": "Receiving & inbound staging",
+        "Area m2": 700,
+        "% of building": "9%"
+      },
+      {
+        "Zone": "Offices & amenities",
+        "Area m2": 300,
+        "% of building": "4%"
+      },
+      {
+        "Zone": "Returns / VAS",
+        "Area m2": 300,
+        "% of building": "4%"
+      },
+      {
+        "Zone": "Double-deep reserve (A/B)",
+        "Area m2": 3505,
+        "% of building": "47%"
+      },
+      {
+        "Zone": "Selective + cantilever (irregular/XLONG/C)",
+        "Area m2": 728,
+        "% of building": "10%"
+      },
+      {
+        "Zone": "Forward-pick module (carton-flow/shelving)",
+        "Area m2": 400,
+        "% of building": "5%"
+      },
+      {
+        "Zone": "Packing & consolidation",
+        "Area m2": 700,
+        "% of building": "9%"
+      },
+      {
+        "Zone": "Outbound staging & shipping",
+        "Area m2": 300,
+        "% of building": "4%"
+      },
+      {
+        "Zone": "Circulation / aisles",
+        "Area m2": 560,
+        "% of building": "7%"
+      }
+    ],
+    "dd_area_m2": 3505,
+    "sel_area_m2": 728
   }
 }
