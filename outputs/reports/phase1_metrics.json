@@ -616,57 +616,57 @@
     ]
   },
   "layout": {
-    "building_L_m": 108.2,
+    "building_L_m": 93.4,
     "building_depth_m": 70.0,
-    "total_area_m2": 7493,
-    "pct_of_7000": 107.0,
+    "total_area_m2": 6541,
+    "pct_of_7000": 93.0,
     "positions_capacity": 14074,
     "positions_target": 14074,
-    "fits_7000": false,
+    "fits_7000": true,
     "zones": [
       {
         "Zone": "Receiving & inbound staging",
-        "Area m2": 700,
-        "% of building": "9%"
+        "Area m2": 262,
+        "% of building": "4%"
       },
       {
         "Zone": "Offices & amenities",
-        "Area m2": 300,
+        "Area m2": 250,
         "% of building": "4%"
       },
       {
         "Zone": "Returns / VAS",
-        "Area m2": 300,
-        "% of building": "4%"
+        "Area m2": 180,
+        "% of building": "3%"
       },
       {
         "Zone": "Double-deep reserve (A/B)",
         "Area m2": 3505,
-        "% of building": "47%"
+        "% of building": "54%"
       },
       {
         "Zone": "Selective + cantilever (irregular/XLONG/C)",
         "Area m2": 728,
-        "% of building": "10%"
+        "% of building": "11%"
       },
       {
         "Zone": "Forward-pick module (carton-flow/shelving)",
-        "Area m2": 400,
-        "% of building": "5%"
+        "Area m2": 500,
+        "% of building": "8%"
       },
       {
         "Zone": "Packing & consolidation",
-        "Area m2": 700,
-        "% of building": "9%"
+        "Area m2": 450,
+        "% of building": "7%"
       },
       {
         "Zone": "Outbound staging & shipping",
-        "Area m2": 300,
-        "% of building": "4%"
+        "Area m2": 216,
+        "% of building": "3%"
       },
       {
         "Zone": "Circulation / aisles",
-        "Area m2": 560,
+        "Area m2": 450,
         "% of building": "7%"
       }
     ],

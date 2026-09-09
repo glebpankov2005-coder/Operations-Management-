@@ -161,11 +161,14 @@ table(["Zone", "Area m²", "% of building"],
 para(f"**Total floor area {lay['total_area_m2']:,} m² = {lay['pct_of_7000']:.0f}% of a 7,000 m² envelope.**",
      bold=True, sa=4)
 bullets([
-    "At the detailed zoning level Option B lands **slightly over 7,000 m² (107%)** once full functional "
-    "areas are included — tighter than the concept-level estimate.",
-    "**Mitigations if 7,000 m² is the binding Assa-only envelope (A008):** (a) raise the double-deep share "
-    "or add an 8th rack level (12.2 m height allows it, subject to truck reach); (b) trim office/returns/"
-    "staging; (c) switch reserve to **VNA (Option C)**, which frees ~2,000 m² and gives real headroom.",
+    "**Working areas are sized from the actual order volume**, not a flat allowance: peak inbound ≈ 90 and "
+    "outbound ≈ 50 palletised loads/day (the operation is parcel-heavy), so receiving/outbound staging are "
+    "compact — receiving 262 m², outbound 216 m², packing 450 m² (parcel put-wall).",
+    f"**The design fits within the envelope: {lay['total_area_m2']:,} m² = {lay['pct_of_7000']:.0f}% of 7,000 m²**, "
+    f"holding ~{lay['positions_capacity']:,} pallet positions (peak 11,015 + 15% growth, at 90% utilisation) "
+    "with ~7% floor buffer.",
+    "**Headroom if demand outgrows this:** add an 8th rack level (12.2 m allows it, subject to truck reach), "
+    "raise the double-deep share, or move reserve to VNA (Option C). Confirm the 7,000 m² scope (A008).",
 ])
 figure("layout_plan.png", "Fig 6. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
 figure("layout_3d.png", "Fig 7. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)

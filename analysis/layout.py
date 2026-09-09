@@ -25,17 +25,30 @@ sel_pos = target_pos * (1 - DD_SHARE)
 dd_area = dd_pos * DD_DENS
 sel_area = sel_pos * SEL_DENS
 
-# ---- functional zones: (name, area m2, 3D height m, colour) ----
+# ---- functional areas sized from ACTUAL ORDER VOLUME (not a flat allowance) ----
+cpm = M["capacity_plan"]["measured"]
+units_peakf = M["peak"]["units"]["peak_over_avg"]          # 2.85x
+inb_peak = cpm["inbound_pallets_day"] * units_peakf         # ~90 pallets on the peak day
+out_peak = cpm["outbound_pallets_day"] * units_peakf        # ~50 palletised (rest parcel)
+PALLET_FLOOR = 1.9                                          # m2 to floor-stage 1 pallet incl access
+RECV_AREA = round(inb_peak * PALLET_FLOOR + 90)             # staging + QC bench
+OUTB_AREA = round(out_peak * PALLET_FLOOR + 120)            # + parcel/cage staging
+PACK_AREA = 450                                            # pack stations + parcel put-wall (peak ~3.4 pack FTE)
+FWD_AREA  = 500                                            # forward-pick faces for fast A/B SKUs
+OFF_AREA  = 250                                            # office + amenities (small team)
+RET_AREA  = 180                                            # returns/VAS (returns are a small fraction of outbound)
+CIRC_AREA = 450                                            # main longitudinal aisles
+
 zones = [
-    ("Receiving &\ninbound staging", 700, 8.0,  "#f4c58a"),
-    ("Offices &\namenities",         300, 4.0,  "#c9c9c9"),
-    ("Returns / VAS",                300, 4.0,  "#e3b7d6"),
+    ("Receiving &\ninbound staging", RECV_AREA, 1.8,  "#f4c58a"),
+    ("Offices &\namenities",         OFF_AREA, 5.0,  "#c9c9c9"),
+    ("Returns / VAS",                RET_AREA, 2.5,  "#e3b7d6"),
     ("Double-deep reserve\n(A/B)",   round(dd_area), 11.5, "#6c8eef"),
     ("Selective + cantilever\n(irregular/XLONG/C)", round(sel_area), 11.5, "#8fa9f2"),
-    ("Forward-pick module\n(carton-flow/shelving)", 400, 4.5, "#9ad0a0"),
-    ("Packing &\nconsolidation",     700, 4.5,  "#f2a6a6"),
-    ("Outbound staging\n& shipping",  300, 8.0,  "#f4c58a"),
-    ("Circulation / aisles",         560, 0.2,  "#eef2fb"),
+    ("Forward-pick module\n(carton-flow/shelving)", FWD_AREA, 3.5, "#9ad0a0"),
+    ("Packing &\nconsolidation",     PACK_AREA, 2.8,  "#f2a6a6"),
+    ("Outbound staging\n& shipping",  OUTB_AREA, 1.8,  "#f4c58a"),
+    ("Circulation / aisles",         CIRC_AREA, 0.2,  "#eef2fb"),
 ]
 total_area = sum(z[1] for z in zones)
 pct_env = total_area / 7000 * 100
@@ -49,18 +62,21 @@ save_table(tbl, "layout_zones.csv")
 DEPTH = 70.0  # building depth (m)
 # three columns: left support | storage core | right pack-ship, with 4 m aisles
 # left column ordered top->bottom so Receiving sits at the BOTTOM, next to its docks
-left = [("Offices &\namenities", 300, "#c9c9c9"),
-        ("Returns / VAS", 300, "#e3b7d6"),
-        ("Receiving &\ninbound staging", 700, "#f4c58a")]
+left = [("Offices &\namenities", OFF_AREA, "#c9c9c9"),
+        ("Returns / VAS", RET_AREA, "#e3b7d6"),
+        ("Receiving &\ninbound staging", RECV_AREA, "#f4c58a")]
 core = [("Double-deep reserve (A/B)", round(dd_area), "#6c8eef"),
         ("Selective + cantilever", round(sel_area), "#8fa9f2"),
-        ("Forward-pick module", 400, "#9ad0a0")]
-right = [("Packing &\nconsolidation", 700, "#f2a6a6"),
-         ("Outbound staging\n& shipping", 300, "#f4c58a")]
+        ("Forward-pick module", FWD_AREA, "#9ad0a0")]
+right = [("Packing &\nconsolidation", PACK_AREA, "#f2a6a6"),
+         ("Outbound staging\n& shipping", OUTB_AREA, "#f4c58a")]
 
-left_w, right_w, aisle = 20.0, 14.0, 4.0
-core_area = sum(a for _, a, _ in core)
-core_w = core_area / DEPTH
+# column widths derived from their content so each column fills the depth with no wasted space;
+# the two aisles carry the circulation area -> building outline == summed zone area (honest footprint)
+aisle = CIRC_AREA / (2 * DEPTH)
+left_w = sum(a for _, a, _ in left) / DEPTH
+right_w = sum(a for _, a, _ in right) / DEPTH
+core_w = sum(a for _, a, _ in core) / DEPTH
 L = left_w + aisle + core_w + aisle + right_w
 
 from matplotlib.patches import Polygon as MplPolygon, FancyArrowPatch

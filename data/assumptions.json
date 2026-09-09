@@ -116,12 +116,12 @@
     },
     {
       "id": "A013",
-      "assumption": "Non-storage area share of building",
-      "value": "35",
-      "unit": "% of floor",
-      "reason": "Receiving, staging, pick, pack, ship, offices and circulation allowance in the footprint check",
-      "source": "Planning assumption - to refine in Phase 5 layout",
-      "impact": "medium"
+      "assumption": "Functional (non-storage) areas sized from actual order volume",
+      "value": "receiving 262, outbound 216, packing 450, forward-pick 500, offices 250, returns 180, circulation 450 m2",
+      "unit": "m2",
+      "reason": "Superseded the earlier flat 35% allowance. Sized from measured peak throughput (inbound ~90 & outbound ~50 palletised loads/day; parcel-heavy) at 1.9 m2/pallet floor-stage + benches. Detailed layout total = 6,541 m2 = 93% of 7,000 -> the design FITS with ~7% buffer.",
+      "source": "Derived (layout.py) from measured throughput; factors are planning assumptions",
+      "impact": "high"
     },
     {
       "id": "A014",
