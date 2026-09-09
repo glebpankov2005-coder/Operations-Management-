@@ -191,6 +191,81 @@ ax.text(min(xs), max(ys) + 4, "Reserve racking uses ≈ 11.5 m of the 12.2 m cle
 fig.savefig(os.path.join(FIGS, "layout_3d.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
+# ============================ 2D WORKER-MOVEMENT MODEL ============================
+fig, ax = plt.subplots(figsize=(12.5, 7.6))
+ax.set_xlim(-3, L + 3); ax.set_ylim(-8, DEPTH + 6); ax.set_aspect("equal"); ax.axis("off")
+ax.set_title("Option B — worker movement (zone picking)\n"
+             "Each picker works a defined zone → short, non-crossing travel; reach trucks shuttle putaway & replenishment",
+             fontsize=12, weight="bold")
+
+Z = {}
+def stack_bg(x0, w, items, top=DEPTH):
+    y = top
+    for name, area, col in items:
+        h = area / w
+        ax.add_patch(Rectangle((x0, y - h), w, h, facecolor=col, edgecolor="white", lw=1.2, alpha=0.45))
+        ax.text(x0 + w/2, y - h/2, name.replace("\n", " "), ha="center", va="center",
+                fontsize=7.5, color="#33415a", alpha=0.9)
+        Z[name] = (x0, x0 + w, y - h, y)
+        y -= h
+stack_bg(0, left_w, left)
+stack_bg(left_w + aisle, core_w, core)
+stack_bg(left_w + aisle + core_w + aisle, right_w, right)
+for dx in np.arange(2, L, 8):
+    ax.add_patch(Rectangle((dx, -1.4), 2.4, 1.4, facecolor="#33415a", edgecolor="none"))
+ax.text(left_w/2, -3.6, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
+ax.text(L - right_w/2, -3.6, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
+
+def serpentine(x0, x1, y0, y1, n):
+    lanes = np.linspace(x0 + 2, x1 - 2, n)
+    pts = []
+    for i, xl in enumerate(lanes):
+        pts += [(xl, y0 + 2), (xl, y1 - 2)] if i % 2 == 0 else [(xl, y1 - 2), (xl, y0 + 2)]
+    return pts
+
+def wpath(pts, color, lw=2.0):
+    xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
+    ax.plot(xs, ys, color=color, lw=lw, alpha=0.9, zorder=6, solid_capstyle="round")
+    ax.scatter([xs[0]], [ys[0]], s=34, color=color, edgecolor="white", lw=1, zorder=7)  # start
+    for i in range(1, len(pts), max(1, len(pts)//4)):
+        ax.annotate("", xy=pts[i], xytext=pts[i-1],
+                    arrowprops=dict(arrowstyle="-|>", color=color, lw=lw))
+
+cx0 = left_w + aisle; cx1 = cx0 + core_w; cmid = (cx0 + cx1) / 2
+dd0, dd1 = Z["Double-deep reserve (A/B)"][2], Z["Double-deep reserve (A/B)"][3]
+sel0 = Z["Selective + cantilever"][2]
+fp0 = Z["Forward-pick module"][2]
+recv = Z["Receiving &\ninbound staging"]; pack = Z["Packing &\nconsolidation"]; shipz = Z["Outbound staging\n& shipping"]
+
+RTRUCK, PICK_A, PICK_B, DISPATCH = "#2f855a", "#d40011", "#6b21a8", "#b45309"
+# reach truck: putaway from receiving into reserve + replenishment shuttles reserve->forward
+wpath([(recv[0]+ (recv[1]-recv[0])/2, recv[2]+3), (cx0+6, dd0+6), (cx0+6, dd1-4),
+       (cmid, dd1-4), (cmid, dd0+4)], RTRUCK, lw=2.4)
+for xr in (cx0+10, cmid, cx1-10):
+    wpath([(xr, dd0), (xr, fp0+3)], RTRUCK, lw=1.6)
+# picker zone A - forward-pick + selective (fast movers), serpentine across full width
+wpath(serpentine(cx0, cx1, fp0, sel0 + (dd0-sel0)*0.0 + (Z["Selective + cantilever"][3]-fp0), 6), PICK_A, lw=2.2)
+# picker zone B (left reserve) and B' (right reserve) - two zoned pickers, same colour
+wpath(serpentine(cx0, cmid-1, dd0, dd1, 5), PICK_B, lw=2.2)
+wpath(serpentine(cmid+1, cx1, dd0, dd1, 5), PICK_B, lw=2.2)
+# dispatch handler: pack <-> outbound staging <-> ship dock
+wpath([(pack[0]+(pack[1]-pack[0])/2, pack[3]-4), (pack[0]+(pack[1]-pack[0])/2, shipz[3]-2),
+       (shipz[0]+(shipz[1]-shipz[0])/2, shipz[2]+3), (shipz[0]+(shipz[1]-shipz[0])/2, -1.2)], DISPATCH, lw=2.2)
+
+handles = [
+    Line2D([0], [0], color=RTRUCK, lw=3, label="Reach truck — putaway & replenishment"),
+    Line2D([0], [0], color=PICK_A, lw=3, label="Picker zone A — forward/fast pick"),
+    Line2D([0], [0], color=PICK_B, lw=3, label="Pickers zone B — reserve (left & right)"),
+    Line2D([0], [0], color=DISPATCH, lw=3, label="Pack & dispatch handler"),
+]
+ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.12), ncol=2,
+          fontsize=8.5, frameon=False)
+ax.scatter([], [])
+fig.text(0.5, 0.02, "● = start of route.  Zoning keeps picker paths short and separated; "
+         "long-goods (cantilever) served by the reserve reach truck.", ha="center", fontsize=8, color="#555", style="italic")
+fig.savefig(os.path.join(FIGS, "layout_worker_flow.png"), dpi=115, bbox_inches="tight")
+plt.close(fig)
+
 update_metrics("layout", {
     "building_L_m": round(L, 1), "building_depth_m": DEPTH,
     "total_area_m2": total_area, "pct_of_7000": round(pct_env, 0),

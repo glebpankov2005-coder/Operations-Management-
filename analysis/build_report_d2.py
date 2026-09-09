@@ -156,8 +156,9 @@ bullets([
     "or add an 8th rack level (12.2 m height allows it, subject to truck reach); (b) trim office/returns/"
     "staging; (c) switch reserve to **VNA (Option C)**, which frees ~2,000 m² and gives real headroom.",
 ])
-figure("layout_plan.png", "Fig 5. Option B layout & zoning, to scale, with material flow.", 16)
-figure("layout_3d.png", "Fig 6. Option B 3D massing — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
+figure("layout_plan.png", "Fig 5. Option B layout & zoning, to scale, with order flow (①inbound→⑥ship).", 16)
+figure("layout_3d.png", "Fig 6. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
+figure("layout_worker_flow.png", "Fig 7. Worker movement — zone picking keeps picker paths short and separated.", 16)
 
 # 5 CAPACITY PLAN
 doc.add_heading("5. Capacity plan — labour & equipment", level=1)
@@ -171,7 +172,7 @@ table(["Process", "Rate/h", "FTE avg", "FTE peak"],
 para(f"**Total direct labour ≈ {cp['total_fte_avg']:.1f} FTE average, {cp['total_fte_peak']:.1f} FTE at peak** "
      f"(≈ {cp['total_fte_ceil_peak']} if each process is staffed separately; cross-training reduces this). "
      f"Add supervision/admin and value-add separately.", bold=True, sa=4)
-figure("capacity_plan_fte.png", "Fig 7. Labour requirement by process (average vs peak).", 14)
+figure("capacity_plan_fte.png", "Fig 8. Labour requirement by process (average vs peak).", 14)
 para("Material-handling equipment (peak):", sa=4)
 table(["Equipment", "Peak equip-hours/day", "Units"],
       [[r["Equipment"], f"{r['Peak equip-hours/day']:.1f}", r["Units (peak)"]] for r in cp["mhe_table"]],
