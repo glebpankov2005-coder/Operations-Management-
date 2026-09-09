@@ -240,30 +240,40 @@ def serp(lanes, lo, hi, axis="v", m=2.6):
         pts += [(c, a), (c, b)] if axis == "v" else [(a, c), (b, c)]
     return pts
 
-def wpath(pts, color, lw=2.6, dashed=False):
+def wpath(pts, color, lw=2.6, min_seg=20):
+    """Draw a route; arrowheads are centred on LONG travel segments only (never on connectors)."""
     xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
-    ln, = ax.plot(xs, ys, color=color, lw=lw, zorder=6, solid_capstyle="round", solid_joinstyle="round",
-                  linestyle=(0, (5, 3)) if dashed else "-")
-    ln.set_path_effects([pe.Stroke(linewidth=lw + 2.4, foreground="white"), pe.Normal()])
+    ln, = ax.plot(xs, ys, color=color, lw=lw, zorder=6, solid_capstyle="round", solid_joinstyle="round")
+    ln.set_path_effects([pe.Stroke(linewidth=lw + 2.6, foreground="white"), pe.Normal()])
     ax.scatter([xs[0]], [ys[0]], s=48, color=color, edgecolor="white", lw=1.5, zorder=8)  # start ●
-    step = max(1, (len(pts) - 1) // 3)
-    for i in range(step, len(pts), step):
-        ax.annotate("", xy=pts[i], xytext=pts[i - 1], zorder=8,
-                    arrowprops=dict(arrowstyle="-|>", color=color, lw=lw, mutation_scale=15))
+    for (x0, y0), (x1, y1) in zip(pts[:-1], pts[1:]):
+        seg = math.hypot(x1 - x0, y1 - y0)
+        if seg >= min_seg:
+            mx, my = (x0 + x1)/2, (y0 + y1)/2; ux, uy = (x1 - x0)/seg, (y1 - y0)/seg
+            ax.annotate("", xy=(mx + ux*1.6, my + uy*1.6), xytext=(mx - ux*1.6, my - uy*1.6),
+                        zorder=8, arrowprops=dict(arrowstyle="-|>", color=color, lw=lw, mutation_scale=16))
+
+def repl_arrow(x, y_from, y_to, color):
+    """A single clearly-dashed replenishment shuttle with one arrowhead at the end."""
+    ln, = ax.plot([x, x], [y_from, y_to], color=color, lw=2.2, zorder=6,
+                  linestyle=(0, (6, 4)), solid_capstyle="round")
+    ln.set_path_effects([pe.Stroke(linewidth=4.6, foreground="white"), pe.Normal()])
+    ax.annotate("", xy=(x, y_to), xytext=(x, y_to + 3.2), zorder=8,
+                arrowprops=dict(arrowstyle="-|>", color=color, lw=2.2, mutation_scale=15))
 
 Z1, Z2, Z3, RT, DP = "#d97706", "#7c3aed", "#0891b2", "#16a34a", "#dc2626"
-# pickers - each contained in its own zone
-wpath(serp(np.linspace(3.5, fast_top - 3, 3), cx0, cx1, axis="h"), Z1)          # zone 1 fast/forward
+# pickers - each contained in its own zone (arrowheads only on the long travel lanes)
+wpath(serp(np.linspace(3.5, 12.5, 3), cx0, cx1, axis="h"), Z1)                    # zone 1 fast/forward
 wpath(serp(np.linspace(cx0 + 6, cmid - 6, 3), fast_top, res_top, axis="v"), Z2)  # zone 2 reserve-left
 wpath(serp(np.linspace(cmid + 6, cx1 - 6, 3), fast_top, res_top, axis="v"), Z3)  # zone 3 reserve-right
-# reach truck putaway: receiving -> reserve (up the left aisle)
-wpath([( (recv[0]+recv[1])/2, (recv[2]+recv[3])/2 ), (left_w + aisle/2, 40), (cx0 + 5, 60)], RT)
-# replenishment: reserve -> forward pick (short dashed down-shuttles)
-for xr in (cx0 + core_w*0.25, cmid, cx0 + core_w*0.75):
-    wpath([(xr, fast_top + 6), (xr, 4.5)], RT, lw=2.1, dashed=True)
-# dispatch handler: pack -> outbound staging -> ship dock
+# reach truck putaway: receiving -> reserve (single clean diagonal, one arrowhead)
+wpath([((recv[0]+recv[1])/2, (recv[2]+recv[3])/2), (cx0 + 8, 52)], RT, min_seg=10)
+# replenishment: two clearly-dashed shuttles reserve -> forward pick
+repl_arrow(cx0 + core_w*0.36, fast_top + 7, fast_top - 6, RT)
+repl_arrow(cx0 + core_w*0.64, fast_top + 7, fast_top - 6, RT)
+# dispatch handler: pack -> shipping -> dock (single vertical, one arrowhead)
 dcx = (shipz[0] + shipz[1]) / 2
-wpath([((pack[0]+pack[1])/2, pack[3] - 4), (dcx, (shipz[2]+shipz[3])/2), (dcx, -1.4)], DP)
+wpath([(dcx, pack[3] - 4), (dcx, -1.4)], DP, min_seg=10)
 
 # ---- labels (white boxes so they read over tints/lines) ----
 def lbl(x, y, t, fs=8):
