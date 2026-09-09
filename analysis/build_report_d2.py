@@ -187,6 +187,7 @@ rows = [[a["id"], a["assumption"], a["impact"].upper()] for a in ASSUM["assumpti
 table(["ID", "Assumption / open question", "Impact"], rows, widths=[1.5, 11.5, 2.0], arr=2)
 
 footer()
-out = os.path.join(REPORTS, "Deliverable2_FutureState_DRAFT.docx")
+DELIV = os.path.join(BASE, "deliverables"); os.makedirs(DELIV, exist_ok=True)
+out = os.path.join(DELIV, "Deliverable_2_Future_State.docx")
 doc.save(out)
 print("Saved:", out)

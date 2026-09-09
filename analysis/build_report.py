@@ -390,6 +390,7 @@ para("Sources: project brief (client/university) and the Assa Abloy data files. 
 
 page_number_footer()
 
-out = os.path.join(REPORTS, "Deliverable1_Analysis_DRAFT.docx")
+DELIV = os.path.join(BASE, "deliverables"); os.makedirs(DELIV, exist_ok=True)
+out = os.path.join(DELIV, "Deliverable_1_Analysis.docx")
 doc.save(out)
 print("Saved:", out)
