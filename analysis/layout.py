@@ -48,9 +48,10 @@ save_table(tbl, "layout_zones.csv")
 # ============================ 2D PLAN (to scale) ============================
 DEPTH = 70.0  # building depth (m)
 # three columns: left support | storage core | right pack-ship, with 4 m aisles
-left = [("Receiving &\ninbound staging", 700, "#f4c58a"),
-        ("Offices &\namenities", 300, "#c9c9c9"),
-        ("Returns / VAS", 300, "#e3b7d6")]
+# left column ordered top->bottom so Receiving sits at the BOTTOM, next to its docks
+left = [("Offices &\namenities", 300, "#c9c9c9"),
+        ("Returns / VAS", 300, "#e3b7d6"),
+        ("Receiving &\ninbound staging", 700, "#f4c58a")]
 core = [("Double-deep reserve (A/B)", round(dd_area), "#6c8eef"),
         ("Selective + cantilever", round(sel_area), "#8fa9f2"),
         ("Forward-pick module", 400, "#9ad0a0")]
@@ -62,13 +63,19 @@ core_area = sum(a for _, a, _ in core)
 core_w = core_area / DEPTH
 L = left_w + aisle + core_w + aisle + right_w
 
-fig, ax = plt.subplots(figsize=(12, 7.2))
-ax.set_xlim(-2, L + 2); ax.set_ylim(-6, DEPTH + 4); ax.set_aspect("equal"); ax.axis("off")
-ax.set_title(f"Option B — warehouse layout & zoning (to scale)\n"
+from matplotlib.patches import Polygon as MplPolygon, FancyArrowPatch
+from matplotlib.lines import Line2D
+import math
+
+# ============================ 2D PLAN + ORDER FLOW ============================
+fig, ax = plt.subplots(figsize=(12.5, 7.6))
+ax.set_xlim(-3, L + 3); ax.set_ylim(-8, DEPTH + 6); ax.set_aspect("equal"); ax.axis("off")
+ax.set_title(f"Option B — warehouse layout, zoning & order flow (to scale)\n"
              f"Total {total_area:,} m² ({pct_env:.0f}% of 7,000 m² envelope) · "
              f"~{positions_capacity:,} pallet positions · building ≈ {L:.0f} m × {DEPTH:.0f} m",
              fontsize=12, weight="bold")
 
+C = {}  # zone name -> (cx, cy, x0, x1, y0, y1)
 def stack_col(x0, w, items, top=DEPTH):
     y = top
     for name, area, col in items:
@@ -76,67 +83,111 @@ def stack_col(x0, w, items, top=DEPTH):
         ax.add_patch(Rectangle((x0, y - h), w, h, facecolor=col, edgecolor="white", lw=1.5))
         ax.text(x0 + w/2, y - h/2, f"{name}\n{area:,} m²", ha="center", va="center",
                 fontsize=8, weight="bold", color="#12203a")
+        C[name] = (x0 + w/2, y - h/2, x0, x0 + w, y - h, y)
         y -= h
 
 stack_col(0, left_w, left)
 stack_col(left_w + aisle, core_w, core)
 stack_col(left_w + aisle + core_w + aisle, right_w, right)
-# aisles
 for ax0 in (left_w, left_w + aisle + core_w):
     ax.add_patch(Rectangle((ax0, 0), aisle, DEPTH, facecolor="#eef2fb", edgecolor="none", hatch="//", alpha=0.6))
-# dock doors (bottom)
 for dx in np.arange(2, L, 8):
-    ax.add_patch(Rectangle((dx, -1.2), 2.4, 1.2, facecolor="#33415a", edgecolor="none"))
-ax.text(left_w/2, -3.2, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
-ax.text(L - right_w/2, -3.2, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
-# material-flow arrows
-flow = [(left_w/2, 52, left_w + aisle + core_w/2, 52),
-        (left_w + aisle + core_w/2, 20, left_w + aisle + core_w/2, 10),
-        (left_w + aisle + core_w, 8, L - right_w, 8),
-        (L - right_w/2, 40, L - right_w/2, 18)]
-for x0, y0, x1, y1 in flow:
-    ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
-                arrowprops=dict(arrowstyle="-|>", color="#d40011", lw=2.2, alpha=0.8))
-ax.text(L/2, DEPTH + 2, "Material flow: Receive → Store → Forward-pick → Pack → Ship",
-        ha="center", fontsize=9, color="#d40011", style="italic")
+    ax.add_patch(Rectangle((dx, -1.4), 2.4, 1.4, facecolor="#33415a", edgecolor="none"))
+ax.text(left_w/2, -3.6, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
+ax.text(L - right_w/2, -3.6, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
+
+recv, off, ret = C["Receiving &\ninbound staging"], C["Offices &\namenities"], C["Returns / VAS"]
+dd, sel, fp = C["Double-deep reserve (A/B)"], C["Selective + cantilever"], C["Forward-pick module"]
+pack, ship = C["Packing &\nconsolidation"], C["Outbound staging\n& shipping"]
+
+def arrow(p0, p1, color, ls="-", rad=0.0, lw=2.6):
+    ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=18, color=color,
+                                 lw=lw, linestyle=ls, connectionstyle=f"arc3,rad={rad}", zorder=6))
+
+def step(p, n):
+    ax.text(p[0], p[1], str(n), ha="center", va="center", fontsize=8.5, weight="bold",
+            color="white", zorder=7,
+            bbox=dict(boxstyle="circle,pad=0.25", fc="#12203a", ec="white", lw=1))
+
+BLUE, GREEN, REDD = "#2b6cb0", "#2f855a", "#d40011"
+# 1 inbound at dock -> receiving
+arrow((recv[0], -1.2), (recv[0], recv[4] + 3), BLUE); step((recv[0], recv[4] - 2), 1)
+# 2 putaway: receiving -> double-deep reserve
+arrow((recv[3], recv[1]), (dd[2] + 6, dd[1]), BLUE, rad=-0.15); step(((recv[3]+dd[2])/2, dd[1] + 4), 2)
+# 3 replenishment: reserve -> forward pick (dashed green)
+arrow((dd[0], dd[4]), (fp[0], fp[1] + 1.2), GREEN, ls=(0, (5, 3)), rad=0.0); step((dd[0] + 8, (dd[4]+fp[5])/2), 3)
+# 4 order pick: forward-pick -> packing  (+ full-pallet from reserve, thin)
+arrow((fp[3], fp[1]), (pack[0], pack[1] - 6), REDD, rad=-0.2); step(((fp[3]+pack[0])/2, fp[1] + 2), 4)
+arrow((dd[3], dd[1] - 8), (pack[2] - 1, pack[1] + 4), REDD, ls=(0, (2, 2)), rad=-0.25, lw=1.6)
+# 5 pack -> outbound staging -> ship out
+arrow((pack[0], pack[4]), (ship[0], ship[5] - 1), REDD); step((pack[0], (pack[4]+ship[5])/2), 5)
+arrow((ship[0], ship[4] + 2), (ship[0], -1.4), REDD); step((ship[0], ship[4] - 1), 6)
+
+handles = [
+    Line2D([0], [0], color=BLUE, lw=3, label="1–2  Inbound & putaway"),
+    Line2D([0], [0], color=GREEN, lw=3, ls="--", label="3  Replenishment (reserve→forward)"),
+    Line2D([0], [0], color=REDD, lw=3, label="4–6  Order flow: pick → pack → ship"),
+]
+ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.10), ncol=3,
+          fontsize=8.5, frameon=False)
 fig.savefig(os.path.join(FIGS, "layout_plan.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
-# ============================ 3D MASSING ============================
-fig = plt.figure(figsize=(11, 7))
-ax = fig.add_subplot(111, projection="3d")
-def box(x, y, dx, dy, dz, color):
-    xx = [x, x+dx]; yy = [y, y+dy]; zz = [0, dz]
-    verts = [
-        [(xx[0],yy[0],zz[0]),(xx[1],yy[0],zz[0]),(xx[1],yy[1],zz[0]),(xx[0],yy[1],zz[0])],
-        [(xx[0],yy[0],zz[1]),(xx[1],yy[0],zz[1]),(xx[1],yy[1],zz[1]),(xx[0],yy[1],zz[1])],
-        [(xx[0],yy[0],zz[0]),(xx[1],yy[0],zz[0]),(xx[1],yy[0],zz[1]),(xx[0],yy[0],zz[1])],
-        [(xx[0],yy[1],zz[0]),(xx[1],yy[1],zz[0]),(xx[1],yy[1],zz[1]),(xx[0],yy[1],zz[1])],
-        [(xx[0],yy[0],zz[0]),(xx[0],yy[1],zz[0]),(xx[0],yy[1],zz[1]),(xx[0],yy[0],zz[1])],
-        [(xx[1],yy[0],zz[0]),(xx[1],yy[1],zz[0]),(xx[1],yy[1],zz[1]),(xx[1],yy[0],zz[1])],
-    ]
-    pc = Poly3DCollection(verts, facecolor=color, edgecolor="#33415a", linewidths=0.5, alpha=1.0)
-    pc.set_sort_zpos(y + dy / 2)   # hint depth-sort by the block's own position
-    ax.add_collection3d(pc)
+# ============================ 3D MASSING (manual isometric, painter-ordered) ============================
+EZ = 3.6  # vertical exaggeration so heights are legible next to the 100 m footprint
+def iso(x, y, z):
+    a = math.radians(30)
+    return (x - y) * math.cos(a), (x + y) * math.sin(a) + z * EZ
 
-# place same columns in 3D with heights; GAP separates blocks so tall/short zones read cleanly
+def shade(hexcol, f):
+    h = hexcol.lstrip("#"); r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return "#%02x%02x%02x" % tuple(max(0, min(255, int(c * f))) for c in (r, g, b))
+
 GAP = 2.0
-def place(x0, w, items, heights):
+boxes = []  # (x0, y0, dx, dy, dz, color, name)
+def add_col(x0, w, items, heights):
     y = DEPTH
     for (name, area, col), h in zip(items, heights):
         dy = area / w
-        box(x0, y - dy + GAP / 2, w, max(dy - GAP, 1.0), h, col)
+        boxes.append((x0, y - dy + GAP/2, w, max(dy - GAP, 1.0), h, col, name.replace("\n", " ")))
         y -= dy
+add_col(0, left_w, left, [5.0, 2.5, 1.8])   # offices, returns, receiving(low, dock-adjacent)
+add_col(left_w + aisle, core_w, core, [11.5, 10.5, 3.5])
+add_col(left_w + aisle + core_w + aisle, right_w, right, [2.8, 1.8])
 
-# heights reflect real use: racking is tall; floor operations are low
-place(0, left_w, left, [1.8, 5.0, 2.5])            # receiving(low), offices(2-storey), returns
-place(left_w + aisle, core_w, core, [11.5, 10.5, 3.5])  # double-deep, selective+cantilever, forward-pick
-place(left_w + aisle + core_w + aisle, right_w, right, [2.8, 1.8])  # packing(benches), shipping staging(low)
-ax.set_xlim(0, L); ax.set_ylim(0, DEPTH); ax.set_zlim(0, 12.2)
-ax.set_box_aspect((L, DEPTH, 20))
-ax.set_xlabel("length (m)"); ax.set_ylabel("depth (m)"); ax.set_zlabel("height (m)")
-ax.set_title("Option B — 3D massing (max height 12.2 m; reserve racks ≈ 11.5 m)", fontsize=12, weight="bold")
-ax.view_init(elev=32, azim=-72)
+fig, ax = plt.subplots(figsize=(13, 7.6)); ax.set_aspect("equal"); ax.axis("off")
+ax.set_title("Option B — 3D massing (isometric; max height 12.2 m, reserve racks ≈ 11.5 m)",
+             fontsize=12, weight="bold")
+pts = []
+# floor slab (drawn first, farthest)
+floor = [iso(0, 0, 0), iso(L, 0, 0), iso(L, DEPTH, 0), iso(0, DEPTH, 0)]
+ax.add_patch(MplPolygon(floor, closed=True, facecolor="#f3f5fa", edgecolor="#cdd6ea", lw=1)); pts += floor
+
+def draw_box(b):
+    x0, y0, dx, dy, dz, col, name = b
+    x1, y1 = x0 + dx, y0 + dy
+    A, B, D_, Ap, Bp, Cp, Dp = iso(x0,y0,0), iso(x1,y0,0), iso(x0,y1,0), \
+        iso(x0,y0,dz), iso(x1,y0,dz), iso(x1,y1,dz), iso(x0,y1,dz)
+    left_face  = [A, D_, Dp, Ap]           # x = x0
+    front_face = [A, B, Bp, Ap]            # y = y0
+    top_face   = [Ap, Bp, Cp, Dp]
+    ax.add_patch(MplPolygon(left_face,  closed=True, facecolor=shade(col, 0.72), edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon(front_face, closed=True, facecolor=shade(col, 0.88), edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon(top_face,   closed=True, facecolor=col,               edgecolor="#33415a", lw=0.6))
+    for p in (A, B, D_, Ap, Bp, Cp, Dp): pts.append(p)
+    tc = iso(x0 + dx/2, y0 + dy/2, dz)
+    if dz >= 3:   # label only blocks tall enough to read
+        ax.text(tc[0], tc[1], name, ha="center", va="center", fontsize=7, weight="bold", color="#12203a")
+
+# paint far -> near (largest x+y first)
+for b in sorted(boxes, key=lambda bb: (bb[0]+bb[2]/2) + (bb[1]+bb[3]/2), reverse=True):
+    draw_box(b)
+
+xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
+ax.set_xlim(min(xs) - 5, max(xs) + 5); ax.set_ylim(min(ys) - 5, max(ys) + 8)
+# height reference
+ax.text(min(xs), max(ys) + 4, "Reserve racking uses ≈ 11.5 m of the 12.2 m clear height; "
+        "floor operations (receiving, pack, ship) are low.", fontsize=8, color="#555", style="italic")
 fig.savefig(os.path.join(FIGS, "layout_3d.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
