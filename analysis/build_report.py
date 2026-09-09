@@ -21,6 +21,7 @@ FIGS = os.path.join(BASE, "outputs", "figures")
 DATA = os.path.join(BASE, "data")
 
 M = json.load(open(os.path.join(REPORTS, "phase1_metrics.json"), encoding="utf-8"))
+M2 = M  # capacity + decision sections are written into the same metrics file by _util
 ASSUM = json.load(open(os.path.join(DATA, "assumptions.json"), encoding="utf-8"))
 
 RED = RGBColor(0xD4, 0x00, 0x11)      # DHL red accent
@@ -122,13 +123,13 @@ table(["Field", "Detail"], [
     ["Site constraints", "≤ 7,000 m² footprint · ≤ 12.2 m height"],
     ["Scope", "Receiving · Storage · Picking · Shipping (end-to-end)"],
     ["Author", "________________________"],
-    ["Version", "DRAFT — analysis portion (design options / equipment to follow)"],
+    ["Version", "DRAFT — analysis, design options, policies & recommendation"],
 ], widths=[4.5, 11])
 
-para("This is a working draft covering the data-analysis portion of Deliverable 1. "
-     "The design-choice pre-selection, policy substantiation and equipment selection "
-     "(also part of Deliverable 1) are added as those work phases complete. "
-     "All figures are measured from the provided Assa Abloy data; nothing is fabricated.",
+para("This draft covers Deliverable 1 end-to-end: data analysis, storage-capacity feasibility, three "
+     "design options, policy pre-selection, equipment, and a recommended concept with a decision matrix. "
+     "All figures are measured from the provided Assa Abloy data or computed by the analysis scripts; "
+     "nothing is fabricated, and open assumptions are listed in Section 13.",
      size=9, color=GREY, italic=True, space_after=6)
 doc.add_page_break()
 
@@ -296,8 +297,87 @@ bullets([
     f"~{p['peak_hour']:02d}:00 intraday peak.",
 ])
 
-# ============================ 10. ASSUMPTIONS ============================
-doc.add_heading("10. Assumptions & open questions", level=1)
+# ============================ 10. CAPACITY FEASIBILITY ============================
+doc.add_heading("10. Storage capacity feasibility", level=1)
+cap = M2["capacity"]
+para(f"Design target: peak {cap['peak_loads']:,} concurrent loads × 1.15 growth/safety buffer ÷ 0.90 "
+     f"target utilisation = **~{cap['design_positions_target']:,} pallet positions**. Measured pallet+load "
+     f"height is low (p90 {cap['measured']['pa_hgt_p90_cm']:.0f} cm), giving a {cap['level_pitch_m']} m level "
+     f"pitch and up to {cap['base_levels_height_limited']} levels under 12.2 m.")
+para("Bottom-up floor area needed to hold that target, by storage concept:")
+caprows = []
+for c in cap["concepts"]:
+    caprows.append([c["concept"].split(" (")[0], c["mhe"], str(c["levels"]),
+                    f"{c['total_area_m2 (incl 35% non-storage)']:,}", f"{c['% of 7,000 m2']:.0f}%", c["fits_7000"]])
+table(["Concept", "MHE", "Levels", "Total area m² *", "% of 7,000 m²", "Fits?"], caprows,
+      widths=[4.0, 3.3, 1.5, 2.6, 2.4, 1.8])
+para("* includes a 35% allowance for receiving, staging, pick, pack, ship, offices and circulation.",
+     size=8.5, color=GREY, italic=True)
+bullets([
+    "**Conventional wide-aisle racking does not fit** (144% of the envelope); drive-in is also too "
+    "space-hungry given the many single-load SKUs.",
+    "**Double-deep (91%) and VNA (72%) fit comfortably**; narrow-aisle single-deep is borderline (107%).",
+    "→ Higher-density storage is required, not optional — this shapes the options below.",
+])
+figure("capacity_concepts.png", "Fig 7. Floor area to hold the position target, by concept, vs the 7,000 m² envelope.", 14)
+
+# ============================ 11. DESIGN OPTIONS ============================
+doc.add_heading("11. Design options", level=1)
+para("Three end-to-end options (storage × picking × MHE × policies), each aligned across the four processes.")
+
+doc.add_heading("Option A — Conventional+ (improve the current concept)", level=2)
+bullets([
+    "**Storage:** selective single-deep, narrow-aisle (reach), 7 levels; two-zone ABC. ~7,500 m² (borderline).",
+    "**Picking:** RF-directed discrete + simple batch; case pick from pick-face; pallet from reserve.",
+    "**MHE:** reach trucks, low-level order pickers, pallet trucks, RF scanners.",
+    "**Verdict:** cheapest and simplest, but only just fits, with the highest travel and labour.",
+])
+doc.add_heading("Option B — Hybrid density + velocity slotting + zone/batch picking  (recommended)", level=2)
+bullets([
+    "**Storage:** double-deep reach racking for A/B reserve + selective single-deep for irregular SKUs + a "
+    "forward-pick module (carton-flow / shelving) for fast case/each; cantilever for XLONG goods. ~6,000–6,400 m².",
+    "**Picking:** zone + batch/wave picking (batches the 50% single-line orders); A-movers in a golden-zone "
+    "forward pick; voice/RF; put-to-light consolidation at pack.",
+    "**MHE:** deep-reach trucks, order pickers, pallet trucks, voice/RF, print-and-apply.",
+    "**Policies:** velocity (demand-ABC) slotting, hybrid random-within-zone storage, min/max replenishment, "
+    "FIFO via FIF DATE where relevant.",
+    "**Verdict:** fits with buffer, materially lower travel/labour than A, moderate CAPEX — strongest business case.",
+])
+doc.add_heading("Option C — High-density / semi-automated", level=2)
+bullets([
+    "**Storage:** VNA (man-up turret) for reserve + automated small-parts store (shuttle/AutoStore-style) for "
+    "the large C each-pick tail. ~5,000 m².",
+    "**Picking:** goods-to-person / pick-to-light for smalls; VNA combined storage+pick; automated sortation.",
+    "**MHE:** VNA turret trucks + guidance, automation modules, minimal manual MHE.",
+    "**Verdict:** densest and lowest labour, but highest CAPEX and complexity; ROI depends on labour cost.",
+])
+
+# ============================ 12. DECISION MATRIX ============================
+doc.add_heading("12. Decision matrix & recommendation", level=1)
+dec = M2["decision"]
+wt = dec["weighted_totals"]
+order = dec["ranking"]
+table(["Option", "Weighted score (max 5)", "Result"],
+      [[o, f"{wt[o]:.2f}", "RECOMMENDED" if o == dec["winner"] else ("Strong alternative" if wt[o] >= 3.5 else "Baseline")]
+       for o in order], widths=[6.0, 4.5, 4.5])
+para("Weight-sensitivity (robustness):", space_after=4)
+sens = dec["sensitivity"]
+table(["Option", "Base", "Cost-driven", "Space-driven"],
+      [[o, f"{sens[o]['base']:.2f}", f"{sens[o]['cost_driven']:.2f}", f"{sens[o]['space_driven']:.2f}"] for o in order],
+      widths=[6.0, 3.0, 3.0, 3.0])
+figure("decision_matrix.png", "Fig 8. Weighted decision-matrix scores.", 12)
+bullets([
+    f"**Recommended: {dec['winner']}.** It wins on base and cost-driven weightings; C overtakes only when "
+    "space is the dominant criterion — likely if A008 resolves to a small Assa-only envelope.",
+    "**Why (data):** double-deep fits at 91% where wide-aisle (144%) does not; 83% of lifts are case picking "
+    "and 50% of orders single-line → batch/zone picking is the biggest labour lever; 48.6% ABC mismatch → "
+    "velocity slotting is a cheap, high-value win; 73% single-load tail → dense reserve + fast forward pick.",
+    "**Conditions before locking:** confirm the 7,000 m² scope (A008); obtain labour/equipment costs (A006) to "
+    "confirm B vs C in the financial model; validate double-deep against the EURO/K3/XLONG pallet mix.",
+])
+
+# ============================ 13. ASSUMPTIONS ============================
+doc.add_heading("13. Assumptions & open questions", level=1)
 para("Logged in data/assumptions.json. Items that materially affect the design:")
 rows = [[a_["id"], a_["assumption"], a_["impact"].upper()]
         for a_ in ASSUM["assumptions"] if a_["impact"] == "high"]
