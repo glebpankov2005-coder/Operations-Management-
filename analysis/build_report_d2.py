@@ -125,6 +125,17 @@ bullets([
     "**Policy applied:** put-to-light consolidation of multi-zone picks; pack sized to peak (labour bottleneck); parcel-heavy outbound (~18 palletised shipments/day).",
 ])
 figure("flow_pack_ship.png", "Fig 4. Consolidation, packing & shipping flow.", 12)
+doc.add_heading("2.5 Returns (reverse logistics)", level=2)
+bullets([
+    "**Steps:** customer return arrives → receive & scan (RMA) at receiving docks → inspect & grade at "
+    "Returns/VAS → sellable? restock : reworkable? rework (VAS) & restock : scrap / return-to-vendor → "
+    "update inventory & credit.",
+    "**Policy applied:** returns re-enter via the same velocity-based putaway; graded stock rejoins reserve, "
+    "scrap/RTV leaves the building. A small share of outbound orders also route through VAS before packing.",
+    "**Order-flow map:** steps 7–9 (purple) in Fig 6 show returns in → grade → restock/scrap; the grey dashed "
+    "line shows cross-dock for the 855 SKUs shipped but never stocked.",
+])
+figure("flow_returns.png", "Fig 5. Returns / reverse-logistics flow.", 12)
 
 # 3 POLICIES
 doc.add_heading("3. Warehouse policies", level=1)
@@ -156,9 +167,9 @@ bullets([
     "or add an 8th rack level (12.2 m height allows it, subject to truck reach); (b) trim office/returns/"
     "staging; (c) switch reserve to **VNA (Option C)**, which frees ~2,000 m² and gives real headroom.",
 ])
-figure("layout_plan.png", "Fig 5. Option B layout & zoning, to scale, with order flow (①inbound→⑥ship).", 16)
-figure("layout_3d.png", "Fig 6. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
-figure("layout_worker_flow.png", "Fig 7. Worker movement — zone picking keeps picker paths short and separated.", 16)
+figure("layout_plan.png", "Fig 6. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
+figure("layout_3d.png", "Fig 7. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
+figure("layout_worker_flow.png", "Fig 8. Worker movement — zone picking keeps picker paths short and separated.", 16)
 
 # 5 CAPACITY PLAN
 doc.add_heading("5. Capacity plan — labour & equipment", level=1)
@@ -172,7 +183,7 @@ table(["Process", "Rate/h", "FTE avg", "FTE peak"],
 para(f"**Total direct labour ≈ {cp['total_fte_avg']:.1f} FTE average, {cp['total_fte_peak']:.1f} FTE at peak** "
      f"(≈ {cp['total_fte_ceil_peak']} if each process is staffed separately; cross-training reduces this). "
      f"Add supervision/admin and value-add separately.", bold=True, sa=4)
-figure("capacity_plan_fte.png", "Fig 8. Labour requirement by process (average vs peak).", 14)
+figure("capacity_plan_fte.png", "Fig 9. Labour requirement by process (average vs peak).", 14)
 para("Material-handling equipment (peak):", sa=4)
 table(["Equipment", "Peak equip-hours/day", "Units"],
       [[r["Equipment"], f"{r['Peak equip-hours/day']:.1f}", r["Units (peak)"]] for r in cp["mhe_table"]],

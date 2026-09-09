@@ -98,4 +98,16 @@ draw_flow("Consolidation, Packing & Shipping", [
     {"kind": "end", "text": "Order shipped (on-time)"},
 ], "flow_pack_ship.png")
 
+# 5) RETURNS (reverse logistics)
+draw_flow("Returns  (reverse logistics)", [
+    {"kind": "start", "text": "Customer return arrives (carrier)"},
+    {"kind": "process", "text": "Receive & scan return (RMA)", "note": "at receiving docks; log in WMS"},
+    {"kind": "process", "text": "Inspect & grade at Returns/VAS"},
+    {"kind": "decision", "text": "Sellable as-is?", "note": "yes -> restock"},
+    {"kind": "decision", "text": "Reworkable (VAS)?", "note": "no -> scrap / return-to-vendor"},
+    {"kind": "process", "text": "Rework / repack (VAS)"},
+    {"kind": "process", "text": "Putaway back to stock", "note": "velocity-based, same as inbound"},
+    {"kind": "end", "text": "Inventory & credit updated"},
+], "flow_returns.png")
+
 print("all flowcharts done")

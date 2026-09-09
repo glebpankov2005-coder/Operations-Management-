@@ -123,13 +123,29 @@ arrow((dd[3], dd[1] - 8), (pack[2] - 1, pack[1] + 4), REDD, ls=(0, (2, 2)), rad=
 arrow((pack[0], pack[4]), (ship[0], ship[5] - 1), REDD); step((pack[0], (pack[4]+ship[5])/2), 5)
 arrow((ship[0], ship[4] + 2), (ship[0], -1.4), REDD); step((ship[0], ship[4] - 1), 6)
 
+# ---- reverse logistics (returns) ----
+PURPLE, GREY = "#7c3aed", "#64748b"
+# 7 returns arrive at receiving docks -> Returns/VAS (inspect & grade)
+arrow((recv[0] - 5, recv[1] + 4), (ret[0] - 5, ret[4] + 2), PURPLE); step((ret[0] - 5, ret[4] - 3), 7)
+# 8 restock good returns -> reserve storage
+arrow((ret[3], ret[1] + 2), (dd[2] + 6, dd[1] + 10), PURPLE, rad=-0.15); step(((ret[3]+dd[2])/2, dd[1] + 13), 8)
+# 9 scrap / return-to-vendor -> out
+arrow((ret[2], ret[1] - 4), (-1.8, ret[1] - 4), PURPLE, ls=(0, (4, 3)), lw=1.8); step((ret[2] - 6, ret[1] - 4), 9)
+ax.text(-1.8, ret[1] - 7, "scrap / RTV", ha="left", fontsize=7, color=PURPLE, style="italic")
+# cross-dock: receiving -> outbound staging direct, routed near the top (855 SKUs shipped, never stocked)
+arrow((recv[3], 64), (ship[2], 64), GREY, ls=(0, (2, 2)), rad=-0.10, lw=1.6)
+ax.text((recv[3]+ship[2])/2, 67, "cross-dock (855 SKUs shipped, never stocked)",
+        ha="center", fontsize=7, color=GREY, style="italic")
+
 handles = [
     Line2D([0], [0], color=BLUE, lw=3, label="1–2  Inbound & putaway"),
     Line2D([0], [0], color=GREEN, lw=3, ls="--", label="3  Replenishment (reserve→forward)"),
     Line2D([0], [0], color=REDD, lw=3, label="4–6  Order flow: pick → pack → ship"),
+    Line2D([0], [0], color=PURPLE, lw=3, label="7–9  Returns: in → grade → restock / scrap"),
+    Line2D([0], [0], color=GREY, lw=2, ls=":", label="Cross-dock (bypasses storage)"),
 ]
-ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.10), ncol=3,
-          fontsize=8.5, frameon=False)
+ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.12), ncol=3,
+          fontsize=8.3, frameon=False)
 fig.savefig(os.path.join(FIGS, "layout_plan.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
