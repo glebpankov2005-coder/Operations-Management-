@@ -218,8 +218,9 @@ bullets([
     f"Pick effort (lifts): case/list **{o['pick_method_lifts']['list_case']:,}** vs each "
     f"{o['pick_method_lifts']['trolley_each']:,} vs pallet {o['pick_method_lifts']['pallet']:,} → "
     f"**case picking is the dominant labour driver (~83% of lifts).**",
-    f"Delivery lead time (order received → dispatched): median **{lt['median']} h (~{lt['median']/24:.1f} days)**, "
-    f"p90 {lt['p90']} h.",
+    f"Delivery lead time (order received → dispatched): **average {lt['mean']} h (~{lt['mean']/24:.1f} days)**, "
+    f"median {lt['median']} h (~{lt['median']/24:.1f} days), p90 {lt['p90']} h. Right-skewed (mean > median), "
+    f"so the typical order is nearer the median; measured as TRAILER DISPATCED DATE − ORDER ARRIVE DATE.",
     f"Channel mix (order type): " + ", ".join(f"{k} {v:,}" for k, v in list(o['order_type_mix'].items())[:5]) + ".",
     f"Geography: " + ", ".join(f"{k} {v:,}" for k, v in list(o['country_mix'].items())[:5]) +
     " — an NL hub serving Western Europe.",
