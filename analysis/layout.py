@@ -117,40 +117,44 @@ dd, sel, fp = C["Double-deep reserve (A/B)"], C["Selective + cantilever"], C["Fo
 pack, ship = C["Packing &\nconsolidation"], C["Outbound staging\n& shipping"]
 
 def arrow(p0, p1, color, ls="-", rad=0.0, lw=2.6):
-    ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=18, color=color,
+    ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=16, color=color,
                                  lw=lw, linestyle=ls, connectionstyle=f"arc3,rad={rad}", zorder=6))
 
-def step(p, n):
-    ax.text(p[0], p[1], str(n), ha="center", va="center", fontsize=8.5, weight="bold",
-            color="white", zorder=7,
-            bbox=dict(boxstyle="circle,pad=0.25", fc="#12203a", ec="white", lw=1))
+def badge(x, y, n, color):
+    ax.scatter([x], [y], s=170, color="white", edgecolor=color, lw=1.9, zorder=8)
+    ax.text(x, y, str(n), ha="center", va="center", fontsize=8, weight="bold", color=color, zorder=9)
 
-BLUE, GREEN, REDD = "#2b6cb0", "#2f855a", "#d40011"
+BLUE, GREEN, REDD, PURPLE, GREY = "#2b6cb0", "#2f855a", "#d40011", "#7c3aed", "#64748b"
+la = left_w + aisle/2                     # left aisle centre (clear channel for badges)
+ra = left_w + aisle + core_w + aisle/2    # right aisle centre
+
+# --- forward flow (1-6) ---
 # 1 inbound at dock -> receiving
-arrow((recv[0], -1.2), (recv[0], recv[4] + 3), BLUE); step((recv[0], recv[4] - 2), 1)
-# 2 putaway: receiving -> double-deep reserve
-arrow((recv[3], recv[1]), (dd[2] + 6, dd[1]), BLUE, rad=-0.15); step(((recv[3]+dd[2])/2, dd[1] + 4), 2)
-# 3 replenishment: reserve -> forward pick (dashed green)
-arrow((dd[0], dd[4]), (fp[0], fp[1] + 1.2), GREEN, ls=(0, (5, 3)), rad=0.0); step((dd[0] + 8, (dd[4]+fp[5])/2), 3)
-# 4 order pick: forward-pick -> packing  (+ full-pallet from reserve, thin)
-arrow((fp[3], fp[1]), (pack[0], pack[1] - 6), REDD, rad=-0.2); step(((fp[3]+pack[0])/2, fp[1] + 2), 4)
-arrow((dd[3], dd[1] - 8), (pack[2] - 1, pack[1] + 4), REDD, ls=(0, (2, 2)), rad=-0.25, lw=1.6)
-# 5 pack -> outbound staging -> ship out
-arrow((pack[0], pack[4]), (ship[0], ship[5] - 1), REDD); step((pack[0], (pack[4]+ship[5])/2), 5)
-arrow((ship[0], ship[4] + 2), (ship[0], -1.4), REDD); step((ship[0], ship[4] - 1), 6)
+arrow((recv[0], -1.3), (recv[0], recv[4] + 7), BLUE); badge(recv[0], recv[4] + 4.5, 1, BLUE)
+# 2 putaway: receiving -> reserve (enters reserve LOW; badge sits in the left aisle)
+arrow((recv[3], recv[5] - 4), (dd[2] + 11, dd[4] + 8), BLUE, rad=-0.18); badge(la, dd[4] + 6, 2, BLUE)
+# 3 replenishment: reserve -> forward pick (offset LEFT of the selective label)
+rx = dd[0] - core_w * 0.18
+arrow((rx, dd[4]), (rx, fp[1] + 1.5), GREEN, ls=(0, (5, 3))); badge(rx, sel[1], 3, GREEN)
+# 4 pick: forward-pick -> packing (via right aisle)
+arrow((fp[3], fp[1]), (pack[2], pack[1]), REDD, rad=-0.18); badge(ra, fp[5] + 6, 4, REDD)
+# 5 pack -> outbound staging (down the right column)
+arrow((pack[0], pack[4] + 2), (ship[0], ship[5] - 2), REDD); badge(ra, ship[5] + 5, 5, REDD)
+# 6 ship out at dock
+arrow((ship[0], ship[4] + 6), (ship[0], -1.3), REDD); badge(ra, ship[4] + 5, 6, REDD)
 
-# ---- reverse logistics (returns) ----
-PURPLE, GREY = "#7c3aed", "#64748b"
-# 7 returns arrive at receiving docks -> Returns/VAS (inspect & grade)
-arrow((recv[0] - 5, recv[1] + 4), (ret[0] - 5, ret[4] + 2), PURPLE); step((ret[0] - 5, ret[4] - 3), 7)
-# 8 restock good returns -> reserve storage
-arrow((ret[3], ret[1] + 2), (dd[2] + 6, dd[1] + 10), PURPLE, rad=-0.15); step(((ret[3]+dd[2])/2, dd[1] + 13), 8)
+# --- reverse logistics (7-9) ---
+# 7 returns arrive -> Returns/VAS
+arrow((recv[0], recv[5] - 2), (ret[0], ret[4] + 3), PURPLE); badge(recv[0] + 3.2, ret[4] + 1.5, 7, PURPLE)
+# 8 restock good returns -> reserve (enters reserve HIGH; well separated from putaway 2)
+arrow((ret[3], ret[1] + 1), (dd[2] + 11, ret[1] + 13), PURPLE, rad=-0.15); badge(la, ret[1] + 11, 8, PURPLE)
 # 9 scrap / return-to-vendor -> out
-arrow((ret[2], ret[1] - 4), (-1.8, ret[1] - 4), PURPLE, ls=(0, (4, 3)), lw=1.8); step((ret[2] - 6, ret[1] - 4), 9)
-ax.text(-1.8, ret[1] - 7, "scrap / RTV", ha="left", fontsize=7, color=PURPLE, style="italic")
-# cross-dock: receiving -> outbound staging direct, routed near the top (855 SKUs shipped, never stocked)
-arrow((recv[3], 64), (ship[2], 64), GREY, ls=(0, (2, 2)), rad=-0.10, lw=1.6)
-ax.text((recv[3]+ship[2])/2, 67, "cross-dock (855 SKUs shipped, never stocked)",
+arrow((ret[2] + 1, ret[5] - 3), (-1.8, ret[5] - 3), PURPLE, ls=(0, (4, 3)), lw=1.8); badge(ret[0] - 1.2, ret[5] - 3, 9, PURPLE)
+ax.text(-2.4, ret[5] - 7, "scrap /\nRTV", ha="left", fontsize=6.8, color=PURPLE, style="italic")
+
+# cross-dock (bypasses storage) - dashed arc near the top; caption ABOVE it, clear of the line
+arrow((recv[3], 63), (ship[2], 63), GREY, ls=(0, (2, 2)), rad=-0.10, lw=1.6)
+ax.text((recv[3] + ship[2]) / 2, DEPTH + 2, "cross-dock — bypasses storage (855 SKUs shipped, never stocked)",
         ha="center", fontsize=7, color=GREY, style="italic")
 
 handles = [
