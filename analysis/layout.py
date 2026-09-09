@@ -128,11 +128,12 @@ def place(x0, w, items, heights):
         box(x0, y - dy + GAP / 2, w, max(dy - GAP, 1.0), h, col)
         y -= dy
 
-place(0, left_w, left, [8.0, 4.0, 4.0])
-place(left_w + aisle, core_w, core, [11.5, 11.5, 4.5])
-place(left_w + aisle + core_w + aisle, right_w, right, [4.5, 8.0])
+# heights reflect real use: racking is tall; floor operations are low
+place(0, left_w, left, [1.8, 5.0, 2.5])            # receiving(low), offices(2-storey), returns
+place(left_w + aisle, core_w, core, [11.5, 10.5, 3.5])  # double-deep, selective+cantilever, forward-pick
+place(left_w + aisle + core_w + aisle, right_w, right, [2.8, 1.8])  # packing(benches), shipping staging(low)
 ax.set_xlim(0, L); ax.set_ylim(0, DEPTH); ax.set_zlim(0, 12.2)
-ax.set_box_aspect((L, DEPTH, 26))
+ax.set_box_aspect((L, DEPTH, 20))
 ax.set_xlabel("length (m)"); ax.set_ylabel("depth (m)"); ax.set_zlabel("height (m)")
 ax.set_title("Option B — 3D massing (max height 12.2 m; reserve racks ≈ 11.5 m)", fontsize=12, weight="bold")
 ax.view_init(elev=32, azim=-72)
