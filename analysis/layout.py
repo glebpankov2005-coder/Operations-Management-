@@ -115,25 +115,27 @@ def box(x, y, dx, dy, dz, color):
         [(xx[0],yy[0],zz[0]),(xx[0],yy[1],zz[0]),(xx[0],yy[1],zz[1]),(xx[0],yy[0],zz[1])],
         [(xx[1],yy[0],zz[0]),(xx[1],yy[1],zz[0]),(xx[1],yy[1],zz[1]),(xx[1],yy[0],zz[1])],
     ]
-    pc = Poly3DCollection(verts, facecolor=color, edgecolor="#33415a", linewidths=0.4, alpha=0.92)
+    pc = Poly3DCollection(verts, facecolor=color, edgecolor="#33415a", linewidths=0.5, alpha=1.0)
+    pc.set_sort_zpos(y + dy / 2)   # hint depth-sort by the block's own position
     ax.add_collection3d(pc)
 
-# place same columns in 3D with heights
+# place same columns in 3D with heights; GAP separates blocks so tall/short zones read cleanly
+GAP = 2.0
 def place(x0, w, items, heights):
     y = DEPTH
     for (name, area, col), h in zip(items, heights):
         dy = area / w
-        box(x0, y - dy, w, dy, h, col)
+        box(x0, y - dy + GAP / 2, w, max(dy - GAP, 1.0), h, col)
         y -= dy
 
 place(0, left_w, left, [8.0, 4.0, 4.0])
 place(left_w + aisle, core_w, core, [11.5, 11.5, 4.5])
 place(left_w + aisle + core_w + aisle, right_w, right, [4.5, 8.0])
 ax.set_xlim(0, L); ax.set_ylim(0, DEPTH); ax.set_zlim(0, 12.2)
-ax.set_box_aspect((L, DEPTH, 22))
+ax.set_box_aspect((L, DEPTH, 26))
 ax.set_xlabel("length (m)"); ax.set_ylabel("depth (m)"); ax.set_zlabel("height (m)")
-ax.set_title(f"Option B — 3D massing (max height 12.2 m; reserve racks ≈ 11.5 m)", fontsize=12, weight="bold")
-ax.view_init(elev=28, azim=-58)
+ax.set_title("Option B — 3D massing (max height 12.2 m; reserve racks ≈ 11.5 m)", fontsize=12, weight="bold")
+ax.view_init(elev=32, azim=-72)
 fig.savefig(os.path.join(FIGS, "layout_3d.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
