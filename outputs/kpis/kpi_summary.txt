@@ -1,0 +1,19 @@
+ASSA ABLOY @ DHL BEMMEL (NL_0032) - WAREHOUSE KPI SUMMARY (Q2 2025)
+==============================================================
+INVENTORY
+  Active SKUs .................. 5,291   (families: 11)
+  Peak pallet positions ....... 11,015   (+8.2%/quarter)
+  Single-load SKUs ............ 72.7%   (slow tail)
+  Total cube (avg) ............ 3,441 m3
+DEMAND / ORDERS
+  Order lines (Q2) ............ 39,069   over 61 days
+  Orders (Q2) ................. 8,781
+  Lines/order (mean/median) ... 4.45 / 1   (50.5% single-line)
+  Pick mix (lines) ............ case/list 60.8% | each 16.0% | pallet 2.6%
+  Delivery lead time .......... avg 78.3h / median 52.4h
+THROUGHPUT (per day)
+  Order lines ................. avg 640 | PEAK 1171 (1.83x, 2025-05-27)
+  Units ....................... avg 22269 | PEAK 63469 (2.85x)
+ABC (demand-based)
+  A / B / C SKUs .............. 565 / 858 / 2,931
+  Top 5% SKUs = 58.9% of volume; WMS-ABC agreement 48.6%
