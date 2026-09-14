@@ -133,6 +133,15 @@
       "impact": "high"
     },
     {
+      "id": "A017",
+      "assumption": "Peak-aware slotting: spread fast movers, duplicate extreme SKUs, balance picks/aisle on peak forecast",
+      "value": "A-class 60% of picks -> ~20%/zone if spread across 3 zones; duplicate top ~43 SKUs (15% of picks)",
+      "unit": "-",
+      "reason": "During peak, congestion (not walk distance) dominates; clustering fast movers in one golden zone jams it. Spread + duplicate + balance on peak-day pick frequency; validate by 150/200/250% simulation.",
+      "source": "Gadeyne 'How to slot a warehouse during peak season' (S003) + measured pick concentration (peak_slotting.py)",
+      "impact": "high"
+    },
+    {
       "id": "A015",
       "assumption": "Shift & equipment parameters",
       "value": "7.5 productive h/FTE/shift; 80% MHE utilisation; single main shift",

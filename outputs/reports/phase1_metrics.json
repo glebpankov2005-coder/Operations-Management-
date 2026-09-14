@@ -672,5 +672,37 @@
     ],
     "dd_area_m2": 3505,
     "sel_area_m2": 728
+  },
+  "peak_slotting": {
+    "peak_day": "2025-05-27",
+    "peak_day_lines": 1171,
+    "pick_concentration": {
+      "top_0.5pct_SKUs_share_of_picks": 8.9,
+      "top_1pct_SKUs_share_of_picks": 15.0,
+      "top_2pct_SKUs_share_of_picks": 23.6,
+      "top_5pct_SKUs_share_of_picks": 39.0,
+      "top_10pct_SKUs_share_of_picks": 53.9
+    },
+    "extreme_top1pct_skus": 43,
+    "extreme_top1pct_share_picks": 15.0,
+    "A_class_share_picks": 60.0,
+    "A_class_share_if_spread_3_zones": 20.0,
+    "duplicate_face_candidates": [
+      "A000493031",
+      "A000493807",
+      "A000493806",
+      "A000408925",
+      "9125502533",
+      "A000401594",
+      "10013881",
+      "10013726",
+      "9126994531",
+      "9126404533",
+      "A000303327",
+      "A000455436",
+      "A000460919",
+      "9282809030",
+      "10027505"
+    ]
   }
 }

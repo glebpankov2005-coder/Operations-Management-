@@ -33,7 +33,7 @@ Phase 2 capacity model (`analysis/capacity.py`, `outputs/reports/phase2_metrics.
 ## OPTION B — "Hybrid density + velocity slotting + zone/batch picking"  ⭐ recommended candidate
 *Balances space, labour and cost — strongest business case.*
 - **Storage:** **double-deep** reach racking for A/B pallet reserve (dense, 91% of envelope) + a slice of selective single-deep for irregular/low-rotation SKUs + a dedicated **forward-pick module** (carton-flow + shelving/light mezzanine) for fast case/each SKUs. XLONG goods on cantilever.
-- **Picking:** **zone + batch/wave picking**. Batch the 50% single-line / 24% single-unit orders into multi-order picks (big labour win); wave by carrier cut-off; A-movers in a golden-zone forward pick near dispatch. Pick-to-cart / **voice or RF**; put-to-light sort at pack.
+- **Picking:** **zone + batch/wave picking**. Batch the 50% single-line / 24% single-unit orders into multi-order picks (big labour win); wave by carrier cut-off; **fast movers spread across pick zones and extreme SKUs duplicated** (peak-aware, congestion-first slotting — not clustered in one golden zone; see §Peak slotting). Pick-to-cart / **voice or RF**; put-to-light sort at pack.
 - **MHE:** reach trucks (deep-reach), LLOPs / order pickers, pallet trucks, voice/RF, print-and-apply at pack.
 - **Policies:** **velocity-based (demand-ABC) slotting** — fixes the 48.6% mismatch; hybrid random-within-zone storage; family/affinity grouping; min/max replenishment; FIFO via `FIF DATE` where relevant.
 - **WHAT/WHY/HOW/IMPACT:** density where it pays (A/B reserve), selectivity where needed, and a forward-pick that cuts travel for the case-heavy workload. *Impact:* fits with buffer, materially lower travel/labour than A, moderate CAPEX.

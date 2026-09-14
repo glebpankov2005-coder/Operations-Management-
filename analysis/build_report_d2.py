@@ -141,7 +141,7 @@ figure("flow_returns.png", "Fig 5. Returns / reverse-logistics flow.", 12)
 doc.add_heading("3. Warehouse policies", level=1)
 table(["Policy", "Decision", "Why (data)"], [
     ["Storage", "Hybrid: random within velocity zones; fixed forward-pick faces + random reserve", "73% single-load tail; 48.6% ABC mismatch"],
-    ["Slotting", "Velocity/demand-ABC (hot/med/cold); A in golden zone; heavy low", "13% of SKUs = 80% of volume"],
+    ["Slotting", "Velocity/demand-ABC (hot/med/cold); fast movers SPREAD across zones + extreme SKUs duplicated (not clustered); heavy low", "13% SKUs=80% vol; A=60% of picks (congestion, S003)"],
     ["Zoning", "Forward-pick vs reserve; pick zones by area", "case-dominant picking (83% of lifts)"],
     ["Batching", "Batch single-line/single-unit orders; wave by carrier cut-off", "50% single-line, 24% single-unit"],
     ["Routing", "S-shape / return within aisles", "reduce travel in reserve"],
@@ -149,6 +149,27 @@ table(["Policy", "Decision", "Why (data)"], [
     ["Replenishment", "Min/max forward-pick top-up", "keep pick faces filled at peak"],
     ["FIFO/FEFO", "FIFO via FIF DATE where relevant", "stock age present; most parts not date-critical (confirm)"],
 ], widths=[3.0, 7.5, 5.5], arr=3)
+
+ps = M.get("peak_slotting", {})
+doc.add_heading("3.1 Peak-season slotting (congestion control)", level=2)
+para("At peak, congestion — not walk distance — becomes the dominant cost (Gadeyne, S003). Because our peak "
+     "is spiky (1.83× lines / 2.85× units) and picks are concentrated, a standard 'cluster the fast movers in "
+     "one golden zone' slotting would jam a single area. We therefore adopt peak-aware slotting:")
+bullets([
+    f"**Picks are concentrated:** the top 1% of SKUs (~{ps.get('extreme_top1pct_skus','43')}) do "
+    f"~{ps.get('extreme_top1pct_share_picks','15')}% of all picks, and A-class SKUs ~"
+    f"{ps.get('A_class_share_picks','60')}% of picks.",
+    f"**Spread fast movers across all pick zones** (balanced on peak-day pick frequency, not annual velocity): "
+    f"clustering A in one zone loads it with ~{ps.get('A_class_share_picks','60')}% of picks; spreading across "
+    f"3 zones drops it to ~{ps.get('A_class_share_if_spread_3_zones','20')}% each — roughly a 3× congestion cut.",
+    f"**Duplicate the extreme SKUs** (~{ps.get('extreme_top1pct_skus','43')} items) with multiple pick faces in "
+    "different zones to enable parallel picking; insert gaps between hot locations.",
+    "**Re-check affinity groups** so commonly co-ordered items don't re-concentrate picks in one aisle.",
+    "**Levers in priority order** (S003): slotting (before peak) → order batching/clustering → wave-release "
+    "timing → pick-path sequencing.",
+    "**Validate by simulation** at 150% / 200% / 250% of normal volume (Deliverable 3) to confirm whether "
+    "congestion or pick density governs staffing at peak.",
+])
 
 # 4 LAYOUT & ZONING (3D)
 doc.add_heading("4. Layout & zoning (3-dimensional)", level=1)
