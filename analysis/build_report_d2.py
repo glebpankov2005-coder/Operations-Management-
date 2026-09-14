@@ -195,7 +195,7 @@ bullets([
 ])
 figure("layout_floorplan.png", "Fig 7. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
 figure("layout_plan.png", "Fig 8. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
-figure("layout_3d.png", "Fig 9. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
+figure("layout_3d_render.png", "Fig 9. Option B — warehouse 3D (Blender render): rack rows, forward-pick, zones, docks.", 16)
 figure("layout_worker_flow.png", "Fig 10. Worker movement — zone picking keeps picker paths short and separated.", 16)
 
 # 5 CAPACITY PLAN
