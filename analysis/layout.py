@@ -272,33 +272,39 @@ pts = []
 floor = [iso(0, 0, 0), iso(L, 0, 0), iso(L, DEPTH, 0), iso(0, DEPTH, 0)]
 ax.add_patch(MplPolygon(floor, closed=True, facecolor="#f3f5fa", edgecolor="#cdd6ea", lw=1)); pts += floor
 
-def draw_box(b):
+# collect every FACE (and rack beam-line) with its own depth key (y), then paint
+# strictly back->front. Per-face (not per-box) ordering is what prevents the deep
+# side columns and the deep rack rows from wrongly overpainting each other.
+prims, labels = [], []
+def add_box(b):
     x0, y0, dx, dy, dz, col, name, rack = b
     x1, y1 = x0 + dx, y0 + dy
-    # cabinet oblique (y recedes up-left) visible faces: TOP (z=dz), LEFT (x=x0), FRONT (y=y0)
     top  = [iso(x0,y0,dz), iso(x1,y0,dz), iso(x1,y1,dz), iso(x0,y1,dz)]
     left = [iso(x0,y0,0),  iso(x0,y1,0),  iso(x0,y1,dz), iso(x0,y0,dz)]
     front = [iso(x0,y0,0), iso(x1,y0,0),  iso(x1,y0,dz), iso(x0,y0,dz)]
-    ax.add_patch(MplPolygon(top,   closed=True, facecolor=shade(col, 1.06), edgecolor="#33415a", lw=0.6))
-    ax.add_patch(MplPolygon(left,  closed=True, facecolor=shade(col, 0.72), edgecolor="#33415a", lw=0.6))
-    ax.add_patch(MplPolygon(front, closed=True, facecolor=shade(col, 0.90), edgecolor="#33415a", lw=0.6))
+    prims.append((y1,             "poly", top,   shade(col, 1.06)))   # top: farthest edge
+    prims.append(((y0+y1)/2,      "poly", left,  shade(col, 0.72)))   # left side
+    prims.append((y0,             "poly", front, shade(col, 0.90)))   # front: nearest
     for f in (top, left, front):
         pts.extend(f)
-    if rack:                              # beam levels on the front + left faces
+    if rack:
         for k in range(1, 6):
             zz = dz * k / 6
-            f1, f2 = iso(x0, y0, zz), iso(x1, y0, zz)          # front face (y=y0)
-            l1, l2 = iso(x0, y0, zz), iso(x0, y1, zz)          # left face (x=x0)
-            ax.plot([f1[0], f2[0]], [f1[1], f2[1]], color="#3b4a63", lw=0.35, alpha=0.5)
-            ax.plot([l1[0], l2[0]], [l1[1], l2[1]], color="#3b4a63", lw=0.35, alpha=0.4)
+            prims.append((y0 - 0.02, "line", iso(x0,y0,zz), iso(x1,y0,zz)))          # front beams
+            prims.append(((y0+y1)/2 - 0.02, "line", iso(x0,y0,zz), iso(x0,y1,zz)))   # left beams
     if name and dz >= 3:
-        tc = iso(x0 + dx/2, y0, dz)       # label on the front-top edge
-        ax.text(tc[0], tc[1] + 0.6, name, ha="center", va="bottom", fontsize=7, weight="bold", color="#12203a")
+        labels.append((iso(x0 + dx/2, y0, dz), name))
 
-# paint far -> near: depth is distance from the front (docks at y=0), so sort by y-centre
-# descending (back rows first, forward-pick module last so it is never overpainted)
-for b in sorted(boxes, key=lambda bb: (bb[1] + bb[3]/2, bb[0] + bb[2]/2), reverse=True):
-    draw_box(b)
+for b in boxes:
+    add_box(b)
+for rec in sorted(prims, key=lambda r: r[0], reverse=True):
+    if rec[1] == "poly":
+        ax.add_patch(MplPolygon(rec[2], closed=True, facecolor=rec[3], edgecolor="#33415a", lw=0.6))
+    else:
+        (p1, p2) = rec[2], rec[3]
+        ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color="#3b4a63", lw=0.35, alpha=0.5)
+for pos, txt in labels:
+    ax.text(pos[0], pos[1] + 0.6, txt, ha="center", va="bottom", fontsize=7, weight="bold", color="#12203a", zorder=40)
 
 def cap(x, y, z, t, col="#12203a"):
     p = iso(x, y, z)
