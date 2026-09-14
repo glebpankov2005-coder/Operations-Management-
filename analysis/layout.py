@@ -289,8 +289,9 @@ def draw_box(b):
         tc = iso(x0 + dx/2, y0 + dy/2, dz)
         ax.text(tc[0], tc[1], name, ha="center", va="center", fontsize=7, weight="bold", color="#12203a")
 
-# paint far -> near (largest x+y first)
-for b in sorted(boxes, key=lambda bb: (bb[0]+bb[2]/2) + (bb[1]+bb[3]/2), reverse=True):
+# paint far -> near: depth is distance from the front (docks at y=0), so sort by y-centre
+# descending (back rows first, forward-pick module last so it is never overpainted)
+for b in sorted(boxes, key=lambda bb: (bb[1] + bb[3]/2, bb[0] + bb[2]/2), reverse=True):
     draw_box(b)
 
 def cap(x, y, z, t, col="#12203a"):
