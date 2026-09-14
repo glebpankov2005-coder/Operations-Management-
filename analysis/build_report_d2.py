@@ -102,29 +102,31 @@ para("Option B was selected via the Deliverable-1 decision matrix (robust across
 # 2 FUTURE-STATE PROCESSES
 doc.add_heading("2. Future-state processes", level=1)
 para("Each in-scope process below states the steps, the system transaction, the physical movement, the "
-     "equipment, and where the Deliverable-1 design choices are applied. Flowcharts follow.")
+     "equipment, and where the Deliverable-1 design choices are applied. The swimlane (Fig 1) gives the "
+     "end-to-end overview; per-process flowcharts follow.")
+figure("flow_swimlane.png", "Fig 1. End-to-end future-state process — cross-functional swimlane (all lanes, incl. returns).", 17)
 doc.add_heading("2.1 Receiving & putaway", level=2)
 bullets([
     "**Steps:** trailer arrival → unload & RF-scan (ASN check) → quality/qty check → register stock (LODNUM) → system-directed putaway → reach-truck move → confirm.",
     "**Policy applied:** velocity-based directed putaway (A/B to double-deep reserve near pick faces; C to deep/upper); cantilever for XLONG goods (43 SKUs >240 cm).",
 ])
-figure("flow_receiving_putaway.png", "Fig 1. Receiving & putaway flow.", 12)
+figure("flow_receiving_putaway.png", "Fig 2. Receiving & putaway flow.", 12)
 doc.add_heading("2.2 Replenishment", level=2)
 bullets(["**Steps:** forward face below min → WMS replen task → pull reserve pallet → top-up carton-flow/pick face → confirm.",
          "**Policy applied:** min/max replenishment; FIFO via FIF DATE where relevant."])
-figure("flow_replenishment.png", "Fig 2. Replenishment flow.", 11)
+figure("flow_replenishment.png", "Fig 3. Replenishment flow.", 11)
 doc.add_heading("2.3 Picking (zone + batch / wave)", level=2)
 bullets([
     "**Steps:** orders allocated → wave release by carrier cut-off → route by profile → full-pallet / case (batched) / each pick → to consolidation.",
     "**Policy applied:** batch the 50% single-line orders; A-movers in a golden-zone forward pick; voice/RF direction; zone picking across areas.",
 ])
-figure("flow_picking.png", "Fig 3. Picking flow (zone + batch/wave).", 12)
+figure("flow_picking.png", "Fig 4. Picking flow (zone + batch/wave).", 12)
 doc.add_heading("2.4 Consolidation, packing & shipping", level=2)
 bullets([
     "**Steps:** picked totes/pallets → put-to-light sort by order → pack & print-and-apply → parcel vs pallet → stage by carrier → load & dispatch.",
     "**Policy applied:** put-to-light consolidation of multi-zone picks; pack sized to peak (labour bottleneck); parcel-heavy outbound (~18 palletised shipments/day).",
 ])
-figure("flow_pack_ship.png", "Fig 4. Consolidation, packing & shipping flow.", 12)
+figure("flow_pack_ship.png", "Fig 5. Consolidation, packing & shipping flow.", 12)
 doc.add_heading("2.5 Returns (reverse logistics)", level=2)
 bullets([
     "**Steps:** customer return arrives → receive & scan (RMA) at receiving docks → inspect & grade at "
@@ -132,10 +134,10 @@ bullets([
     "update inventory & credit.",
     "**Policy applied:** returns re-enter via the same velocity-based putaway; graded stock rejoins reserve, "
     "scrap/RTV leaves the building. A small share of outbound orders also route through VAS before packing.",
-    "**Order-flow map:** steps 7–9 (purple) in Fig 6 show returns in → grade → restock/scrap; the grey dashed "
+    "**Order-flow map:** steps 7–9 (purple) in Fig 7 show returns in → grade → restock/scrap; the grey dashed "
     "line shows cross-dock for the 855 SKUs shipped but never stocked.",
 ])
-figure("flow_returns.png", "Fig 5. Returns / reverse-logistics flow.", 12)
+figure("flow_returns.png", "Fig 6. Returns / reverse-logistics flow.", 12)
 
 # 3 POLICIES
 doc.add_heading("3. Warehouse policies", level=1)
@@ -191,9 +193,9 @@ bullets([
     "**Headroom if demand outgrows this:** add an 8th rack level (12.2 m allows it, subject to truck reach), "
     "raise the double-deep share, or move reserve to VNA (Option C). Confirm the 7,000 m² scope (A008).",
 ])
-figure("layout_plan.png", "Fig 6. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
-figure("layout_3d.png", "Fig 7. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
-figure("layout_worker_flow.png", "Fig 8. Worker movement — zone picking keeps picker paths short and separated.", 16)
+figure("layout_plan.png", "Fig 7. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
+figure("layout_3d.png", "Fig 8. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
+figure("layout_worker_flow.png", "Fig 9. Worker movement — zone picking keeps picker paths short and separated.", 16)
 
 # 5 CAPACITY PLAN
 doc.add_heading("5. Capacity plan — labour & equipment", level=1)
@@ -207,7 +209,7 @@ table(["Process", "Rate/h", "FTE avg", "FTE peak"],
 para(f"**Total direct labour ≈ {cp['total_fte_avg']:.1f} FTE average, {cp['total_fte_peak']:.1f} FTE at peak** "
      f"(≈ {cp['total_fte_ceil_peak']} if each process is staffed separately; cross-training reduces this). "
      f"Add supervision/admin and value-add separately.", bold=True, sa=4)
-figure("capacity_plan_fte.png", "Fig 9. Labour requirement by process (average vs peak).", 14)
+figure("capacity_plan_fte.png", "Fig 10. Labour requirement by process (average vs peak).", 14)
 para("Material-handling equipment (peak):", sa=4)
 table(["Equipment", "Peak equip-hours/day", "Units"],
       [[r["Equipment"], f"{r['Peak equip-hours/day']:.1f}", r["Units (peak)"]] for r in cp["mhe_table"]],
