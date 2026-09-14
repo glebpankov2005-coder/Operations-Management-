@@ -92,6 +92,14 @@ para("Future-state design for the recommended Option B (Deliverable 1). Workload
      "validated with DHL. Reproducible from analysis/*.py.", size=9, color=GREY, italic=True)
 doc.add_page_break()
 
+# CONTENTS
+doc.add_heading("Contents", level=1)
+_p = doc.add_paragraph()
+_fld = OxmlElement("w:fldSimple"); _fld.set(qn("w:instr"), 'TOC \\o "1-2" \\h \\z \\u')
+_t = OxmlElement("w:t"); _t.text = "(In Word: right-click → Update Field to build the table of contents.)"
+_fld.append(_t); _p._p.append(_fld)
+doc.add_page_break()
+
 # 1 CONCEPT RECAP
 doc.add_heading("1. Recommended concept (recap)", level=1)
 para("Option B was selected via the Deliverable-1 decision matrix (robust across base and cost-driven "

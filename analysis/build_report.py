@@ -133,6 +133,15 @@ para("This draft covers Deliverable 1 end-to-end: data analysis, storage-capacit
      size=9, color=GREY, italic=True, space_after=6)
 doc.add_page_break()
 
+# ============================ CONTENTS ============================
+doc.add_heading("Contents", level=1)
+_p = doc.add_paragraph()
+_fld = OxmlElement("w:fldSimple"); _fld.set(qn("w:instr"), 'TOC \\o "1-2" \\h \\z \\u')
+_t = OxmlElement("w:t"); _t.text = "(In Word: right-click → Update Field to build the table of contents.)"
+_fld.append(_t); _p._p.append(_fld)
+para("", space_after=2)
+doc.add_page_break()
+
 # ============================ 1. INTRODUCTION ============================
 doc.add_heading("1. Introduction & scope", level=1)
 para("DHL Supply Chain previously ran warehouse operations for four clients in Tiel and recently "
@@ -198,6 +207,7 @@ bullets([
     "locations: a current-design inefficiency to target.",
 ])
 figure("inventory_trend.png", "Fig 2. Inventory footprint trend, Q2 2025 (loads and occupied locations).", 13)
+figure("report_stock_ageing.png", "Fig 2b. Stock ageing — 21% of loads have been in stock >1 year (dead-stock signal).", 13)
 
 # ============================ 5. ORDER PROFILE ============================
 doc.add_heading("5. Order & picking profile and lead time", level=1)
@@ -248,6 +258,7 @@ bullets([
     "the latest stock snapshot (transient/cross-dock — to confirm).",
 ])
 figure("abc_pareto.png", "Fig 4. Demand Pareto — cumulative picked quantity vs ranked SKUs.", 13)
+figure("report_top20_products.png", "Fig 4b. Top-20 SKUs by demand — note several high-demand items still WMS-classed C.", 15)
 
 # ============================ 7. PEAK ============================
 doc.add_heading("7. Peak activity analysis", level=1)
@@ -376,6 +387,8 @@ bullets([
     "**Conditions before locking:** confirm the 7,000 m² scope (A008); obtain labour/equipment costs (A006) to "
     "confirm B vs C in the financial model; validate double-deep against the EURO/K3/XLONG pallet mix.",
 ])
+para("Recommended concept preview (detailed layout and 3D in Deliverable 2):", size=9.5, color=GREY, italic=True, space_after=4)
+figure("layout_floorplan.png", "Fig 9. Recommended Option B — warehouse floor plan (rack-level, to scale).", 16)
 
 # ============================ 13. ASSUMPTIONS ============================
 doc.add_heading("13. Assumptions & open questions", level=1)
