@@ -230,16 +230,36 @@ def shade(hexcol, f):
     return "#%02x%02x%02x" % tuple(max(0, min(255, int(c * f))) for c in (r, g, b))
 
 GAP = 2.0
-boxes = []  # (x0, y0, dx, dy, dz, color, name)
+boxes = []  # (x0, y0, dx, dy, dz, color, name, rack)
 def add_col(x0, w, items, heights):
     y = DEPTH
     for (name, area, col), h in zip(items, heights):
         dy = area / w
-        boxes.append((x0, y - dy + GAP/2, w, max(dy - GAP, 1.0), h, col, name.replace("\n", " ")))
+        boxes.append((x0, y - dy + GAP/2, w, max(dy - GAP, 1.0), h, col, name.replace("\n", " "), False))
         y -= dy
-add_col(0, left_w, left, [5.0, 2.5, 1.8])   # offices, returns, receiving(low, dock-adjacent)
-add_col(left_w + aisle, core_w, core, [11.5, 10.5, 3.5])
-add_col(left_w + aisle + core_w + aisle, right_w, right, [2.8, 1.8])
+add_col(0, left_w, left, [5.0, 2.5, 1.8])                                  # offices, returns, receiving
+add_col(left_w + aisle + core_w + aisle, right_w, right, [2.8, 1.8])       # packing, outbound
+
+# --- core rendered as ACTUAL rack rows (matches the floor plan) ---
+ccx0 = left_w + aisle
+FWD_H = FWD_AREA / core_w
+BLOCK, AISLEW = 2.6, 3.0
+pitch = BLOCK + AISLEW
+n_mod = int((core_w - AISLEW) // pitch)
+startx = ccx0 + (core_w - (n_mod * pitch - AISLEW)) / 2
+ry0, ry1 = FWD_H + 1.5, DEPTH - 1.5
+ymid = (ry0 + ry1) / 2
+runs = [(ry0, ymid - 1.6), (ymid + 1.6, ry1)]
+sel_from = n_mod - 2
+for m in range(n_mod):
+    bx = startx + m * pitch
+    is_sel = m >= sel_from
+    col = "#a6bcfb" if is_sel else "#6d8bfa"
+    dz = 10.5 if is_sel else 11.5
+    for (y0, y1) in runs:
+        boxes.append((bx, y0, BLOCK, y1 - y0, dz, col, "", True))
+# forward-pick low band (carton-flow)
+boxes.append((ccx0, 0.4, core_w, FWD_H - 0.8, 3.2, "#74cf9a", "", False))
 
 fig, ax = plt.subplots(figsize=(13, 7.6)); ax.set_aspect("equal"); ax.axis("off")
 ax.set_title("Option B — 3D massing (isometric; max height 12.2 m, reserve racks ≈ 11.5 m)",
@@ -250,29 +270,40 @@ floor = [iso(0, 0, 0), iso(L, 0, 0), iso(L, DEPTH, 0), iso(0, DEPTH, 0)]
 ax.add_patch(MplPolygon(floor, closed=True, facecolor="#f3f5fa", edgecolor="#cdd6ea", lw=1)); pts += floor
 
 def draw_box(b):
-    x0, y0, dx, dy, dz, col, name = b
+    x0, y0, dx, dy, dz, col, name, rack = b
     x1, y1 = x0 + dx, y0 + dy
     A, B, D_, Ap, Bp, Cp, Dp = iso(x0,y0,0), iso(x1,y0,0), iso(x0,y1,0), \
         iso(x0,y0,dz), iso(x1,y0,dz), iso(x1,y1,dz), iso(x0,y1,dz)
-    left_face  = [A, D_, Dp, Ap]           # x = x0
-    front_face = [A, B, Bp, Ap]            # y = y0
-    top_face   = [Ap, Bp, Cp, Dp]
-    ax.add_patch(MplPolygon(left_face,  closed=True, facecolor=shade(col, 0.72), edgecolor="#33415a", lw=0.6))
-    ax.add_patch(MplPolygon(front_face, closed=True, facecolor=shade(col, 0.88), edgecolor="#33415a", lw=0.6))
-    ax.add_patch(MplPolygon(top_face,   closed=True, facecolor=col,               edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon([A, D_, Dp, Ap], closed=True, facecolor=shade(col, 0.72), edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon([A, B, Bp, Ap], closed=True, facecolor=shade(col, 0.88), edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon([Ap, Bp, Cp, Dp], closed=True, facecolor=col, edgecolor="#33415a", lw=0.6))
     for p in (A, B, D_, Ap, Bp, Cp, Dp): pts.append(p)
-    tc = iso(x0 + dx/2, y0 + dy/2, dz)
-    if dz >= 3:   # label only blocks tall enough to read
+    if rack:                              # beam levels + a mid upright for a racking look
+        for k in range(1, 6):
+            zz = dz * k / 6
+            f1, f2 = iso(x0, y0, zz), iso(x1, y0, zz)          # front face (y=y0)
+            l1, l2 = iso(x0, y0, zz), iso(x0, y1, zz)          # left face (x=x0)
+            ax.plot([f1[0], f2[0]], [f1[1], f2[1]], color="#3b4a63", lw=0.35, alpha=0.55)
+            ax.plot([l1[0], l2[0]], [l1[1], l2[1]], color="#3b4a63", lw=0.35, alpha=0.45)
+    if name and dz >= 3:
+        tc = iso(x0 + dx/2, y0 + dy/2, dz)
         ax.text(tc[0], tc[1], name, ha="center", va="center", fontsize=7, weight="bold", color="#12203a")
 
 # paint far -> near (largest x+y first)
 for b in sorted(boxes, key=lambda bb: (bb[0]+bb[2]/2) + (bb[1]+bb[3]/2), reverse=True):
     draw_box(b)
 
+def cap(x, y, z, t, col="#12203a"):
+    p = iso(x, y, z)
+    ax.text(p[0], p[1], t, ha="center", va="center", fontsize=8, weight="bold", color=col, zorder=50,
+            bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.9))
+cap(startx + (sel_from*pitch)/2, ymid, 14.5, "Double-deep reserve (A/B)", "#3b5bdb")
+cap(startx + (sel_from+0.5)*pitch, ymid, 13.0, "Selective +\ncantilever", "#3b5bdb")
+cap(ccx0 + core_w*0.32, FWD_H/2, 5.2, "Forward-pick module", "#2f855a")
+
 xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
-ax.set_xlim(min(xs) - 5, max(xs) + 5); ax.set_ylim(min(ys) - 5, max(ys) + 8)
-# height reference
-ax.text(min(xs), max(ys) + 4, "Reserve racking uses ≈ 11.5 m of the 12.2 m clear height; "
+ax.set_xlim(min(xs) - 5, max(xs) + 5); ax.set_ylim(min(ys) - 5, max(ys) + 10)
+ax.text(min(xs), max(ys) + 5, "Reserve racking uses ≈ 11.5 m of the 12.2 m clear height; "
         "floor operations (receiving, pack, ship) are low.", fontsize=8, color="#555", style="italic")
 fig.savefig(os.path.join(FIGS, "layout_3d.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
