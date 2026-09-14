@@ -134,7 +134,7 @@ bullets([
     "update inventory & credit.",
     "**Policy applied:** returns re-enter via the same velocity-based putaway; graded stock rejoins reserve, "
     "scrap/RTV leaves the building. A small share of outbound orders also route through VAS before packing.",
-    "**Order-flow map:** steps 7–9 (purple) in Fig 7 show returns in → grade → restock/scrap; the grey dashed "
+    "**Order-flow map:** steps 7–9 (purple) in Fig 8 show returns in → grade → restock/scrap; the grey dashed "
     "line shows cross-dock for the 855 SKUs shipped but never stocked.",
 ])
 figure("flow_returns.png", "Fig 6. Returns / reverse-logistics flow.", 12)
@@ -193,9 +193,10 @@ bullets([
     "**Headroom if demand outgrows this:** add an 8th rack level (12.2 m allows it, subject to truck reach), "
     "raise the double-deep share, or move reserve to VNA (Option C). Confirm the 7,000 m² scope (A008).",
 ])
-figure("layout_plan.png", "Fig 7. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
-figure("layout_3d.png", "Fig 8. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
-figure("layout_worker_flow.png", "Fig 9. Worker movement — zone picking keeps picker paths short and separated.", 16)
+figure("layout_floorplan.png", "Fig 7. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
+figure("layout_plan.png", "Fig 8. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
+figure("layout_3d.png", "Fig 9. Option B 3D massing (isometric) — reserve racking ≈ 11.5 m within the 12.2 m limit.", 14)
+figure("layout_worker_flow.png", "Fig 10. Worker movement — zone picking keeps picker paths short and separated.", 16)
 
 # 5 CAPACITY PLAN
 doc.add_heading("5. Capacity plan — labour & equipment", level=1)
@@ -209,7 +210,7 @@ table(["Process", "Rate/h", "FTE avg", "FTE peak"],
 para(f"**Total direct labour ≈ {cp['total_fte_avg']:.1f} FTE average, {cp['total_fte_peak']:.1f} FTE at peak** "
      f"(≈ {cp['total_fte_ceil_peak']} if each process is staffed separately; cross-training reduces this). "
      f"Add supervision/admin and value-add separately.", bold=True, sa=4)
-figure("capacity_plan_fte.png", "Fig 10. Labour requirement by process (average vs peak).", 14)
+figure("capacity_plan_fte.png", "Fig 11. Labour requirement by process (average vs peak).", 14)
 para("Material-handling equipment (peak):", sa=4)
 table(["Equipment", "Peak equip-hours/day", "Units"],
       [[r["Equipment"], f"{r['Peak equip-hours/day']:.1f}", r["Units (peak)"]] for r in cp["mhe_table"]],
