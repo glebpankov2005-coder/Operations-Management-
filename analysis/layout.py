@@ -10,10 +10,50 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, FancyBboxPatch
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import matplotlib.patheffects as pe
+import matplotlib.font_manager as fm
 from _util import FIGS, save_table, update_metrics
 import pandas as pd
+
+# ---------------- premium visual style ----------------
+def _pick_font():
+    for f in ["Segoe UI", "Calibri", "Helvetica Neue", "Arial", "DejaVu Sans"]:
+        if any(f.lower() == x.name.lower() for x in fm.fontManager.ttflist):
+            return f
+    return "DejaVu Sans"
+plt.rcParams.update({"font.family": _pick_font(), "figure.facecolor": "white",
+                     "savefig.facecolor": "white", "text.color": "#1f2937"})
+INK, SUB, LINE = "#1f2937", "#6b7280", "#33415a"
+
+def zone_box(ax, x0, y0, w, h, color, name=None, area=None, z=3, alpha=1.0, fs=8.5, label=True, shadow=True):
+    r = max(0.5, min(w, h) * 0.045)
+    if shadow:
+        ax.add_patch(FancyBboxPatch((x0 + 0.7, y0 - 0.7), w, h, boxstyle=f"round,pad=0,rounding_size={r}",
+                     mutation_aspect=1, facecolor="#8a94a6", edgecolor="none", alpha=0.18 * alpha, zorder=z - 0.2))
+    ax.add_patch(FancyBboxPatch((x0, y0), w, h, boxstyle=f"round,pad=0,rounding_size={r}",
+                 mutation_aspect=1, facecolor=color, edgecolor="white", lw=1.8, alpha=alpha, zorder=z))
+    if label and name:
+        cx, cy = x0 + w / 2, y0 + h / 2
+        nlines = name.count("\n") + 1
+        name_y = cy + (1.3 if area is not None else 0)
+        ax.text(cx, name_y, name, ha="center", va="center", fontsize=fs, weight="bold",
+                color=INK, zorder=z + 1, linespacing=1.05)
+        if area is not None:
+            ax.text(cx, cy - 1.3 - 1.4 * (nlines - 1), f"{area:,} m²", ha="center", va="center",
+                    fontsize=fs - 2, color=SUB, zorder=z + 1)
+
+def scale_bar(ax, x, y, length=10):
+    ax.plot([x, x + length], [y, y], color=INK, lw=2.4, solid_capstyle="butt", zorder=10)
+    for xx in (x, x + length):
+        ax.plot([xx, xx], [y - 0.7, y + 0.7], color=INK, lw=2.4, zorder=10)
+    ax.text(x + length / 2, y - 2.4, f"{length} m", ha="center", va="top", fontsize=7.5, color=INK, zorder=10)
+
+def north_arrow(ax, x, y):
+    ax.annotate("", xy=(x, y + 4), xytext=(x, y - 0.5),
+                arrowprops=dict(arrowstyle="-|>", color=INK, lw=2.2), zorder=10)
+    ax.text(x, y + 5.2, "N", ha="center", va="center", fontsize=10, weight="bold", color=INK, zorder=10)
 
 M = json.load(open(os.path.join(os.path.dirname(__file__), "..", "outputs", "reports", "phase1_metrics.json"), encoding="utf-8"))
 cap = M["capacity"]
@@ -62,14 +102,14 @@ save_table(tbl, "layout_zones.csv")
 DEPTH = 70.0  # building depth (m)
 # three columns: left support | storage core | right pack-ship, with 4 m aisles
 # left column ordered top->bottom so Receiving sits at the BOTTOM, next to its docks
-left = [("Offices &\namenities", OFF_AREA, "#c9c9c9"),
-        ("Returns / VAS", RET_AREA, "#e3b7d6"),
-        ("Receiving &\ninbound staging", RECV_AREA, "#f4c58a")]
-core = [("Double-deep reserve (A/B)", round(dd_area), "#6c8eef"),
-        ("Selective + cantilever", round(sel_area), "#8fa9f2"),
-        ("Forward-pick module", FWD_AREA, "#9ad0a0")]
-right = [("Packing &\nconsolidation", PACK_AREA, "#f2a6a6"),
-         ("Outbound staging\n& shipping", OUTB_AREA, "#f4c58a")]
+left = [("Offices &\namenities", OFF_AREA, "#cfd6e2"),
+        ("Returns / VAS", RET_AREA, "#e6bcd8"),
+        ("Receiving &\ninbound staging", RECV_AREA, "#f4c98c")]
+core = [("Double-deep reserve (A/B)", round(dd_area), "#6d8bfa"),
+        ("Selective + cantilever", round(sel_area), "#a6bcfb"),
+        ("Forward-pick module", FWD_AREA, "#74cf9a")]
+right = [("Packing &\nconsolidation", PACK_AREA, "#f2a7a7"),
+         ("Outbound staging\n& shipping", OUTB_AREA, "#f4c98c")]
 
 # column widths derived from their content so each column fills the depth with no wasted space;
 # the two aisles carry the circulation area -> building outline == summed zone area (honest footprint)
@@ -84,21 +124,27 @@ from matplotlib.lines import Line2D
 import math
 
 # ============================ 2D PLAN + ORDER FLOW ============================
-fig, ax = plt.subplots(figsize=(12.5, 7.6))
-ax.set_xlim(-3, L + 3); ax.set_ylim(-8, DEPTH + 6); ax.set_aspect("equal"); ax.axis("off")
-ax.set_title(f"Option B — warehouse layout, zoning & order flow (to scale)\n"
-             f"Total {total_area:,} m² ({pct_env:.0f}% of 7,000 m² envelope) · "
-             f"~{positions_capacity:,} pallet positions · building ≈ {L:.0f} m × {DEPTH:.0f} m",
-             fontsize=12, weight="bold")
+fig, ax = plt.subplots(figsize=(13, 8))
+ax.set_facecolor("#f7f9fc")
+ax.set_xlim(-6, L + 6); ax.set_ylim(-10, DEPTH + 9); ax.set_aspect("equal"); ax.axis("off")
+ax.text(L / 2, DEPTH + 7.2, "Option B — Warehouse Layout, Zoning & Order Flow", ha="center",
+        fontsize=15, weight="bold", color=INK)
+ax.text(L / 2, DEPTH + 4.2, f"Total {total_area:,} m²  ·  {pct_env:.0f}% of the 7,000 m² envelope  ·  "
+        f"~{positions_capacity:,} pallet positions  ·  building ≈ {L:.0f} m × {DEPTH:.0f} m",
+        ha="center", fontsize=9.5, color=SUB)
+# building slab (soft shadow + rounded)
+ax.add_patch(FancyBboxPatch((0.9, -0.9), L, DEPTH, boxstyle="round,pad=0,rounding_size=2",
+             facecolor="#8a94a6", edgecolor="none", alpha=0.16, zorder=0.5))
+ax.add_patch(FancyBboxPatch((0, 0), L, DEPTH, boxstyle="round,pad=0,rounding_size=2",
+             facecolor="#eef1f7", edgecolor="#c7cede", lw=1.4, zorder=0.6))
 
 C = {}  # zone name -> (cx, cy, x0, x1, y0, y1)
 def stack_col(x0, w, items, top=DEPTH):
     y = top
     for name, area, col in items:
         h = area / w
-        ax.add_patch(Rectangle((x0, y - h), w, h, facecolor=col, edgecolor="white", lw=1.5))
-        ax.text(x0 + w/2, y - h/2, f"{name}\n{area:,} m²", ha="center", va="center",
-                fontsize=8, weight="bold", color="#12203a")
+        disp = name if w < 18 else name.replace("\n", " ")   # keep wrapping in narrow columns
+        zone_box(ax, x0, y - h, w, h, col, name=disp, area=area, z=3, fs=8.2 if w > 18 else 7.2)
         C[name] = (x0 + w/2, y - h/2, x0, x0 + w, y - h, y)
         y -= h
 
@@ -106,11 +152,15 @@ stack_col(0, left_w, left)
 stack_col(left_w + aisle, core_w, core)
 stack_col(left_w + aisle + core_w + aisle, right_w, right)
 for ax0 in (left_w, left_w + aisle + core_w):
-    ax.add_patch(Rectangle((ax0, 0), aisle, DEPTH, facecolor="#eef2fb", edgecolor="none", hatch="//", alpha=0.6))
-for dx in np.arange(2, L, 8):
-    ax.add_patch(Rectangle((dx, -1.4), 2.4, 1.4, facecolor="#33415a", edgecolor="none"))
-ax.text(left_w/2, -3.6, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
-ax.text(L - right_w/2, -3.6, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
+    ax.add_patch(Rectangle((ax0, 0), aisle, DEPTH, facecolor="#dbe3f2", edgecolor="none", alpha=0.55, zorder=1))
+# dock doors (rounded dark bars)
+for dx in np.arange(3, L - 3, 8):
+    ax.add_patch(FancyBboxPatch((dx, -2.0), 2.6, 1.6, boxstyle="round,pad=0,rounding_size=0.3",
+                 facecolor=LINE, edgecolor="none", zorder=4))
+ax.text(left_w/2, -4.4, "▲  RECEIVING docks", ha="center", fontsize=8.5, color=LINE, weight="bold")
+ax.text(L - right_w/2, -4.4, "SHIPPING docks  ▲", ha="center", fontsize=8.5, color=LINE, weight="bold")
+scale_bar(ax, 2, -7.5, 10)
+north_arrow(ax, L - 2, DEPTH - 6)
 
 recv, off, ret = C["Receiving &\ninbound staging"], C["Offices &\namenities"], C["Returns / VAS"]
 dd, sel, fp = C["Double-deep reserve (A/B)"], C["Selective + cantilever"], C["Forward-pick module"]
@@ -230,32 +280,39 @@ plt.close(fig)
 # ============================ 2D WORKER-MOVEMENT MODEL ============================
 import matplotlib.patheffects as pe
 
-fig, ax = plt.subplots(figsize=(13, 7.8))
-ax.set_xlim(-3, L + 3); ax.set_ylim(-9, DEPTH + 7); ax.set_aspect("equal"); ax.axis("off")
-ax.set_title("Option B — worker movement (zone picking)", fontsize=13, weight="bold")
-ax.text(L/2, DEPTH + 3.2, "Each picker is confined to one zone → short, non-crossing travel; "
-        "reach trucks handle putaway & replenishment; a handler runs pack → ship.",
-        ha="center", fontsize=8.5, color="#555", style="italic")
+fig, ax = plt.subplots(figsize=(13, 8))
+ax.set_facecolor("#f7f9fc")
+ax.set_xlim(-6, L + 6); ax.set_ylim(-11, DEPTH + 8); ax.set_aspect("equal"); ax.axis("off")
+ax.text(L/2, DEPTH + 6, "Option B — Worker Movement (zone picking)", ha="center",
+        fontsize=15, weight="bold", color=INK)
+ax.text(L/2, DEPTH + 3.2, "Each picker is confined to one zone → short, non-crossing travel;  "
+        "reach trucks handle putaway & replenishment;  a handler runs pack → ship.",
+        ha="center", fontsize=9, color=SUB, style="italic")
 
-# ---- context: all zones drawn faintly (no centre text), building outline + docks ----
+# ---- context: building slab + all zones drawn faintly, docks ----
+ax.add_patch(FancyBboxPatch((0.9, -0.9), L, DEPTH, boxstyle="round,pad=0,rounding_size=2",
+             facecolor="#8a94a6", edgecolor="none", alpha=0.16, zorder=0.5))
+ax.add_patch(FancyBboxPatch((0, 0), L, DEPTH, boxstyle="round,pad=0,rounding_size=2",
+             facecolor="#eef1f7", edgecolor="#c7cede", lw=1.4, zorder=0.6))
 Z = {}
 def stack_bg(x0, w, items, top=DEPTH):
     y = top
     for name, area, col in items:
         h = area / w
-        ax.add_patch(Rectangle((x0, y - h), w, h, facecolor=col, edgecolor="white", lw=1.2, alpha=0.28))
+        zone_box(ax, x0, y - h, w, h, col, z=2, alpha=0.5, label=False, shadow=False)
         Z[name] = (x0, x0 + w, y - h, y)
         y -= h
 stack_bg(0, left_w, left)
 stack_bg(left_w + aisle, core_w, core)
 stack_bg(left_w + aisle + core_w + aisle, right_w, right)
-ax.add_patch(Rectangle((0, 0), L, DEPTH, fill=False, edgecolor="#33415a", lw=1.6))
 for ax0 in (left_w, left_w + aisle + core_w):
-    ax.add_patch(Rectangle((ax0, 0), aisle, DEPTH, facecolor="#eef2fb", edgecolor="none", hatch="//", alpha=0.5))
-for dx in np.arange(2, L, 8):
-    ax.add_patch(Rectangle((dx, -1.6), 2.6, 1.6, facecolor="#33415a", edgecolor="none"))
-ax.text(left_w/2, -3.9, "▲ RECEIVING docks", ha="center", fontsize=8, color="#33415a", weight="bold")
-ax.text(L - right_w/2, -3.9, "SHIPPING docks ▲", ha="center", fontsize=8, color="#33415a", weight="bold")
+    ax.add_patch(Rectangle((ax0, 0), aisle, DEPTH, facecolor="#dbe3f2", edgecolor="none", alpha=0.5, zorder=1))
+for dx in np.arange(3, L - 3, 8):
+    ax.add_patch(FancyBboxPatch((dx, -2.0), 2.6, 1.6, boxstyle="round,pad=0,rounding_size=0.3",
+                 facecolor=LINE, edgecolor="none", zorder=4))
+ax.text(left_w/2, -4.4, "▲  RECEIVING docks", ha="center", fontsize=8.5, color=LINE, weight="bold")
+ax.text(L - right_w/2, -4.4, "SHIPPING docks  ▲", ha="center", fontsize=8.5, color=LINE, weight="bold")
+scale_bar(ax, 2, -7.8, 10); north_arrow(ax, L - 2, DEPTH - 6)
 
 cx0 = left_w + aisle; cx1 = cx0 + core_w; cmid = (cx0 + cx1) / 2
 fast_top = Z["Selective + cantilever"][3]          # top of fast band (= bottom of reserve)
