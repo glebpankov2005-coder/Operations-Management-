@@ -203,7 +203,7 @@ bullets([
     "raise the double-deep share, or move reserve to VNA (Option C). Confirm the 7,000 m² scope (A008).",
 ])
 figure("layout_floorplan.png", "Fig 7. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
-figure("layout_plan.png", "Fig 8. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
+figure("layout_orderflow.png", "Fig 8. Layout, zoning & full order flow — forward (1–6), returns (7–9), cross-dock.", 16)
 figure("layout_3d_render.png", "Fig 9. Option B — warehouse 3D (Blender render): rack rows, forward-pick, zones, docks.", 16)
 figure("layout_worker_render.png", "Fig 10. Worker movement (Blender): zone-picking routes through ghosted racks.", 16)
 
