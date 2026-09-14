@@ -107,12 +107,30 @@ def serp(lanes, lo, hi, axis):
     return pts
 
 AMBER, VIOLET, CYAN, GREEN, RED = (0.90,0.55,0.05),(0.55,0.20,0.75),(0.05,0.62,0.78),(0.10,0.62,0.30),(0.90,0.12,0.12)
-route(serp([1.6, 3.7, 5.8], cx0+2, cx1-2, "h"), AMBER)
-route(serp([cx0+8, (cx0+cmid)/2, cmid-8], ry0+2, ry1-2, "v"), VIOLET)
-route(serp([cmid+8, (cmid+cx1)/2, cx1-8], ry0+2, ry1-2, "v"), CYAN)
-route([(6, 11), (cx0+2, 22), (cx0+7, 42)], GREEN)
-for xr in (cx0+core_w*0.34, cx0+core_w*0.64): strip((xr, FWD_H+7), (xr, FWD_H-2), GREEN, w=0.6)
-route([(rax+right_w/2, 55), (rax+right_w/2, 6)], RED)
+# actual aisle centres (between rack blocks) so routes never cross racks
+aisle_xs = [startx + m*pitch + BLOCK + AISLEW/2 for m in range(n_mod - 1)]
+left_ais = [x for x in aisle_xs if x < cmid]
+right_ais = [x for x in aisle_xs if x >= cmid]
+def serp_aisles(xs, y0, y1):
+    pts = []
+    for i, x in enumerate(xs):
+        a, b = (y0, y1) if i % 2 == 0 else (y1, y0)
+        pts += [(x, a), (x, b)]
+    return pts
+# Zone 1 (fast) - along the forward-pick face (open zone)
+route(serp([1.8, 4.0, 6.0], cx0+2, cx1-2, "h"), AMBER)
+# Zone 2 & 3 pickers - serpentine strictly along reserve aisles
+route(serp_aisles(left_ais[::2][:3], ry0+2, ry1-2), VIOLET)
+route(serp_aisles(right_ais[::2][:3], ry0+2, ry1-2), CYAN)
+# Reach truck putaway: receiving -> perimeter aisle -> up an aisle
+la_x = cx0 - aisle/2
+route([(5, 10), (la_x, 22), (aisle_xs[1], 30), (aisle_xs[1], ry1-4)], GREEN)
+# replenishment: two aisles, reserve -> forward
+for xr in (aisle_xs[2], aisle_xs[len(aisle_xs)//2]):
+    strip((xr, ry0+3), (xr, FWD_H-1), GREEN, w=0.7)
+# handler: right perimeter aisle, pack -> ship
+ha_x = cx1 + aisle/2
+route([(ha_x, 55), (ha_x, 6)], RED)
 
 # ---------------- lighting (with shadows for depth) ----------------
 scene.world = bpy.data.worlds.new("W"); scene.world.use_nodes = True
@@ -124,11 +142,11 @@ su.rotation_euler = (math.radians(48), math.radians(12), math.radians(150))
 ad = bpy.data.lights.new("Fill", 'AREA'); ad.energy = 9000; ad.size = 70
 af = bpy.data.objects.new("Fill", ad); scene.collection.objects.link(af); af.location = (L/2, -45, 50)
 
-# ---------------- camera: from the FRONT, elevated, looking DOWN the aisles ----------------
-cam_d = bpy.data.cameras.new("Cam"); cam_d.type = 'ORTHO'; cam_d.ortho_scale = 96
+# ---------------- camera: near top-down (bird's-eye) so all routes are visible, no occlusion ----------------
+cam_d = bpy.data.cameras.new("Cam"); cam_d.type = 'ORTHO'; cam_d.ortho_scale = 124
 cam = bpy.data.objects.new("Cam", cam_d); scene.collection.objects.link(cam)
-cam.location = (L/2 + 3, -34, 78)
-tgt = bpy.data.objects.new("T", None); scene.collection.objects.link(tgt); tgt.location = Vector((L/2, DEPTH*0.52, 3))
+cam.location = (L/2, DEPTH/2 - 14, 175)
+tgt = bpy.data.objects.new("T", None); scene.collection.objects.link(tgt); tgt.location = Vector((L/2, DEPTH/2, 0))
 cc = cam.constraints.new('TRACK_TO'); cc.target = tgt; cc.track_axis = 'TRACK_NEGATIVE_Z'; cc.up_axis = 'UP_Y'
 scene.camera = cam
 

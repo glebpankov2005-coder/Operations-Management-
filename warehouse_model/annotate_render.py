@@ -40,7 +40,7 @@ wimg = mpimg.imread(os.path.join(FIGS, "warehouse_workers.png"))
 h2, w2 = wimg.shape[0], wimg.shape[1]
 fig, ax = plt.subplots(figsize=(fig_w, fig_w * h2 / w2 + 1.4))
 ax.imshow(wimg); ax.axis("off")
-ax.set_title("Option B — Worker Movement (Blender render): zone-picking routes down the aisles",
+ax.set_title("Option B — Worker Movement (Blender, top-down): zone-picking routes along the aisles",
              fontsize=15, weight="bold", color="#1f2937", pad=12)
 wh = [
     Patch(fc=(0.85, 0.55, 0.10), label="Picker · Zone 1 (fast / forward)"),
