@@ -219,11 +219,14 @@ ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.12), ncol
 fig.savefig(os.path.join(FIGS, "layout_plan.png"), dpi=115, bbox_inches="tight")
 plt.close(fig)
 
-# ============================ 3D MASSING (manual isometric, painter-ordered) ============================
-EZ = 3.6  # vertical exaggeration so heights are legible next to the 100 m footprint
+# ============================ 3D MASSING (cabinet oblique; depth = y, painter-ordered) ============================
+# x -> horizontal, z -> vertical, y (depth from docks) recedes up-right at a fixed angle.
+# Depth is PURELY y, so painting back(high y)->front(low y) is always correct - no ambiguity.
+EZ = 1.5                              # vertical scale for height (z)
+_ang = math.radians(32)
+DXY, DZY = math.cos(_ang) * 0.55, math.sin(_ang) * 0.55   # y receding components
 def iso(x, y, z):
-    a = math.radians(30)
-    return (x - y) * math.cos(a), (x + y) * math.sin(a) + z * EZ
+    return x - DXY * y, z * EZ + DZY * y   # depth (y) recedes UP-LEFT -> side columns stay clear of racks
 
 def shade(hexcol, f):
     h = hexcol.lstrip("#"); r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
@@ -262,7 +265,7 @@ for m in range(n_mod):
 boxes.append((ccx0, 0.4, core_w, FWD_H - 0.8, 3.2, "#74cf9a", "", False))
 
 fig, ax = plt.subplots(figsize=(13, 7.6)); ax.set_aspect("equal"); ax.axis("off")
-ax.set_title("Option B — 3D massing (isometric; max height 12.2 m, reserve racks ≈ 11.5 m)",
+ax.set_title("Option B — 3D rack massing (oblique; max height 12.2 m, reserve racks ≈ 11.5 m)",
              fontsize=12, weight="bold")
 pts = []
 # floor slab (drawn first, farthest)
@@ -272,22 +275,25 @@ ax.add_patch(MplPolygon(floor, closed=True, facecolor="#f3f5fa", edgecolor="#cdd
 def draw_box(b):
     x0, y0, dx, dy, dz, col, name, rack = b
     x1, y1 = x0 + dx, y0 + dy
-    A, B, D_, Ap, Bp, Cp, Dp = iso(x0,y0,0), iso(x1,y0,0), iso(x0,y1,0), \
-        iso(x0,y0,dz), iso(x1,y0,dz), iso(x1,y1,dz), iso(x0,y1,dz)
-    ax.add_patch(MplPolygon([A, D_, Dp, Ap], closed=True, facecolor=shade(col, 0.72), edgecolor="#33415a", lw=0.6))
-    ax.add_patch(MplPolygon([A, B, Bp, Ap], closed=True, facecolor=shade(col, 0.88), edgecolor="#33415a", lw=0.6))
-    ax.add_patch(MplPolygon([Ap, Bp, Cp, Dp], closed=True, facecolor=col, edgecolor="#33415a", lw=0.6))
-    for p in (A, B, D_, Ap, Bp, Cp, Dp): pts.append(p)
-    if rack:                              # beam levels + a mid upright for a racking look
+    # cabinet oblique (y recedes up-left) visible faces: TOP (z=dz), LEFT (x=x0), FRONT (y=y0)
+    top  = [iso(x0,y0,dz), iso(x1,y0,dz), iso(x1,y1,dz), iso(x0,y1,dz)]
+    left = [iso(x0,y0,0),  iso(x0,y1,0),  iso(x0,y1,dz), iso(x0,y0,dz)]
+    front = [iso(x0,y0,0), iso(x1,y0,0),  iso(x1,y0,dz), iso(x0,y0,dz)]
+    ax.add_patch(MplPolygon(top,   closed=True, facecolor=shade(col, 1.06), edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon(left,  closed=True, facecolor=shade(col, 0.72), edgecolor="#33415a", lw=0.6))
+    ax.add_patch(MplPolygon(front, closed=True, facecolor=shade(col, 0.90), edgecolor="#33415a", lw=0.6))
+    for f in (top, left, front):
+        pts.extend(f)
+    if rack:                              # beam levels on the front + left faces
         for k in range(1, 6):
             zz = dz * k / 6
             f1, f2 = iso(x0, y0, zz), iso(x1, y0, zz)          # front face (y=y0)
             l1, l2 = iso(x0, y0, zz), iso(x0, y1, zz)          # left face (x=x0)
-            ax.plot([f1[0], f2[0]], [f1[1], f2[1]], color="#3b4a63", lw=0.35, alpha=0.55)
-            ax.plot([l1[0], l2[0]], [l1[1], l2[1]], color="#3b4a63", lw=0.35, alpha=0.45)
+            ax.plot([f1[0], f2[0]], [f1[1], f2[1]], color="#3b4a63", lw=0.35, alpha=0.5)
+            ax.plot([l1[0], l2[0]], [l1[1], l2[1]], color="#3b4a63", lw=0.35, alpha=0.4)
     if name and dz >= 3:
-        tc = iso(x0 + dx/2, y0 + dy/2, dz)
-        ax.text(tc[0], tc[1], name, ha="center", va="center", fontsize=7, weight="bold", color="#12203a")
+        tc = iso(x0 + dx/2, y0, dz)       # label on the front-top edge
+        ax.text(tc[0], tc[1] + 0.6, name, ha="center", va="bottom", fontsize=7, weight="bold", color="#12203a")
 
 # paint far -> near: depth is distance from the front (docks at y=0), so sort by y-centre
 # descending (back rows first, forward-pick module last so it is never overpainted)
