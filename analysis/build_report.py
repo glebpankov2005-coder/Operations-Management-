@@ -137,9 +137,9 @@ doc.add_page_break()
 doc.add_heading("Contents", level=1)
 _p = doc.add_paragraph()
 _fld = OxmlElement("w:fldSimple"); _fld.set(qn("w:instr"), 'TOC \\o "1-2" \\h \\z \\u')
-_t = OxmlElement("w:t"); _t.text = "(In Word: right-click → Update Field to build the table of contents.)"
-_fld.append(_t); _p._p.append(_fld)
-para("", space_after=2)
+_r = OxmlElement("w:r"); _t = OxmlElement("w:t")
+_t.text = "(In Word: right-click → Update Field to build the table of contents.)"
+_r.append(_t); _fld.append(_r); _p._p.append(_fld)
 doc.add_page_break()
 
 # ============================ 1. INTRODUCTION ============================
