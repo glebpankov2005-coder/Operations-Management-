@@ -179,28 +179,35 @@ pack_cx, pack_cy = rax + right_w/2, DEPTH - ph/2
 out_cx, out_cy = rax + right_w/2, uh/2
 aisleA2 = start + pitch + BLOCK + AISLEW/2
 
-def farrow(p0, p1, color, ls="-", rad=0.0, lw=2.6):
-    ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=16, color=color,
-                 lw=lw, linestyle=ls, connectionstyle=f"arc3,rad={rad}", zorder=8))
+import matplotlib.patheffects as pe
+def farrow(p0, p1, color, ls="-", rad=0.0, lw=2.8, ms=18):
+    a = FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=ms, color=color,
+                        lw=lw, linestyle=ls, connectionstyle=f"arc3,rad={rad}",
+                        zorder=8, capstyle="round", joinstyle="round", shrinkA=0, shrinkB=0)
+    a.set_path_effects([pe.Stroke(linewidth=lw+2.6, foreground="white"), pe.Normal()])
+    ax.add_patch(a)
 def badge(x, y, n, color):
-    ax.scatter([x], [y], s=190, color="white", edgecolor=color, lw=2.0, zorder=10)
+    ax.scatter([x], [y], s=205, color="white", edgecolor=color, lw=2.0, zorder=10)
     ax.text(x, y, str(n), ha="center", va="center", fontsize=8.5, weight="bold", color=color, zorder=11)
 
-# forward flow 1-6
-farrow((recv_cx, -0.6), (recv_cx, 6), BLUE); badge(recv_cx, 8.5, 1, BLUE)
-farrow((left_w-0.5, recv_cy+3), (cx0+9, rack_y0+7), BLUE, rad=-0.18); badge(la, rack_y0+4, 2, BLUE)
-farrow((aisleA2, rack_y0), (aisleA2, fwd_h+0.8), GREEN, ls=(0, (5, 3))); badge(aisleA2+3.2, (rack_y0+fwd_h)/2, 3, GREEN)
-farrow((cx1, fwd_h*0.5), (rax, pack_cy-6), REDD, rad=-0.18); badge(ra, fwd_h+9, 4, REDD)
-farrow((pack_cx, DEPTH-ph+2), (out_cx, uh+1), REDD); badge(ra, uh+7, 5, REDD)
-farrow((out_cx, uh*0.4), (out_cx, -0.6), REDD); badge(ra, 5, 6, REDD)
-# returns 7-9
-farrow((recv_cx, rvh-1), (ret_cx, DEPTH-oh-rh+3), PURPLE); badge(recv_cx+3.2, rvh+1.5, 7, PURPLE)
-farrow((left_w-0.5, ret_cy+1), (cx0+9, ret_cy+11), PURPLE, rad=-0.15); badge(la, ret_cy+9, 8, PURPLE)
-farrow((0.7, ret_cy-5), (-3.0, ret_cy-5), PURPLE, ls=(0, (4, 3)), lw=1.9); badge(2.6, ret_cy-5, 9, PURPLE)
-ax.text(-3.4, ret_cy-8, "scrap /\nRTV", ha="left", fontsize=7, color=PURPLE, style="italic")
-# cross-dock via the main cross-aisle (open channel across the core)
 cd_y = (cross_y0 + cross_y1)/2
-farrow((left_w, cd_y), (rax, cd_y), GREY, ls=(0, (2, 2)), lw=1.7)
+lmarg = start - 1.6          # open channel just left of the first rack block
+rmarg = cx1 - 2.4           # open channel just right of the last rack block
+
+# ---- forward flow 1-6 (heads land in open aisles / margins, never on a rack) ----
+farrow((recv_cx, -0.6), (recv_cx, rvh*0.34), BLUE);                          badge(recv_cx, rvh*0.34+2.3, 1, BLUE)
+farrow((recv_cx+1.2, recv_cy+2), (lmarg, rack_y0+11), BLUE, rad=-0.26);      badge(lmarg-3.4, rack_y0+5, 2, BLUE)
+farrow((aisleA2, rack_y0+4.5), (aisleA2, fwd_h+1.3), GREEN, ls=(0,(5,3)));   badge(aisleA2+3.4, rack_y0+0.5, 3, GREEN)
+farrow((rmarg, fwd_h+3), (rax+3.6, DEPTH-ph+5), REDD, rad=-0.14);            badge(rmarg, (fwd_h+DEPTH-ph)/2, 4, REDD)
+farrow((pack_cx, DEPTH-ph+4), (out_cx, uh-4), REDD);                         badge(out_cx, DEPTH-ph, 5, REDD)
+farrow((out_cx, uh*0.55), (out_cx, -0.6), REDD);                             badge(out_cx, uh*0.55+2.4, 6, REDD)
+# ---- returns 7-9 ----
+farrow((ret_cx, rvh+0.5), (ret_cx, DEPTH-oh-rh+5), PURPLE);                  badge(ret_cx, rvh+2.7, 7, PURPLE)
+farrow((left_w-0.8, ret_cy+1.5), (lmarg, cross_y1+6), PURPLE, rad=-0.18);    badge(lmarg-3.4, cross_y1+2.5, 8, PURPLE)
+farrow((0.6, ret_cy-4.5), (-4.8, ret_cy-4.5), PURPLE, ls=(0,(4,3)), lw=2.0); badge(-1.9, ret_cy-4.5, 9, PURPLE)
+ax.text(-5.1, ret_cy-7.4, "scrap /\nRTV", ha="left", fontsize=7, color=PURPLE, style="italic")
+# ---- cross-dock along the open cross-aisle (bypasses storage) ----
+farrow((left_w+0.6, cd_y), (rax-0.6, cd_y), GREY, ls=(0,(2,2)), lw=1.9, ms=14)
 
 # flow legend (row along the bottom)
 ax.set_ylim(-21, DEPTH + 10)
