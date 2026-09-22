@@ -60,7 +60,7 @@ def soft_zone(x0, y0, w, h, color, name, sub=None):
 # ---- left support column: offices (top), returns, receiving (bottom, dock side) ----
 oh, rh, rvh = OFF/left_w, RET/left_w, RECV/left_w
 soft_zone(0.4, DEPTH-oh, left_w-0.8, oh-0.4, "#cfd6e2", "Offices & amenities", f"{OFF} m²")
-soft_zone(0.4, DEPTH-oh-rh, left_w-0.8, rh-0.2, "#e6bcd8", "Returns / VAS", f"{RET} m²")
+soft_zone(0.4, DEPTH-oh-rh, left_w-0.8, rh-0.2, "#e6bcd8", "Returns", f"{RET} m²")
 soft_zone(0.4, 0.4, left_w-0.8, rvh-0.4, "#f4c98c", "Receiving & staging", f"{RECV} m²")
 # ---- right column: packing (top), outbound (bottom, dock side) ----
 ph, uh = PACK/right_w, OUTB/right_w
@@ -73,7 +73,7 @@ fwd_h = FWD / core_w
 ax.add_patch(Rectangle((cx0, 0), core_w, fwd_h, facecolor="#dff3e6", edgecolor="#74cf9a", lw=1.2, zorder=1.5))
 for yy in np.arange(0.8, fwd_h, 1.6):
     ax.plot([cx0+0.5, cx1-0.5], [yy, yy], color="#74cf9a", lw=0.7, alpha=0.7, zorder=1.6)
-ax.text(cx0 + core_w/2, fwd_h/2, "FORWARD-PICK MODULE  (carton-flow / shelving)  ·  500 m²",
+ax.text(cx0 + core_w/2, fwd_h/2, "FAST-PICK AREA  (best-sellers)  ·  500 m²",
         ha="center", va="center", fontsize=8, weight="bold", color="#2f855a", zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 
@@ -106,10 +106,10 @@ ax.text(cx0 + core_w/2, (cross_y0+cross_y1)/2, "cross-aisle", ha="center", va="c
         fontsize=7, style="italic", color=SUB, zorder=3,
         bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.8))
 # zone captions over racks
-ax.text(cx0 + (sel_from*pitch)/2, rack_y1 - 3, "DOUBLE-DEEP RESERVE (A/B)  ·  3,505 m²",
+ax.text(cx0 + (sel_from*pitch)/2, rack_y1 - 3, "TWO-DEEP PALLET RACKS (main storage)  ·  3,505 m²",
         ha="center", fontsize=8.5, weight="bold", color="#3b5bdb", zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
-ax.text(start + (sel_from+0.9)*pitch, rack_y0 + 8, "SELECTIVE\n+ CANTILEVER\n728 m²", ha="center",
+ax.text(start + (sel_from+0.9)*pitch, rack_y0 + 8, "RACKS FOR\nODD / LONG\nITEMS · 728 m²", ha="center",
         fontsize=7, weight="bold", color="#3b5bdb", rotation=0, zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 
@@ -204,11 +204,11 @@ farrow((left_w, cd_y), (rax, cd_y), GREY, ls=(0, (2, 2)), lw=1.7)
 
 # flow legend (row along the bottom)
 ax.set_ylim(-21, DEPTH + 10)
-handles = [Line2D([0],[0], color=BLUE, lw=3, label="1–2  Inbound & putaway"),
-           Line2D([0],[0], color=GREEN, lw=3, ls="--", label="3  Replenishment"),
-           Line2D([0],[0], color=REDD, lw=3, label="4–6  Order: pick → pack → ship"),
-           Line2D([0],[0], color=PURPLE, lw=3, label="7–9  Returns: in → grade → restock/scrap"),
-           Line2D([0],[0], color=GREY, lw=2, ls=":", label="Cross-dock (bypasses storage)")]
+handles = [Line2D([0],[0], color=BLUE, lw=3, label="1–2  Goods in & put away"),
+           Line2D([0],[0], color=GREEN, lw=3, ls="--", label="3  Refill the fast-pick area"),
+           Line2D([0],[0], color=REDD, lw=3, label="4–6  Pick → pack → ship"),
+           Line2D([0],[0], color=PURPLE, lw=3, label="7–9  Returns handling"),
+           Line2D([0],[0], color=GREY, lw=2, ls=":", label="Straight-through goods (no storage)")]
 ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.02), ncol=5,
           fontsize=8.2, frameon=False)
 title_txt.set_text("Option B — Layout, Zoning & Order Flow (on the floor plan)")
