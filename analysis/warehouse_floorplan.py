@@ -180,7 +180,7 @@ out_cx, out_cy = rax + right_w/2, uh/2
 aisleA2 = start + pitch + BLOCK + AISLEW/2
 
 import matplotlib.patheffects as pe
-def farrow(p0, p1, color, ls="-", rad=0.0, lw=2.8, ms=18):
+def farrow(p0, p1, color, ls="-", rad=0.0, lw=3.2, ms=22):
     a = FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=ms, color=color,
                         lw=lw, linestyle=ls, connectionstyle=f"arc3,rad={rad}",
                         zorder=8, capstyle="round", joinstyle="round", shrinkA=0, shrinkB=0)
@@ -201,23 +201,14 @@ farrow((aisleA2, rack_y0+4.5), (aisleA2, fwd_h+1.3), GREEN, ls=(0,(5,3)));   bad
 farrow((rmarg, fwd_h+3), (rax+3.6, DEPTH-ph+5), REDD, rad=-0.14);            badge(rmarg, (fwd_h+DEPTH-ph)/2, 4, REDD)
 farrow((pack_cx, DEPTH-ph+4), (out_cx, uh-4), REDD);                         badge(out_cx, DEPTH-ph, 5, REDD)
 farrow((out_cx, uh*0.55), (out_cx, -0.6), REDD);                             badge(out_cx, uh*0.55+2.4, 6, REDD)
-# ---- returns 7-9 ----
-farrow((ret_cx, rvh+0.5), (ret_cx, DEPTH-oh-rh+5), PURPLE);                  badge(ret_cx, rvh+2.7, 7, PURPLE)
-farrow((left_w-0.8, ret_cy+1.5), (lmarg, cross_y1+6), PURPLE, rad=-0.18);    badge(lmarg-3.4, cross_y1+2.5, 8, PURPLE)
-farrow((0.6, ret_cy-4.5), (-4.8, ret_cy-4.5), PURPLE, ls=(0,(4,3)), lw=2.0); badge(-1.9, ret_cy-4.5, 9, PURPLE)
-ax.text(-5.1, ret_cy-7.4, "scrap /\nRTV", ha="left", fontsize=7, color=PURPLE, style="italic")
-# ---- cross-dock along the open cross-aisle (bypasses storage) ----
-farrow((left_w+0.6, cd_y), (rax-0.6, cd_y), GREY, ls=(0,(2,2)), lw=1.9, ms=14)
 
 # flow legend (row along the bottom)
 ax.set_ylim(-21, DEPTH + 10)
-handles = [Line2D([0],[0], color=BLUE, lw=3, label="1–2  Goods in & put away"),
-           Line2D([0],[0], color=GREEN, lw=3, ls="--", label="3  Refill the fast-pick area"),
-           Line2D([0],[0], color=REDD, lw=3, label="4–6  Pick → pack → ship"),
-           Line2D([0],[0], color=PURPLE, lw=3, label="7–9  Returns handling"),
-           Line2D([0],[0], color=GREY, lw=2, ls=":", label="Straight-through goods (no storage)")]
-ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.02), ncol=5,
-          fontsize=8.2, frameon=False)
+handles = [Line2D([0],[0], color=BLUE, lw=3.4, label="1–2  In & put away"),
+           Line2D([0],[0], color=GREEN, lw=3.4, ls="--", label="3  Refill the fast-pick area"),
+           Line2D([0],[0], color=REDD, lw=3.4, label="4–6  Pick → pack → out")]
+ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.02), ncol=3,
+          fontsize=9, frameon=False)
 title_txt.set_text("Option B — Layout, Zoning & Order Flow (on the floor plan)")
 fig.savefig(os.path.join(FIGS, "layout_orderflow.png"), dpi=130, bbox_inches="tight")
 plt.close(fig)
