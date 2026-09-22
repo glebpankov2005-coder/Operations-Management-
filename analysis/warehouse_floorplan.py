@@ -154,7 +154,7 @@ ax.add_patch(Rectangle((tb_x, tb_y+tb_h-1.6), tb_w, 1.6, facecolor="#eef1f7", ed
 ax.text(tb_x+tb_w/2, tb_y+tb_h-0.8, "Project OTM — Assa Abloy @ DHL Bemmel", ha="center", va="center",
         fontsize=7.6, weight="bold", color=INK, zorder=7)
 rows = [("DRAWING", "Option B — warehouse floor plan (rack-level)"),
-        ("POSITIONS", f"~{POS:,} pallet positions"),
+        ("POSITIONS", "target ~9,500 (peak 8,512 ÷ 0.90) · racking gives growth headroom"),
         ("SCALE / SIZE", f"~1:400  ·  {L:.0f} × {DEPTH:.0f} m = 6,541 m²  (93%)"),
         ("DATE / REV", "2026  ·  Draft A")]
 for i, (k, v) in enumerate(rows):
