@@ -3,7 +3,11 @@
     "project": "Assa Abloy warehouse redesign @ DHL Bemmel (NL_0032)",
     "created": "2026-09-08",
     "rule": "Every externally-sourced or estimated number used in the report must appear here with a source or be labelled an assumption. No fabricated data.",
-    "impact_scale": ["low", "medium", "high"]
+    "impact_scale": [
+      "low",
+      "medium",
+      "high"
+    ]
   },
   "assumptions": [
     {
@@ -35,11 +39,11 @@
     },
     {
       "id": "A004",
-      "assumption": "One LODNUM (load) occupies one pallet position",
-      "value": "1:1",
-      "unit": "load:position",
-      "reason": "Needed to convert inventory loads into required pallet positions; to be validated against PA QTY and multi-detail loads",
-      "source": "Working assumption",
+      "assumption": "Storage requirement is based on OCCUPIED LOCATIONS (pallet positions), not loads",
+      "value": "peak 8,512 positions (11,015 loads)",
+      "unit": "positions",
+      "reason": "11,015 loads sit in 8,512 locations (some locations hold >1 load). Positions, not loads, drive racking. Agreed in class / teacher feedback (Rogier).",
+      "source": "Measured (storage snapshots, 01-06-2025) + teacher feedback",
       "impact": "high"
     },
     {
@@ -90,10 +94,10 @@
     {
       "id": "A010",
       "assumption": "Design pallet-position target",
-      "value": "~14,000",
+      "value": "~9,500",
       "unit": "positions",
-      "reason": "Peak concurrent loads 11,015 x 1.15 growth/safety buffer / 0.90 target utilisation. Buffer is a judgement; +8.2%/quarter observed growth is not annualised (may be seasonal build-up).",
-      "source": "Derived (capacity.py); buffer to confirm",
+      "reason": "Peak occupied locations 8,512 / 0.90 working utilisation. Replaces the earlier ~14,074 (11,015 loads x 1.15 / 0.90), which the teacher judged indefensible (+5,574 over the ~8,500 peak). Growth (+8.2%/qtr) is absorbed by rack headroom, not by inflating the count.",
+      "source": "Derived (storage snapshots) + teacher feedback",
       "impact": "high"
     },
     {
@@ -108,10 +112,10 @@
     {
       "id": "A012",
       "assumption": "Aisle widths & location utilisation by concept",
-      "value": "wide 3.7 / reach 2.9 / VNA 1.8 m; util 95/80/97%",
+      "value": "wide 3.7 / reach 3.0 (layout) vs ETV 216i Ast 2.63-2.79 / VNA 1.8 m; util 95/80/97%",
       "unit": "m / %",
       "reason": "Standard MHE operating aisles and honeycombing/selectivity losses used in the capacity model",
-      "source": "Industry-standard specs - to cite per equipment manufacturer",
+      "source": "Reach aisle checked against Jungheinrich ETV 216i data (S006); other concepts industry-standard",
       "impact": "medium"
     },
     {
@@ -119,8 +123,8 @@
       "assumption": "Functional (non-storage) areas sized from actual order volume",
       "value": "receiving 262, outbound 216, packing 450, forward-pick 500, offices 250, returns 180, circulation 450 m2",
       "unit": "m2",
-      "reason": "Superseded the earlier flat 35% allowance. Sized from measured peak throughput (inbound ~90 & outbound ~50 palletised loads/day; parcel-heavy) at 1.9 m2/pallet floor-stage + benches. Detailed layout total = 6,541 m2 = 93% of 7,000 -> the design FITS with ~7% buffer.",
-      "source": "Derived (layout.py) from measured throughput; factors are planning assumptions",
+      "reason": "Sized from measured throughput: inbound ~99 loads/day received (peak 167), outbound 17.7 pallets + 225 cartons/day (73% of trailers carry no pallets - parcel-heavy). Detailed layout total = 6,541 m2 = 93% of 7,000.",
+      "source": "Derived (capacity_plan.py) from measured throughput; factors are planning assumptions",
       "impact": "high"
     },
     {
@@ -128,9 +132,18 @@
       "assumption": "Labour productivity benchmarks (units/person-hour)",
       "value": "receiving 25, putaway 20, replen 18, case-pick 80, each-pick 55, pallet-pick 22, pack 45, ship 30",
       "unit": "pallets or lines per hour",
-      "reason": "No DHL productivity data was provided (A006). Benchmark ranges from warehouse-engineering literature; drive the labour/MHE plan. MUST be replaced with DHL actuals when available.",
+      "reason": "No DHL productivity data was provided (A006). Benchmark rates drive the labour plan. Pick-type split is now ORDER-DERIVED (A022), not taken from DHL's pick flags. Loose-container de-stuffing is modelled separately (A019). MUST be replaced with DHL actuals when available.",
       "source": "Industry benchmark (e.g. Bartholdi & Hackman, Warehouse & Distribution Science) - to validate",
       "impact": "high"
+    },
+    {
+      "id": "A015",
+      "assumption": "Shift & equipment parameters",
+      "value": "7.5 productive h/FTE/shift; 80% MHE utilisation; single main shift",
+      "unit": "h / %",
+      "reason": "8h shift less breaks/PF&D; equipment availability allowance. Peak may need overtime or a partial 2nd shift.",
+      "source": "Planning assumption",
+      "impact": "medium"
     },
     {
       "id": "A017",
@@ -142,12 +155,57 @@
       "impact": "high"
     },
     {
-      "id": "A015",
-      "assumption": "Shift & equipment parameters",
-      "value": "7.5 productive h/FTE/shift; 80% MHE utilisation; single main shift",
-      "unit": "h / %",
-      "reason": "8h shift less breaks/PF&D; equipment availability allowance. Peak may need overtime or a partial 2nd shift.",
-      "source": "Planning assumption",
+      "id": "A018",
+      "assumption": "Inbound arrives as 2 shipments per day, direct from Assa Abloy factories",
+      "value": "2",
+      "unit": "arrivals/day",
+      "reason": "Stated by teacher/DHL. Data cross-check: ~99 loads booked in per receiving day (lower bound, 14-day windows before each snapshot), max 167; origins CN, DE, RO, NL, ES, FI... The WMS truck-ID field shows ~8-11 IDs/day, which likely reflects ASN/receipt grouping - kept as a dock-door sensitivity.",
+      "source": "Teacher / DHL (S004) + measured ADD DATE / INBOUND TRUCK NO",
+      "impact": "high"
+    },
+    {
+      "id": "A019",
+      "assumption": "Part of inbound arrives LOOSE (floor-loaded sea containers) and is de-stuffed and palletised by hand",
+      "value": "~41% of loads Asian-origin -> 1 container/day avg, 2 at peak; 2-person crew, 3 h per container (2-4 h sensitivity)",
+      "unit": "containers/day; h",
+      "reason": "Teacher: shipments come in pallets and loose. Asian-origin share (CN/TW/KR/VN) used as the container proxy; largest receipts (70-100 loads, all CN) take 1-3 days to book in, consistent with de-stuffing. Unload-only benchmark 1-2 h for 2 people (S005); +palletising per SKU, heavy cartons -> 3 h.",
+      "source": "Teacher (S004) + measured ORGCOD + S005",
+      "impact": "high"
+    },
+    {
+      "id": "A020",
+      "assumption": "Dock-door planning parameters",
+      "value": "door utilisation 85%; receiving window 06:00-14:00; dock-on/paperwork 20 min in, 15 min out; 4.3 m door pitch; carrier collection time slots",
+      "unit": "% / h / min / m",
+      "reason": "Standard planning values. Outbound doors sized on the busiest hour (p90 9 trailers x 18 min / 0.85 = 3.1 -> 4, +1 spare = 5). Requires carrier time slots: WMS dispatch stamps are batch-closed (60% of afternoon dispatches <2 min apart); without slots up to 8 doors (p90) would be needed; today's all-day drop-trailer practice holds ~15 trailers.",
+      "source": "Planning assumption + measured outbound trailer data",
+      "impact": "high"
+    },
+    {
+      "id": "A021",
+      "assumption": "MHE cycle-time model parameters",
+      "value": "ETV 216i travel 11 km/h + 4.6 s accel per leg; fixed handling 45 s; double-deep +12 s on 50% of moves; mean fork height 5.1 m; ERE 225 at 50% of 14 km/h on dock legs; MHE utilisation 80%",
+      "unit": "km/h / s / %",
+      "reason": "Speeds, lift/lower/reach rates and acceleration from Jungheinrich data (S006-S008); handling allowances are assumptions. Gives putaway 2.5 min (24/h) - consistent with the 20/h benchmark (A014). Telescopic-fork residual capacity at height to confirm with Jungheinrich.",
+      "source": "Jungheinrich technical data (S006-S008) + planning assumption",
+      "impact": "medium"
+    },
+    {
+      "id": "A022",
+      "assumption": "Pick type is derived from what the client ordered, not from DHL's historical pick flags",
+      "value": "75% each / 24% case / 1% full-pallet lines (61% of units are case, 26% each, 13% full pallet)",
+      "unit": "% of lines",
+      "reason": "Teacher feedback (Rogier): past DHL pick choices may not be optimal. Each line is classed by comparing PICKED QTY to the SKU's pallet qty (PA QTY) and case qty (CS QTY). Lines without master data (2.3%) are treated as each (slowest, conservative). Also removes the 20% unlabelled 'Other' class.",
+      "source": "Measured (outbound lines x storage master) + teacher feedback",
+      "impact": "high"
+    },
+    {
+      "id": "A023",
+      "assumption": "The 08:00 pick peak is caused by the order-release routine, not by when customers order",
+      "value": "55% of orders arrive 15:00-17:00, ~43% released 16:00-18:00, picked next morning; 08:00 = 1.31x the mean active hour",
+      "unit": "% / ratio",
+      "reason": "Teacher statement confirmed by ORDER ARRIVE / ALOCATE / PICK timestamps. Future state releases work in waves through the shift (levelling could free ~24% of peak-hour picker capacity).",
+      "source": "Teacher (S004) + measured outbound timestamps",
       "impact": "medium"
     }
   ]

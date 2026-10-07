@@ -461,135 +461,210 @@
   },
   "capacity_plan": {
     "measured": {
+      "inbound_loads_day": 98.9,
+      "inbound_max_day": 167.0,
+      "inbound_peak_factor": 1.69,
+      "inbound_asia_origin_pct": 41.1,
       "outbound_pallets_day": 17.7,
-      "inbound_pallets_day": 31.7,
-      "net_growth_loads_day": 14.0,
-      "replen_pallets_day": 22.3,
-      "lines_case_day": 521.0,
-      "lines_each_day": 102.0
+      "outbound_pallets_p90": 29.0,
+      "outbound_pallets_max": 59.0,
+      "outbound_cartons_day": 224.7,
+      "replen_pallets_day": 24.3,
+      "lines_each_day": 483.0,
+      "lines_case_day": 151.0,
+      "lines_pallet_day": 6.4
+    },
+    "inbound_windows": [
+      {
+        "snapshot": "2025-04-01",
+        "receiving_days": 10,
+        "loads": 709,
+        "loads_per_day": 70.9,
+        "max_day": 111,
+        "asia_origin_pct": 21.6
+      },
+      {
+        "snapshot": "2025-05-01",
+        "receiving_days": 9,
+        "loads": 974,
+        "loads_per_day": 108.2,
+        "max_day": 167,
+        "asia_origin_pct": 54.0
+      },
+      {
+        "snapshot": "2025-06-01",
+        "receiving_days": 9,
+        "loads": 1058,
+        "loads_per_day": 117.6,
+        "max_day": 160,
+        "asia_origin_pct": 47.7
+      }
+    ],
+    "inbound_pattern": {
+      "arrivals_per_day": 2,
+      "containers_avg": 1,
+      "containers_peak": 2,
+      "destuff_crew": 2,
+      "destuff_h": 3.0
+    },
+    "pick_type_order_derived": {
+      "share_lines_pct": {
+        "each": 75.4,
+        "case": 23.6,
+        "full pallet": 1.0
+      },
+      "share_units_pct": {
+        "case": 60.9,
+        "each": 25.9,
+        "full pallet": 13.1
+      },
+      "lines_without_master": 915
     },
     "assumptions_productivity": {
-      "Receiving (unload+check)": {
+      "Receiving - palletised (unload+check)": {
         "unit": "pallets",
         "rate_per_h": 25
       },
-      "Putaway (reach)": {
+      "Receiving - loose container de-stuff": {
+        "unit": "person-h",
+        "rate_per_h": null
+      },
+      "Putaway (reach truck)": {
         "unit": "pallets",
         "rate_per_h": 20
       },
-      "Replenishment": {
+      "Replenishment (reach truck)": {
         "unit": "pallets",
         "rate_per_h": 18
-      },
-      "Case picking": {
-        "unit": "lines",
-        "rate_per_h": 80
       },
       "Each picking": {
         "unit": "lines",
         "rate_per_h": 55
       },
+      "Case picking": {
+        "unit": "lines",
+        "rate_per_h": 80
+      },
       "Full-pallet picking": {
         "unit": "pallets",
         "rate_per_h": 22
       },
-      "Packing/consolidation": {
+      "Packing / consolidation": {
         "unit": "lines",
         "rate_per_h": 45
       },
-      "Shipping/loading": {
+      "Shipping / loading": {
         "unit": "pallets",
         "rate_per_h": 30
       }
     },
     "net_hours_per_fte": 7.5,
-    "mhe_util": 0.8,
-    "total_fte_avg": 3.7,
-    "total_fte_peak": 7.4,
-    "total_fte_ceil_peak": 12,
+    "total_fte_avg": 5.4,
+    "total_fte_peak": 10.1,
+    "total_fte_ceil_peak": 16,
     "labour_table": [
       {
-        "Process": "Receiving (unload+check)",
-        "Driver/day (avg)": 32.0,
+        "Process": "Receiving - palletised (unload+check)",
+        "Driver/day (avg)": 58.3,
         "Unit": "pallets",
         "Rate/h": 25,
-        "Hours (avg)": 1.3,
-        "Hours (peak)": 3.6,
-        "FTE avg": 0.17,
-        "FTE peak": 0.48,
+        "Peak factor": 1.69,
+        "Hours (avg)": 2.3,
+        "Hours (peak)": 3.9,
+        "FTE avg": 0.31,
+        "FTE peak": 0.52,
         "FTE (ceil peak)": 1
       },
       {
-        "Process": "Putaway (reach)",
-        "Driver/day (avg)": 32.0,
-        "Unit": "pallets",
-        "Rate/h": 20,
-        "Hours (avg)": 1.6,
-        "Hours (peak)": 4.5,
-        "FTE avg": 0.21,
-        "FTE peak": 0.6,
-        "FTE (ceil peak)": 1
-      },
-      {
-        "Process": "Replenishment",
-        "Driver/day (avg)": 22.0,
-        "Unit": "pallets",
-        "Rate/h": 18,
-        "Hours (avg)": 1.2,
-        "Hours (peak)": 3.5,
-        "FTE avg": 0.16,
-        "FTE peak": 0.47,
-        "FTE (ceil peak)": 1
-      },
-      {
-        "Process": "Case picking",
-        "Driver/day (avg)": 521.0,
-        "Unit": "lines",
-        "Rate/h": 80,
-        "Hours (avg)": 6.5,
-        "Hours (peak)": 11.9,
-        "FTE avg": 0.87,
-        "FTE peak": 1.59,
+        "Process": "Receiving - loose container de-stuff",
+        "Driver/day (avg)": 6.0,
+        "Unit": "person-h",
+        "Rate/h": "-",
+        "Peak factor": 2.0,
+        "Hours (avg)": 6.0,
+        "Hours (peak)": 12.0,
+        "FTE avg": 0.8,
+        "FTE peak": 1.6,
         "FTE (ceil peak)": 2
       },
       {
+        "Process": "Putaway (reach truck)",
+        "Driver/day (avg)": 98.9,
+        "Unit": "pallets",
+        "Rate/h": 20,
+        "Peak factor": 1.69,
+        "Hours (avg)": 4.9,
+        "Hours (peak)": 8.3,
+        "FTE avg": 0.66,
+        "FTE peak": 1.11,
+        "FTE (ceil peak)": 2
+      },
+      {
+        "Process": "Replenishment (reach truck)",
+        "Driver/day (avg)": 24.3,
+        "Unit": "pallets",
+        "Rate/h": 18,
+        "Peak factor": 2.85,
+        "Hours (avg)": 1.3,
+        "Hours (peak)": 3.8,
+        "FTE avg": 0.18,
+        "FTE peak": 0.51,
+        "FTE (ceil peak)": 1
+      },
+      {
         "Process": "Each picking",
-        "Driver/day (avg)": 102.0,
+        "Driver/day (avg)": 482.6,
         "Unit": "lines",
         "Rate/h": 55,
+        "Peak factor": 1.83,
+        "Hours (avg)": 8.8,
+        "Hours (peak)": 16.1,
+        "FTE avg": 1.17,
+        "FTE peak": 2.14,
+        "FTE (ceil peak)": 3
+      },
+      {
+        "Process": "Case picking",
+        "Driver/day (avg)": 151.0,
+        "Unit": "lines",
+        "Rate/h": 80,
+        "Peak factor": 1.83,
         "Hours (avg)": 1.9,
-        "Hours (peak)": 3.4,
+        "Hours (peak)": 3.5,
         "FTE avg": 0.25,
-        "FTE peak": 0.45,
+        "FTE peak": 0.46,
         "FTE (ceil peak)": 1
       },
       {
         "Process": "Full-pallet picking",
-        "Driver/day (avg)": 17.0,
+        "Driver/day (avg)": 6.4,
         "Unit": "pallets",
         "Rate/h": 22,
-        "Hours (avg)": 0.8,
-        "Hours (peak)": 1.4,
-        "FTE avg": 0.1,
-        "FTE peak": 0.18,
+        "Peak factor": 1.83,
+        "Hours (avg)": 0.3,
+        "Hours (peak)": 0.5,
+        "FTE avg": 0.04,
+        "FTE peak": 0.07,
         "FTE (ceil peak)": 1
       },
       {
-        "Process": "Packing/consolidation",
-        "Driver/day (avg)": 623.0,
+        "Process": "Packing / consolidation",
+        "Driver/day (avg)": 633.6,
         "Unit": "lines",
         "Rate/h": 45,
-        "Hours (avg)": 13.9,
-        "Hours (peak)": 25.3,
-        "FTE avg": 1.85,
-        "FTE peak": 3.38,
+        "Peak factor": 1.83,
+        "Hours (avg)": 14.1,
+        "Hours (peak)": 25.8,
+        "FTE avg": 1.88,
+        "FTE peak": 3.44,
         "FTE (ceil peak)": 4
       },
       {
-        "Process": "Shipping/loading",
-        "Driver/day (avg)": 18.0,
+        "Process": "Shipping / loading",
+        "Driver/day (avg)": 17.7,
         "Unit": "pallets",
         "Rate/h": 30,
+        "Peak factor": 2.85,
         "Hours (avg)": 0.6,
         "Hours (peak)": 1.7,
         "FTE avg": 0.08,
@@ -597,21 +672,52 @@
         "FTE (ceil peak)": 1
       }
     ],
-    "mhe_table": [
+    "storage_basis": {
+      "peak_occupied_locations": 8512,
+      "target_positions": 9500,
+      "peak_loads": 11015,
+      "old_target_retired": 14074
+    },
+    "feasibility_corrected": [
       {
-        "Equipment": "Reach truck (putaway/replen/pallet pick)",
-        "Peak equip-hours/day": 9.4,
-        "Units (peak)": 2
+        "Concept": "Selective - wide aisle",
+        "MHE": "Counterbalance FLT",
+        "Levels": 6,
+        "Total area m2": 6810,
+        "% of 7,000 m2": 97.0,
+        "Fits": "TIGHT"
       },
       {
-        "Equipment": "Low-level order picker (case/each)",
-        "Peak equip-hours/day": 15.3,
-        "Units (peak)": 3
+        "Concept": "Selective - narrow aisle",
+        "MHE": "Reach truck",
+        "Levels": 7,
+        "Total area m2": 5040,
+        "% of 7,000 m2": 72.0,
+        "Fits": "YES"
       },
       {
-        "Equipment": "Pallet truck (receiving/shipping)",
-        "Peak equip-hours/day": 5.3,
-        "Units (peak)": 1
+        "Concept": "Double-deep",
+        "MHE": "Reach truck (deep)",
+        "Levels": 7,
+        "Total area m2": 4280,
+        "% of 7,000 m2": 61.0,
+        "Fits": "YES"
+      },
+      {
+        "Concept": "VNA",
+        "MHE": "VNA turret truck",
+        "Levels": 8,
+        "Total area m2": 3390,
+        "% of 7,000 m2": 48.0,
+        "Fits": "YES"
+      },
+      {
+        "Concept": "Drive-in",
+        "MHE": "Counterbalance FLT",
+        "Levels": 5,
+        "Total area m2": 6330,
+        "% of 7,000 m2": 90.0,
+        "Fits": "TIGHT"
       }
     ]
   },
@@ -704,5 +810,224 @@
       "9282809030",
       "10027505"
     ]
+  },
+  "dock_mhe": {
+    "jungheinrich": {
+      "ETV 216i": {
+        "role": "Reach truck - putaway, replenishment, full-pallet picks (double-deep via telescopic forks)",
+        "capacity_kg": 1600,
+        "load_centre_mm": 600,
+        "max_lift_mm": 10700,
+        "ext_mast_mm": 11700,
+        "ast_mm": "2,631-2,785",
+        "width_mm": 1270,
+        "v_travel_kmh": 11,
+        "v_travel_max_kmh": 14,
+        "v_lift_laden": 0.59,
+        "v_lift_empty": 0.81,
+        "v_lower": 0.56,
+        "v_reach": 0.24,
+        "reach_mm": 616,
+        "accel_s": 4.6,
+        "battery": "Li-ion 51.2 V / 360 Ah, opportunity charging",
+        "src": "S006"
+      },
+      "ECE 225": {
+        "role": "Horizontal order picker - batch picking onto 2 pallets / roll cages",
+        "capacity_kg": 2500,
+        "fork_mm": 2400,
+        "length_mm": 3670,
+        "width_mm": 810,
+        "v_travel_kmh": 12.5,
+        "battery": "24 V",
+        "src": "S007"
+      },
+      "ERE 225": {
+        "role": "Rider pallet truck - unloading/loading trailers & containers, dock moves",
+        "capacity_kg": 2500,
+        "fork_mm": 1000,
+        "v_travel_kmh": 14,
+        "battery": "Li-ion option (ERE 225i)",
+        "src": "S008"
+      }
+    },
+    "geometry": {
+      "mean_fork_height_m": 5.08,
+      "top_beam_m": 10.02
+    },
+    "cycle_times": [
+      {
+        "Move": "Putaway (receiving -> reserve)",
+        "Truck": "ETV 216i",
+        "Avg one-way m": 77.0,
+        "Cycle min": 2.46,
+        "Moves/h": 24.4
+      },
+      {
+        "Move": "Replenishment (reserve -> fast-pick rear)",
+        "Truck": "ETV 216i",
+        "Avg one-way m": 30.0,
+        "Cycle min": 1.95,
+        "Moves/h": 30.8
+      },
+      {
+        "Move": "Full-pallet pick (reserve -> outbound)",
+        "Truck": "ETV 216i",
+        "Avg one-way m": 78.0,
+        "Cycle min": 2.48,
+        "Moves/h": 24.2
+      },
+      {
+        "Move": "Unload pallet (trailer -> receiving lane)",
+        "Truck": "ERE 225",
+        "Avg one-way m": 19.0,
+        "Cycle min": 0.99,
+        "Moves/h": 60.7
+      },
+      {
+        "Move": "Load pallet (staging -> trailer)",
+        "Truck": "ERE 225",
+        "Avg one-way m": 19.0,
+        "Cycle min": 1.24,
+        "Moves/h": 48.4
+      }
+    ],
+    "fleet": [
+      {
+        "Model": "Jungheinrich ETV 216i",
+        "Task": "Putaway + replenishment + full-pallet picks",
+        "Equip-h/day avg": 5.1,
+        "Equip-h/day peak": 9.6,
+        "Units required (peak)": 2,
+        "Units recommended": 3
+      },
+      {
+        "Model": "Jungheinrich ECE 225",
+        "Task": "Case & each batch picking (2 pallets/roll cages per trip)",
+        "Equip-h/day avg": 10.7,
+        "Equip-h/day peak": 19.6,
+        "Units required (peak)": 4,
+        "Units recommended": 4
+      },
+      {
+        "Model": "Jungheinrich ERE 225",
+        "Task": "Unload trailers/containers, load outbound, dock moves",
+        "Equip-h/day avg": 2.2,
+        "Equip-h/day peak": 4.6,
+        "Units required (peak)": 1,
+        "Units recommended": 2
+      }
+    ],
+    "fit_checks": [
+      {
+        "Check": "Working aisle (reach aisle 3.0 m)",
+        "Requirement": "ETV 216i Ast 2,631-2,785 mm",
+        "Result": "OK - 0.2-0.4 m margin"
+      },
+      {
+        "Check": "Top beam 10.02 m (8 levels x 1.41 m)",
+        "Requirement": "Max lift 10.7 m",
+        "Result": "OK - 0.68 m spare"
+      },
+      {
+        "Check": "Clear height 12.2 m",
+        "Requirement": "Extended mast 11.7 m at max lift",
+        "Result": "OK - 0.5 m clearance"
+      },
+      {
+        "Check": "Pallet weight p95 875 kg / p99 1344 kg",
+        "Requirement": "1,600 kg @ 600 mm",
+        "Result": "OK for 99.4% of SKUs; >1 t pallets slotted on low levels"
+      },
+      {
+        "Check": "Batch picking 2 orders per trip",
+        "Requirement": "ECE 225: 2,400 mm forks, 2,500 kg",
+        "Result": "OK - 2 EUR pallets / roll cages"
+      },
+      {
+        "Check": "Charging",
+        "Requirement": "Li-ion opportunity charging",
+        "Result": "No battery room; chargers at P&D points"
+      }
+    ],
+    "inbound_doors": {
+      "scenarios": [
+        {
+          "Scenario": "Average day: 1 palletised trailer + 1 loose container",
+          "Door-hours/day": 4.6,
+          "Doors by capacity": 1,
+          "Simultaneous arrivals": 2,
+          "Doors needed": 2
+        },
+        {
+          "Scenario": "Peak day: palletised volume x1.7 + 1 loose container",
+          "Door-hours/day": 5.3,
+          "Doors by capacity": 1,
+          "Simultaneous arrivals": 2,
+          "Doors needed": 2
+        },
+        {
+          "Scenario": "Worst case: 2 loose containers (4 h de-stuff each)",
+          "Door-hours/day": 8.7,
+          "Doors by capacity": 2,
+          "Simultaneous arrivals": 2,
+          "Doors needed": 2
+        },
+        {
+          "Scenario": "Sensitivity: ~8 smaller trucks/day (WMS truck IDs)",
+          "Door-hours/day": 4.3,
+          "Doors by capacity": 1,
+          "Simultaneous arrivals": 3,
+          "Doors needed": 3
+        }
+      ],
+      "doors_recommended": 3,
+      "doors_needed_base": 2,
+      "receiving_window_h": 8.0,
+      "door_util": 0.85,
+      "trailer_door_h": 1.29,
+      "container_door_h": 3.33
+    },
+    "outbound_doors": {
+      "trailers_per_day_mean": 15.0,
+      "trailers_per_day_p90": 19.0,
+      "trailers_per_day_max": 22,
+      "pallets_per_trailer_mean": 1.2,
+      "cartons_per_trailer_mean": 15.0,
+      "share_trailers_zero_pallets_pct": 73.0,
+      "dock_min_mean": 18.0,
+      "dock_min_p90": 22.0,
+      "busiest_hour_trailers_p90": 9.0,
+      "busiest_hour_trailers_max": 12,
+      "current_drop_trailer_concurrent_median": 12.0,
+      "current_drop_trailer_concurrent_p90": 15.0,
+      "future_liveload_concurrent_median": 6.0,
+      "future_liveload_concurrent_p90": 8.0,
+      "future_liveload_concurrent_max": 12,
+      "formula_doors_p90_hour": 3.1,
+      "formula_doors_max_hour": 4.1,
+      "wms_batch_close_pct": 60.0,
+      "doors_needed": 4,
+      "doors_recommended": 5
+    },
+    "carriers_trailers_per_day": {
+      "EXWORKS": 3.05,
+      "DHL DSV": 2.36,
+      "DHL PARCEL NETHERLANDS": 2.13,
+      "DHL PARCEL NETHERLANDS DACH": 1.38,
+      "DHL PARCEL BEL AND LUX": 1.08,
+      "DHL4YOU": 1.03,
+      "DHL PARCEL CONNECT & RETURN NL": 1.03,
+      "DHL PARCEL EDC": 0.62,
+      "LECOT": 0.46,
+      "ZEVIJ-NECOMIJ B.V.": 0.43
+    },
+    "order_release": {
+      "orders_arrive_15_17_pct": 55.0,
+      "allocated_16_18_pct": 43.0,
+      "pick_peak_hour": 8,
+      "pick_peak_over_mean_active_hour": 1.31,
+      "picker_capacity_saving_if_levelled_pct": 24.0
+    }
   }
 }

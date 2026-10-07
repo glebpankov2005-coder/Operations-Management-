@@ -1,0 +1,5 @@
+Scenario,Door-hours/day,Doors by capacity,Simultaneous arrivals,Doors needed
+Average day: 1 palletised trailer + 1 loose container,4.6,1,2,2
+Peak day: palletised volume x1.7 + 1 loose container,5.3,1,2,2
+Worst case: 2 loose containers (4 h de-stuff each),8.7,2,2,2
+Sensitivity: ~8 smaller trucks/day (WMS truck IDs),4.3,1,3,3

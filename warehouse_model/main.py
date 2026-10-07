@@ -122,9 +122,15 @@ box(0, 0, 0, L, WT, WALL_H, M_WALL, "wall_front")
 box(0, DEPTH-WT, 0, L, WT, 8.0, M_WALL, "wall_back")
 box(0, 0, 0, WT, DEPTH, 8.0, M_WALL, "wall_left")
 box(L-WT, 0, 0, WT, DEPTH, 8.0, M_WALL, "wall_right")
+# dock doors (dock_mhe_plan.py): 3 receiving on the WEST wall, 5 shipping on the EAST wall, 4.3 m pitch
 for i in range(3):
-    box(2 + i*3.2, -0.35, 0, 2.4, 0.5, 3.2, M_DOCK, "recv_dock")
-    box(rax + 1 + i*2.6, -0.35, 0, 2.2, 0.5, 3.2, M_DOCK, "ship_dock")
+    yc = vh/2 + (i - 1) * 4.3
+    box(-0.45, yc - 1.4, 0, 0.5, 2.8, 3.4, M_DOCK, "recv_dock")          # door slab (outer face, seen by camera)
+    plane(0.35, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK, "recv_leveller")        # dock leveller plate inside
+for k in range(5):
+    yc = uh/2 + (k - 2) * 4.3
+    box(L - 0.75, yc - 1.4, 0, 0.45, 2.8, 3.4, M_DOCK, "ship_dock")       # door slab (inner face, seen by camera)
+    plane(L - 2.75, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK, "ship_leveller")
 
 # ---------------- lighting ----------------
 world = bpy.data.worlds.new("W"); scene.world = world; world.use_nodes = True

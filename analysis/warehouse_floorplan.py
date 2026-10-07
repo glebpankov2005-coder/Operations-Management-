@@ -113,16 +113,25 @@ ax.text(start + (sel_from+0.9)*pitch, rack_y0 + 8, "RACKS FOR\nODD / LONG\nITEMS
         fontsize=7, weight="bold", color="#3b5bdb", rotation=0, zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 
-# ---- dock doors (numbered) ----
-def docks(x_start, x_end, n, label):
-    xs = np.linspace(x_start, x_end, n)
-    for i, dx in enumerate(xs, 1):
-        ax.add_patch(FancyBboxPatch((dx-1.3, -2.2), 2.6, 1.7, boxstyle="round,pad=0,rounding_size=0.3",
-                     facecolor=STEEL, edgecolor="none", zorder=4))
-        ax.text(dx, -1.35, str(i), ha="center", va="center", fontsize=6, color="white", weight="bold", zorder=5)
-    ax.text((x_start+x_end)/2, -4.2, label, ha="center", fontsize=8.5, color=STEEL, weight="bold")
-docks(1.5, left_w-0.5, 3, "▲ RECEIVING docks")
-docks(rax+0.5, L-1.5, 3, "SHIPPING docks ▲")
+# ---- dock doors on the side walls (sized in dock_mhe_plan.py: 3 inbound, 5 outbound) ----
+# A trailer door needs ~4.3 m of wall: the 9.9 m receiving / 9.5 m outbound columns are too narrow on the
+# south wall, so receiving docks sit on the WEST wall and shipping docks on the EAST wall (straight-through flow).
+DOOR_PITCH = 4.3
+def docks_side(x_wall, y_centre, n, prefix, outside):
+    ys_ = y_centre + (np.arange(n) - (n - 1) / 2) * DOOR_PITCH
+    x0 = x_wall - 2.3 if outside == "left" else x_wall + 0.6
+    for i, dy in enumerate(ys_, 1):
+        ax.add_patch(FancyBboxPatch((x0, dy - 1.5), 1.7, 3.0, boxstyle="round,pad=0,rounding_size=0.3",
+                     facecolor=STEEL, edgecolor="white", lw=0.8, zorder=12))      # above flow arrows
+        ax.text(x0 + 0.85, dy, f"{prefix}{i}", ha="center", va="center", fontsize=5.6, color="white",
+                weight="bold", zorder=13, rotation=90)
+    return ys_
+in_doors = docks_side(0, rvh / 2, 3, "R", "left")
+out_doors = docks_side(L, uh / 2, 5, "S", "right")
+ax.text(-4.9, rvh / 2, "RECEIVING docks  (R1 = container)", ha="center", va="center", rotation=90,
+        fontsize=7.2, color=STEEL, weight="bold")
+ax.text(L + 5.4, out_doors[3], "SHIPPING docks", ha="center", va="center", rotation=90,
+        fontsize=7.6, color=STEEL, weight="bold")
 
 # ---- dimension lines ----
 def dim_h(x0, x1, y, text):
@@ -147,14 +156,15 @@ ax.annotate("", xy=(L+4, DEPTH-2), xytext=(L+4, DEPTH-8), arrowprops=dict(arrows
 ax.text(L+4, DEPTH-0.5, "N", ha="center", fontsize=11, weight="bold", color=INK)
 
 # ---- title block (bottom-right, text above the box via zorder) ----
-tb_w, tb_h = 46, 7.6
-tb_x, tb_y = L - tb_w, -13.2
+tb_w, tb_h = 46, 8.85
+tb_x, tb_y = L - tb_w, -14.4
 ax.add_patch(Rectangle((tb_x, tb_y), tb_w, tb_h, facecolor="white", edgecolor=STEEL, lw=1.3, zorder=6))
 ax.add_patch(Rectangle((tb_x, tb_y+tb_h-1.6), tb_w, 1.6, facecolor="#eef1f7", edgecolor=STEEL, lw=1.0, zorder=6.1))
 ax.text(tb_x+tb_w/2, tb_y+tb_h-0.8, "Project OTM — Assa Abloy @ DHL Bemmel", ha="center", va="center",
         fontsize=7.6, weight="bold", color=INK, zorder=7)
 rows = [("DRAWING", "Option B — warehouse floor plan (rack-level)"),
-        ("POSITIONS", "target ~9,500 (peak 8,512 ÷ 0.90) · racking gives growth headroom"),
+        ("POSITIONS", "~9,500 target (peak 8,512 ÷ 0.90) + headroom"),
+        ("DOCKS / MHE", "3 in (W) · 5 out (E) · ETV 216i, ECE 225, ERE 225"),
         ("SCALE / SIZE", f"~1:400  ·  {L:.0f} × {DEPTH:.0f} m = 6,541 m²  (93%)"),
         ("DATE / REV", "2026  ·  Draft A")]
 for i, (k, v) in enumerate(rows):
@@ -180,35 +190,48 @@ out_cx, out_cy = rax + right_w/2, uh/2
 aisleA2 = start + pitch + BLOCK + AISLEW/2
 
 import matplotlib.patheffects as pe
-def farrow(p0, p1, color, ls="-", rad=0.0, lw=3.2, ms=22):
-    a = FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=ms, color=color,
-                        lw=lw, linestyle=ls, connectionstyle=f"arc3,rad={rad}",
-                        zorder=8, capstyle="round", joinstyle="round", shrinkA=0, shrinkB=0)
-    a.set_path_effects([pe.Stroke(linewidth=lw+2.6, foreground="white"), pe.Normal()])
+from matplotlib.path import Path
+LW = 5.0
+def route(pts, color):
+    """Bold flow arrow along a polyline routed through OPEN space (doors, perimeter aisles,
+    cross-aisle, storage aisles) - never across a rack. One patch: rounded corners, crisp head."""
+    path = Path(pts, [Path.MOVETO] + [Path.LINETO] * (len(pts) - 1))
+    a = FancyArrowPatch(path=path, arrowstyle="-|>,head_length=0.55,head_width=0.24", mutation_scale=26,
+                        color=color, lw=LW, joinstyle="round", capstyle="round", zorder=8)
+    a.set_path_effects([pe.Stroke(linewidth=LW + 2.6, foreground="white"), pe.Normal()])
     ax.add_patch(a)
 def badge(x, y, n, color):
-    ax.scatter([x], [y], s=205, color="white", edgecolor=color, lw=2.0, zorder=10)
-    ax.text(x, y, str(n), ha="center", va="center", fontsize=8.5, weight="bold", color=color, zorder=11)
+    ax.scatter([x], [y], s=330, color="white", edgecolor=color, lw=2.6, zorder=10)
+    ax.text(x, y, str(n), ha="center", va="center", fontsize=10, weight="bold", color=color, zorder=11)
 
-cd_y = (cross_y0 + cross_y1)/2
-lmarg = start - 1.6          # open channel just left of the first rack block
-rmarg = cx1 - 2.4           # open channel just right of the last rack block
+cd_y = (cross_y0 + cross_y1) / 2
+aisle_c = [start + k * pitch + BLOCK + AISLEW / 2 for k in range(n_mod - 1)]
+x_ref = aisle_c[3]                                     # storage aisle A4 (open channel) for the refill run
+pk_y = pack_cy + 4                                     # entry height into packing (clear of its label)
+x5 = pack_cx + 1.2
 
-# ---- forward flow 1-6 (heads land in open aisles / margins, never on a rack) ----
-farrow((recv_cx, -0.6), (recv_cx, rvh*0.34), BLUE);                          badge(recv_cx, rvh*0.34+2.3, 1, BLUE)
-farrow((recv_cx+1.2, recv_cy+2), (lmarg, rack_y0+11), BLUE, rad=-0.26);      badge(lmarg-3.4, rack_y0+5, 2, BLUE)
-farrow((aisleA2, rack_y0+4.5), (aisleA2, fwd_h+1.3), GREEN, ls=(0,(5,3)));   badge(aisleA2+3.4, rack_y0+0.5, 3, GREEN)
-farrow((rmarg, fwd_h+3), (rax+3.6, DEPTH-ph+5), REDD, rad=-0.14);            badge(rmarg, (fwd_h+DEPTH-ph)/2, 4, REDD)
-farrow((pack_cx, DEPTH-ph+4), (out_cx, uh-4), REDD);                         badge(out_cx, DEPTH-ph, 5, REDD)
-farrow((out_cx, uh*0.55), (out_cx, -0.6), REDD);                             badge(out_cx, uh*0.55+2.4, 6, REDD)
+# ---- main flow 1-6 : In -> put away -> refill -> pick -> pack -> out ----
+route([(-1.45, in_doors[0]), (left_w * 0.62, in_doors[0])], BLUE)                      # 1 in through R1
+badge(left_w * 0.18, in_doors[0], 1, BLUE)
+route([(left_w - 0.8, 20.0), (la, 20.0), (la, cd_y), (start + 7.0, cd_y)], BLUE)         # 2 up left aisle, into cross-aisle
+badge(la, (20.0 + cd_y) / 2, 2, BLUE)
+route([(x_ref, cd_y + 10), (x_ref, fwd_h + 1.4)], GREEN)                               # 3 reserve -> fast-pick rear
+badge(x_ref, cd_y - 8, 3, GREEN)
+route([(cx1 - 11, fwd_h * 0.5), (ra, fwd_h * 0.5), (ra, pk_y), (rax + 2.6, pk_y)], REDD)  # 4 pick -> right aisle -> packing
+badge(ra, (fwd_h + pk_y) / 2, 4, REDD)
+route([(x5, pack_cy - 5), (x5, uh - 4.2)], REDD)                                       # 5 pack -> outbound
+badge(x5, (pack_cy - 5 + DEPTH - ph) / 2, 5, REDD)
+route([(rax + 1.2, out_doors[1]), (L + 4.5, out_doors[1])], REDD)                      # 6 out through S2
+badge(out_cx, out_doors[1], 6, REDD)
 
-# flow legend (row along the bottom)
+# flow legend (boxed, below the plan)
 ax.set_ylim(-21, DEPTH + 10)
-handles = [Line2D([0],[0], color=BLUE, lw=3.4, label="1–2  In & put away"),
-           Line2D([0],[0], color=GREEN, lw=3.4, ls="--", label="3  Refill the fast-pick area"),
-           Line2D([0],[0], color=REDD, lw=3.4, label="4–6  Pick → pack → out")]
-ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.02), ncol=3,
-          fontsize=9, frameon=False)
+handles = [Line2D([0], [0], color=BLUE, lw=5, label="1–2  In & put away"),
+           Line2D([0], [0], color=GREEN, lw=5, label="3  Refill the fast-pick area"),
+           Line2D([0], [0], color=REDD, lw=5, label="4–6  Pick → pack → out")]
+leg = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=3, fontsize=10,
+                frameon=True, fancybox=True, borderpad=0.9, columnspacing=3.2, handlelength=3.2)
+leg.get_frame().set_edgecolor("#9db4fb"); leg.get_frame().set_linewidth(1.2)
 title_txt.set_text("Option B — Layout, Zoning & Order Flow (on the floor plan)")
 fig.savefig(os.path.join(FIGS, "layout_orderflow.png"), dpi=130, bbox_inches="tight")
 plt.close(fig)

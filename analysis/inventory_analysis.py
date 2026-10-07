@@ -83,8 +83,8 @@ update_metrics("inventory", metrics)
 
 # figure: loads & locations trend
 fig, ax = plt.subplots(figsize=(7, 4))
-ax.plot(trend.index, trend["loads_LODNUM"], "o-", label="Loads (pallet positions)", color="#6c8eef")
-ax.plot(trend.index, trend["occupied_locations"], "s-", label="Occupied locations", color="#e08a5b")
+ax.plot(trend.index, trend["loads_LODNUM"], "o-", label="Loads (LODNUM)", color="#6c8eef")
+ax.plot(trend.index, trend["occupied_locations"], "s-", label="Occupied locations = pallet positions", color="#e08a5b")
 ax.set_title("Inventory footprint trend (Q2 2025)")
 ax.set_ylabel("count"); ax.legend(); ax.grid(alpha=0.3)
 save_fig(fig, "inventory_trend.png")

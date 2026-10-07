@@ -43,11 +43,11 @@ ax.imshow(wimg); ax.axis("off")
 ax.set_title("Option B — Worker Movement (Blender, top-down): zone-picking routes along the aisles",
              fontsize=15, weight="bold", color="#1f2937", pad=12)
 wh = [
-    Patch(fc=(0.85, 0.55, 0.10), label="Picker · Zone 1 (fast / forward)"),
-    Patch(fc=(0.49, 0.20, 0.66), label="Picker · Zone 2 (reserve-left)"),
-    Patch(fc=(0.03, 0.57, 0.70), label="Picker · Zone 3 (reserve-right)"),
-    Patch(fc=(0.10, 0.60, 0.30), label="Reach truck · putaway & replenishment"),
-    Patch(fc=(0.86, 0.15, 0.15), label="Handler · pack → ship"),
+    Patch(fc=(0.85, 0.55, 0.10), label="Picker on ECE 225 · Zone 1 (fast-pick area)"),
+    Patch(fc=(0.49, 0.20, 0.66), label="Picker on ECE 225 · Zone 2 (reserve-left, low levels)"),
+    Patch(fc=(0.03, 0.57, 0.70), label="Picker on ECE 225 · Zone 3 (reserve-right, low levels)"),
+    Patch(fc=(0.10, 0.60, 0.30), label="Reach truck ETV 216i · putaway & replenishment"),
+    Patch(fc=(0.86, 0.15, 0.15), label="Pallet truck ERE 225 · pack → east shipping docks"),
 ]
 ax.legend(handles=wh, loc="lower center", bbox_to_anchor=(0.5, -0.09), ncol=3, fontsize=9.5, frameon=False)
 fig.savefig(os.path.join(FIGS, "layout_worker_render.png"), dpi=140, bbox_inches="tight")

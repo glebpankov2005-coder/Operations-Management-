@@ -57,7 +57,8 @@ def north_arrow(ax, x, y):
 
 M = json.load(open(os.path.join(os.path.dirname(__file__), "..", "outputs", "reports", "phase1_metrics.json"), encoding="utf-8"))
 cap = M["capacity"]
-target_pos = cap["design_positions_target"]           # ~14,074
+target_pos = cap["design_positions_target"]           # ~14,074 = drawn racking FRAME capacity; the design
+                                                      # target is ~9,500 (A010) - the difference is growth headroom
 DD_DENS, SEL_DENS = 0.293, 0.345                        # m2/position (double-deep, selective)
 DD_SHARE = 0.85
 dd_pos = target_pos * DD_SHARE

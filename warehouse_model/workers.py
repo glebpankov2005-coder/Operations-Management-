@@ -32,10 +32,10 @@ def mat(name, rgba, rough=0.6, metal=0.0):
     b.inputs["Base Color"].default_value = rgba
     b.inputs["Roughness"].default_value = rough; b.inputs["Metallic"].default_value = metal
     return m
-def emit(rgb, strength=2.6):
+def emit(rgb, strength=1.0):   # pure emission, strength 1 + 'Standard' view = exact legend colour
     m = bpy.data.materials.new("e"); m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = (*rgb, 1)
+    b.inputs["Base Color"].default_value = (0, 0, 0, 1)                 # no lit diffuse on top of emission
     b.inputs["Emission Color"].default_value = (*rgb, 1); b.inputs["Emission Strength"].default_value = strength
     return m
 
@@ -65,8 +65,13 @@ plane(rax+0.3, DEPTH-ph, right_w-0.6, ph-0.6, 0.02, M_PACK); plane(rax+0.3, 0.3,
 box(0.5, DEPTH-oh+0.5, 0, left_w-1, oh-1, 6, M_OFF, "office")
 for wx, wy, wsx, wsy, wsz in [(0,0,L,0.3,2),(0,DEPTH-0.3,L,0.3,8),(0,0,0.3,DEPTH,8),(L-0.3,0,0.3,DEPTH,8)]:
     box(wx, wy, 0, wsx, wsy, wsz, M_WALL, "wall")
+# dock doors (dock_mhe_plan.py): 3 receiving on the WEST wall, 5 shipping on the EAST wall, 4.3 m pitch
 for i in range(3):
-    box(2+i*3.2, -0.35, 0, 2.4, 0.5, 3, M_DOCK); box(rax+1+i*2.6, -0.35, 0, 2.2, 0.5, 3, M_DOCK)
+    yc = vh/2 + (i - 1) * 4.3
+    box(-0.9, yc - 1.4, 0, 0.9, 2.8, 3, M_DOCK); plane(0.35, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK)
+for k in range(5):
+    yc = uh/2 + (k - 2) * 4.3
+    box(L, yc - 1.4, 0, 0.9, 2.8, 3, M_DOCK); plane(L - 2.75, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK)
 
 box(cx0, 0.5, 0, core_w, FWD_H-1, 3.2, M_FWD, "forward")
 for mnum in range(n_mod):
@@ -87,17 +92,17 @@ def strip(p0, p1, rgb, w=0.75, z=0.10):
     bpy.ops.mesh.primitive_cube_add(size=1, location=((x0+x1)/2, (y0+y1)/2, z))
     o = bpy.context.active_object; o.scale = (ln, w, 0.08); o.rotation_euler = (0, 0, math.atan2(dy, dx))
     o.data.materials.append(emit(rgb))
-def worker(x, y, rgb):
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.32, depth=1.2, location=(x, y, 0.6))
+def worker(x, y, rgb, z0=0.0):
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.32, depth=1.2, location=(x, y, z0 + 0.6))
     bpy.context.active_object.data.materials.append(mat("v", (*rgb, 1), 0.5))
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.34, location=(x, y, 1.4))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.34, location=(x, y, z0 + 1.4))
     bpy.context.active_object.data.materials.append(M_BODY)
-def route(points, rgb, put_workers=True):
+def route(points, rgb, put_workers=True, z=0.10):
     for a, b in zip(points[:-1], points[1:]):
-        strip(a, b, rgb)
+        strip(a, b, rgb, z=z)
     if put_workers:
-        worker(points[0][0], points[0][1], rgb)
-        mid = points[len(points)//2]; worker(mid[0], mid[1], rgb)
+        worker(points[0][0], points[0][1], rgb, z0=z - 0.10)
+        mid = points[len(points)//2]; worker(mid[0], mid[1], rgb, z0=z - 0.10)
 
 def serp(lanes, lo, hi, axis):
     pts = []
@@ -106,7 +111,11 @@ def serp(lanes, lo, hi, axis):
         pts += [(c, a), (c, b)] if axis == "v" else [(a, c), (b, c)]
     return pts
 
-AMBER, VIOLET, CYAN, GREEN, RED = (0.90,0.55,0.05),(0.55,0.20,0.75),(0.05,0.62,0.78),(0.10,0.62,0.30),(0.90,0.12,0.12)
+# legend colours are sRGB (annotate_render.py); Blender colours are linear -> convert so they match exactly
+def lin(rgb):
+    return tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb)
+AMBER, VIOLET, CYAN, GREEN, RED = (lin((0.85, 0.55, 0.10)), lin((0.49, 0.20, 0.66)), lin((0.03, 0.57, 0.70)),
+                                   lin((0.10, 0.60, 0.30)), lin((0.86, 0.15, 0.15)))
 # actual aisle centres (between rack blocks) so routes never cross racks
 aisle_xs = [startx + m*pitch + BLOCK + AISLEW/2 for m in range(n_mod - 1)]
 left_ais = [x for x in aisle_xs if x < cmid]
@@ -118,19 +127,20 @@ def serp_aisles(xs, y0, y1):
         pts += [(x, a), (x, b)]
     return pts
 # Zone 1 (fast) - along the forward-pick face (open zone)
-route(serp([1.8, 4.0, 6.0], cx0+2, cx1-2, "h"), AMBER)
+route(serp([1.8, 4.0, 6.0], cx0+2, cx1-2, "h"), AMBER, z=3.35)   # drawn on top of the 3.2 m module
 # Zone 2 & 3 pickers - serpentine strictly along reserve aisles
 route(serp_aisles(left_ais[::2][:3], ry0+2, ry1-2), VIOLET)
 route(serp_aisles(right_ais[::2][:3], ry0+2, ry1-2), CYAN)
-# Reach truck putaway: receiving -> perimeter aisle -> up an aisle
+# Reach truck putaway: receiving -> left perimeter aisle -> cross-aisle -> up a storage aisle
+# (trucks keep to perimeter + cross-aisle; same route as the 2-D plan and the cycle-time model)
 la_x = cx0 - aisle/2
-route([(5, 10), (la_x, 22), (aisle_xs[1], 30), (aisle_xs[1], ry1-4)], GREEN)
+route([(5, 10), (la_x, 10), (la_x, ymid), (aisle_xs[1], ymid), (aisle_xs[1], ry1-4)], GREEN)
 # replenishment: two aisles, reserve -> forward
 for xr in (aisle_xs[2], aisle_xs[len(aisle_xs)//2]):
     strip((xr, ry0+3), (xr, FWD_H-1), GREEN, w=0.7)
-# handler: right perimeter aisle, pack -> ship
+# handler: right perimeter aisle, pack -> outbound -> east shipping door S2
 ha_x = cx1 + aisle/2
-route([(ha_x, 55), (ha_x, 6)], RED)
+route([(ha_x, 55), (ha_x, uh/2 - 4.3), (L - 1.5, uh/2 - 4.3)], RED)
 
 # ---------------- lighting (with shadows for depth) ----------------
 scene.world = bpy.data.worlds.new("W"); scene.world.use_nodes = True

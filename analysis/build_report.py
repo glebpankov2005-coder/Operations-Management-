@@ -45,9 +45,13 @@ for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5), ("Heading 3", 11)]:
 
 
 def para(text, size=10.5, color=DARK, bold=False, italic=False, align=None, space_after=6):
+    """Paragraph; '**text**' segments are bold (markers are not printed)."""
     p = doc.add_paragraph()
-    r = p.add_run(text)
-    r.font.size = Pt(size); r.font.color.rgb = color; r.bold = bold; r.italic = italic
+    for i, seg in enumerate(text.split("**")):
+        if not seg:
+            continue
+        r = p.add_run(seg)
+        r.font.size = Pt(size); r.font.color.rgb = color; r.bold = bold or (i % 2 == 1); r.italic = italic
     if align:
         p.alignment = align
     p.paragraph_format.space_after = Pt(space_after)
@@ -102,7 +106,7 @@ def page_number_footer():
     footer = doc.sections[0].footer
     p = footer.paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("Project OTM — Assa Abloy @ DHL Bemmel  ·  Deliverable 1 (Analysis) DRAFT  ·  Page ")
+    run = p.add_run("Project OTM — Assa Abloy @ DHL Bemmel  ·  Deliverable 1 (Analysis)  ·  Page ")
     run.font.size = Pt(8); run.font.color.rgb = GREY
     fld1 = OxmlElement("w:fldSimple"); fld1.set(qn("w:instr"), "PAGE")
     run._r.addnext(fld1)
@@ -123,7 +127,7 @@ table(["Field", "Detail"], [
     ["Site constraints", "≤ 7,000 m² footprint · ≤ 12.2 m height"],
     ["Scope", "Receiving · Storage · Picking · Shipping (end-to-end)"],
     ["Author", "________________________"],
-    ["Version", "DRAFT — analysis, design options, policies & recommendation"],
+    ["Version", "v2 — analysis, design options, policies & recommendation (updated with teacher feedback)"],
 ], widths=[4.5, 11])
 
 para("This draft covers Deliverable 1 end-to-end: data analysis, storage-capacity feasibility, three "
@@ -195,11 +199,14 @@ table(["Snapshot", "Detail recs", "Loads (positions)", "Occupied locations", "Ac
         f"{r['occupied_locations']:,}", f"{r['active_skus']:,}", f"{r['total_cube_m3']:,.0f}"]
        for r in inv], widths=[2.7, 2.4, 3.0, 3.2, 2.2, 2.0])
 ii = M["inventory"]
+sb = M["capacity_plan"]["storage_basis"]
 bullets([
-    f"Loads (≈ pallet positions) grew **+{ii['loads_growth_pct_q2']}% in one quarter** "
+    f"Occupied locations (pallet positions) grew **{inv[0]['occupied_locations']:,} → "
+    f"{inv[-1]['occupied_locations']:,}** over the quarter; loads grew +{ii['loads_growth_pct_q2']}% "
     f"({inv[0]['loads_LODNUM']:,} → {inv[-1]['loads_LODNUM']:,}); cube +15%.",
-    f"**Peak concurrent loads = {ii['peak_loads_snapshot']:,}** → baseline storage-position requirement "
-    f"(before growth buffer and honeycombing losses).",
+    f"**Peak pallet positions ≈ {sb['peak_occupied_locations']:,} occupied locations** → the storage baseline. "
+    f"The {sb['peak_loads']:,} loads sit in those locations (some locations hold more than one load), so loads "
+    f"overstate the positions needed (A004).",
     f"Loads per SKU: mean {ii['loads_per_sku']['mean']}, median {ii['loads_per_sku']['median']:.0f}, "
     f"max {ii['loads_per_sku']['max']:.0f}; **{ii['single_load_skus_pct']}% of SKUs occupy a single load** "
     f"— a long slow-moving tail one pallet deep.",
@@ -212,6 +219,8 @@ figure("report_stock_ageing.png", "Fig 2b. Stock ageing — 21% of loads have be
 # ============================ 5. ORDER PROFILE ============================
 doc.add_heading("5. Order & picking profile and lead time", level=1)
 lpo, upl = o["lines_per_order"], o["units_per_line"]
+ptl = M["capacity_plan"]["pick_type_order_derived"]["share_lines_pct"]
+ptu = M["capacity_plan"]["pick_type_order_derived"]["share_units_pct"]
 table(["Metric", "Mean", "Median", "p95", "Max"], [
     ["Lines per order", lpo["mean"], f"{lpo['median']:.0f}", f"{lpo['p95']:.0f}", lpo["max"]],
     ["Units per line", upl["mean"], f"{upl['median']:.0f}", f"{upl['p95']:.0f}", upl["max"]],
@@ -222,12 +231,13 @@ lt = o["delivery_leadtime_h_arrive_to_dispatch"]
 bullets([
     f"**{o['n_orders']:,} orders / {o['n_order_lines']:,} lines**; **{lpo['single_line_pct']}% single-line** "
     f"orders and **{upl['single_unit_pct']}% single-unit** lines — a small-order-heavy profile.",
-    f"Pick-type split by lines: case/list **{o['pick_class_pct']['case_or_list']}%**, "
-    f"each **{o['pick_class_pct']['each']}%**, full-pallet **{o['pick_class_pct']['full_pallet']}%**, "
-    f"unflagged/other {o['pick_class_pct']['other']}% (see DQ flag).",
-    f"Pick effort (lifts): case/list **{o['pick_method_lifts']['list_case']:,}** vs each "
-    f"{o['pick_method_lifts']['trolley_each']:,} vs pallet {o['pick_method_lifts']['pallet']:,} → "
-    f"**case picking is the dominant labour driver (~83% of lifts).**",
+    f"**Pick type is derived from what the client ordered** (A022) — each line's quantity is compared with the "
+    f"SKU's case and pallet quantity: **{ptl.get('each', 0):.0f}% each-pick lines, {ptl.get('case', 0):.0f}% case "
+    f"lines, {ptl.get('full pallet', 0):.0f}% full-pallet lines** (by units: {ptu.get('case', 0):.0f}% case, "
+    f"{ptu.get('each', 0):.0f}% each, {ptu.get('full pallet', 0):.0f}% pallet).",
+    f"**Picking is each-dominant by line count** (the labour driver) and case-dominant by volume. DHL's "
+    f"historical pick flags (case/list {o['pick_class_pct']['case_or_list']}%, each {o['pick_class_pct']['each']}%, "
+    f"{o['pick_class_pct']['other']}% unflagged) reflect past practice and are not used for design.",
     f"Delivery lead time (order received → dispatched): **average {lt['mean']} h (~{lt['mean']/24:.1f} days)**, "
     f"median {lt['median']} h (~{lt['median']/24:.1f} days), p90 {lt['p90']} h. Right-skewed (mean > median), "
     f"so the typical order is nearer the median; measured as TRAILER DISPATCED DATE − ORDER ARRIVE DATE.",
@@ -235,7 +245,7 @@ bullets([
     f"Geography: " + ", ".join(f"{k} {v:,}" for k, v in list(o['country_mix'].items())[:5]) +
     " — an NL hub serving Western Europe.",
 ])
-figure("order_pick_class.png", "Fig 3. Order lines by pick type.", 11)
+figure("order_pick_type_derived.png", "Fig 3. Pick type derived from the orders (line quantity vs case / pallet quantity).", 13)
 
 # ============================ 6. ABC ============================
 doc.add_heading("6. Demand-based ABC classification", level=1)
@@ -263,6 +273,7 @@ figure("report_top20_products.png", "Fig 4b. Top-20 SKUs by demand — note seve
 # ============================ 7. PEAK ============================
 doc.add_heading("7. Peak activity analysis", level=1)
 p = M["peak"]
+rl = M["dock_mhe"]["order_release"]
 table(["Metric", "Average / day", "PEAK / day", "Peak ÷ Avg", "Peak date"], [
     ["Order lines", f"{p['lines']['mean']:.0f}", f"{p['lines']['peak']:.0f}", f"{p['lines']['peak_over_avg']}×", p['lines']['peak_date']],
     ["Units", f"{p['units']['mean']:.0f}", f"{p['units']['peak']:.0f}", f"{p['units']['peak_over_avg']}×", p['units']['peak_date']],
@@ -274,11 +285,14 @@ bullets([
     "on lines alone understates pick/pack surges.",
     f"Weekly peak {p['weekly_lines']['peak']:.0f} lines (week of {p['weekly_lines']['peak_week']}) vs "
     f"~{p['weekly_lines']['mean']:.0f} average.",
-    f"Intraday peak around **{p['peak_hour']:02d}:00**; Monday–Friday only (no weekend operations), "
-    "weekdays fairly even.",
+    f"**The {p['peak_hour']:02d}:00 intraday peak is caused by the order-release routine, not by customers** "
+    f"(A023): {rl['orders_arrive_15_17_pct']:.0f}% of orders arrive 15:00–17:00, are released 16:00–18:00 and are "
+    f"picked the next morning, so the backlog hits the floor at shift start ({rl['pick_peak_over_mean_active_hour']}× "
+    "the average hour). Monday–Friday only, weekdays fairly even.",
 ])
 figure("throughput_daily.png", "Fig 5. Daily shipped order-lines with average and peak.", 15)
-figure("pick_hourly_profile.png", "Fig 6. Average picks per hour of day.", 13)
+figure("order_release_profile.png", "Fig 6. Order arrival vs release vs picking by hour — the 08:00 peak is the "
+       "release backlog.", 15)
 
 # ============================ 8. DATA QUALITY ============================
 doc.add_heading("8. Data-quality flags", level=1)
@@ -289,8 +303,8 @@ bullets([
     "impossible for one pallet (9,999 looks like a placeholder). To be cleaned before rack load-rating.",
     f"**units_per_pallet extreme mean** ({s['units_per_pallet']['mean']:.0f} vs median "
     f"{s['units_per_pallet']['median']:.0f}) — use robust statistics.",
-    f"**\"Other\" pick class = {o['pick_class_pct']['other']}% of lines** — no PALL/LIST/TROLLEY flag set; "
-    "method needs a definition from DHL/WMS.",
+    f"**\"Other\" pick class = {o['pick_class_pct']['other']}% of lines** — no PALL/LIST/TROLLEY flag set. "
+    "Resolved for the design: the pick type is derived from order quantities instead of these flags (A022).",
     f"**Stock vs demand mismatch** — {a['skus_shipped_not_in_stock']:,} shipped-not-stocked; a further set "
     "of stocked-not-shipped SKUs are dead-stock candidates. To confirm handling (cross-dock vs obsolete).",
 ])
@@ -298,40 +312,44 @@ bullets([
 # ============================ 9. DESIGN REQUIREMENTS ============================
 doc.add_heading("9. Headline design requirements (input to design options)", level=1)
 bullets([
-    f"**Storage:** ~{ii['peak_loads_snapshot']:,} pallet positions today, growing ~+{ii['loads_growth_pct_q2']}%/"
-    "quarter → target ≈ 12,000–13,000 positions incl. buffer, within the 12.2 m / 7,000 m² envelope (A008).",
+    f"**Storage:** ~{sb['peak_occupied_locations']:,} pallet positions at peak → target ~{sb['target_positions']:,} "
+    "(÷ 0.90 working utilisation); growth (+8%/quarter in loads) is absorbed by extra rack levels, not by an "
+    "inflated count. Must fit the 12.2 m / 7,000 m² envelope (A008).",
     f"**Long slow tail:** {a['class_summary_volume'][2]['sku_pct']}% C-SKUs and {ii['single_load_skus_pct']}% "
     "single-load SKUs → high-density/deep storage for the tail, fast forward-pick for A/B.",
-    "**Picking is case-dominant** (~83% of lifts) with meaningful each (16% of lines) and minor full-pallet "
-    "(2.6%) → mixed pick methods; case-pick productivity is the key labour lever.",
+    f"**Picking is each-dominant by lines** ({ptl.get('each', 0):.0f}% each, {ptl.get('case', 0):.0f}% case, "
+    f"{ptl.get('full pallet', 0):.0f}% full pallet — derived from the orders) and half of all orders are single-line "
+    "→ batch picking from an easy-reach fast-pick area is the key labour lever.",
     f"**Re-slot to demand** — only {a['agreement_with_wms_pct']}% ABC agreement today.",
-    f"**Capacity to peak** — {p['lines']['peak']:.0f} lines / {p['units']['peak']:.0f} units on the peak day; "
-    f"~{p['peak_hour']:02d}:00 intraday peak.",
+    f"**Capacity to peak** — {p['lines']['peak']:.0f} lines / {p['units']['peak']:.0f} units on the peak day; the "
+    f"{p['peak_hour']:02d}:00 peak is a release effect that waves can level.",
 ])
 
 # ============================ 10. CAPACITY FEASIBILITY ============================
 doc.add_heading("10. Storage capacity feasibility", level=1)
 cap = M2["capacity"]
-para(f"Design target: peak {cap['peak_loads']:,} concurrent loads × 1.15 growth/safety buffer ÷ 0.90 "
-     f"target utilisation = **~{cap['design_positions_target']:,} pallet positions**. Measured pallet+load "
-     f"height is low (p90 {cap['measured']['pa_hgt_p90_cm']:.0f} cm), giving a {cap['level_pitch_m']} m level "
-     f"pitch and up to {cap['base_levels_height_limited']} levels under 12.2 m.")
+para(f"Design target: peak **{sb['peak_occupied_locations']:,} occupied locations ÷ 0.90 working utilisation ≈ "
+     f"{sb['target_positions']:,} pallet positions** (A010). This replaces the earlier "
+     f"{sb['old_target_retired']:,} (loads × 1.15 buffer), which overstated the need by counting loads instead of "
+     f"positions. Measured pallet+load height is low (p90 {cap['measured']['pa_hgt_p90_cm']:.0f} cm), giving a "
+     f"{cap['level_pitch_m']} m level pitch and up to {cap['base_levels_height_limited']} levels under 12.2 m.")
 para("Bottom-up floor area needed to hold that target, by storage concept:")
-caprows = []
-for c in cap["concepts"]:
-    caprows.append([c["concept"].split(" (")[0], c["mhe"], str(c["levels"]),
-                    f"{c['total_area_m2 (incl 35% non-storage)']:,}", f"{c['% of 7,000 m2']:.0f}%", c["fits_7000"]])
-table(["Concept", "MHE", "Levels", "Total area m² *", "% of 7,000 m²", "Fits?"], caprows,
-      widths=[4.0, 3.3, 1.5, 2.6, 2.4, 1.8])
+fc = M["capacity_plan"]["feasibility_corrected"]
+table(["Concept", "MHE", "Levels", "Total area m² *", "% of 7,000 m²", "Fits?"],
+      [[r["Concept"], r["MHE"], str(r["Levels"]), f"{r['Total area m2']:,}", f"{r['% of 7,000 m2']:.0f}%", r["Fits"]]
+       for r in fc], widths=[4.0, 3.3, 1.5, 2.6, 2.4, 1.8])
 para("* includes a 35% allowance for receiving, staging, pick, pack, ship, offices and circulation.",
      size=8.5, color=GREY, italic=True)
+pct = {r["Concept"]: r["% of 7,000 m2"] for r in fc}
 bullets([
-    "**Conventional wide-aisle racking does not fit** (144% of the envelope); drive-in is also too "
-    "space-hungry given the many single-load SKUs.",
-    "**Double-deep (91%) and VNA (72%) fit comfortably**; narrow-aisle single-deep is borderline (107%).",
-    "→ Higher-density storage is required, not optional — this shapes the options below.",
+    f"**At the corrected target several concepts fit:** double-deep {pct['Double-deep']:.0f}%, narrow-aisle "
+    f"selective {pct['Selective - narrow aisle']:.0f}%, VNA {pct['VNA']:.0f}%. Wide-aisle ({pct['Selective - wide aisle']:.0f}%) "
+    f"and drive-in ({pct['Drive-in']:.0f}%) are tight.",
+    "→ Space alone no longer decides the concept. The choice is driven by travel and labour, slotting "
+    "flexibility, growth headroom and cost — compared in the options and decision matrix below.",
 ])
-figure("capacity_concepts.png", "Fig 7. Floor area to hold the position target, by concept, vs the 7,000 m² envelope.", 14)
+figure("capacity_feasibility_corrected.png", "Fig 7. Floor area to hold the corrected position target, by concept, "
+       "vs the 7,000 m² envelope.", 14)
 
 # ============================ 11. DESIGN OPTIONS ============================
 doc.add_heading("11. Design options", level=1)
@@ -339,18 +357,21 @@ para("Three end-to-end options (storage × picking × MHE × policies), each ali
 
 doc.add_heading("Option A — Conventional+ (improve the current concept)", level=2)
 bullets([
-    "**Storage:** selective single-deep, narrow-aisle (reach), 7 levels; two-zone ABC. ~7,500 m² (borderline).",
+    f"**Storage:** selective single-deep, narrow-aisle (reach), 7 levels; two-zone ABC. ≈{pct['Selective - narrow aisle']:.0f}% "
+    "of the envelope.",
     "**Picking:** RF-directed discrete + simple batch; case pick from pick-face; pallet from reserve.",
     "**MHE:** reach trucks, low-level order pickers, pallet trucks, RF scanners.",
-    "**Verdict:** cheapest and simplest, but only just fits, with the highest travel and labour.",
+    "**Verdict:** cheapest and simplest, but the most aisles, travel and labour.",
 ])
 doc.add_heading("Option B — Hybrid density + velocity slotting + zone/batch picking  (recommended)", level=2)
 bullets([
     "**Storage:** double-deep reach racking for A/B reserve + selective single-deep for irregular SKUs + a "
-    "forward-pick module (carton-flow / shelving) for fast case/each; cantilever for XLONG goods. ~6,000–6,400 m².",
+    f"forward-pick module (carton-flow / shelving) for fast case/each; cantilever for XLONG goods. "
+    f"≈{pct['Double-deep']:.0f}% of the envelope for storage + working areas — room to grow.",
     "**Picking:** zone + batch/wave picking (batches the 50% single-line orders); A-movers in a golden-zone "
     "forward pick; voice/RF; put-to-light consolidation at pack.",
-    "**MHE:** deep-reach trucks, order pickers, pallet trucks, voice/RF, print-and-apply.",
+    "**MHE:** reach trucks with telescopic forks (Jungheinrich ETV 216i), horizontal order pickers (ECE 225), "
+    "rider pallet trucks (ERE 225), voice/RF, print-and-apply — sized in Deliverable 2.",
     "**Policies:** velocity (demand-ABC) slotting, hybrid random-within-zone storage, min/max replenishment, "
     "FIFO via FIF DATE where relevant.",
     "**Verdict:** fits with buffer, materially lower travel/labour than A, moderate CAPEX — strongest business case.",
@@ -358,7 +379,7 @@ bullets([
 doc.add_heading("Option C — High-density / semi-automated", level=2)
 bullets([
     "**Storage:** VNA (man-up turret) for reserve + automated small-parts store (shuttle/AutoStore-style) for "
-    "the large C each-pick tail. ~5,000 m².",
+    f"the large C each-pick tail. ≈{pct['VNA']:.0f}% of the envelope (densest).",
     "**Picking:** goods-to-person / pick-to-light for smalls; VNA combined storage+pick; automated sortation.",
     "**MHE:** VNA turret trucks + guidance, automation modules, minimal manual MHE.",
     "**Verdict:** densest and lowest labour, but highest CAPEX and complexity; ROI depends on labour cost.",
@@ -381,9 +402,10 @@ figure("decision_matrix.png", "Fig 8. Weighted decision-matrix scores.", 12)
 bullets([
     f"**Recommended: {dec['winner']}.** It wins on base and cost-driven weightings; C overtakes only when "
     "space is the dominant criterion — likely if A008 resolves to a small Assa-only envelope.",
-    "**Why (data):** double-deep fits at 91% where wide-aisle (144%) does not; 83% of lifts are case picking "
-    "and 50% of orders single-line → batch/zone picking is the biggest labour lever; 48.6% ABC mismatch → "
-    "velocity slotting is a cheap, high-value win; 73% single-load tail → dense reserve + fast forward pick.",
+    f"**Why (data):** double-deep holds the corrected target in ≈{pct['Double-deep']:.0f}% of the envelope, leaving "
+    f"growth room with fewer aisles than selective racking; {ptl.get('each', 0):.0f}% of order lines are each-picks "
+    "and 50% of orders single-line → batch/zone picking from a fast-pick area is the biggest labour lever; 48.6% "
+    "ABC mismatch → velocity slotting is a cheap, high-value win; 73% single-load tail → dense reserve.",
     "**Conditions before locking:** confirm the 7,000 m² scope (A008); obtain labour/equipment costs (A006) to "
     "confirm B vs C in the financial model; validate double-deep against the EURO/K3/XLONG pallet mix.",
 ])
@@ -397,8 +419,8 @@ rows = [[a_["id"], a_["assumption"], a_["impact"].upper()]
         for a_ in ASSUM["assumptions"] if a_["impact"] == "high"]
 table(["ID", "Assumption / open question", "Impact"], rows, widths=[1.5, 11.5, 2.0], align_right_from=2)
 
-para("Sources: project brief (client/university) and the Assa Abloy data files. External benchmarks "
-     "(productivity, equipment specs, costs, safety codes) will be added with citations as later phases use them.",
+para("Sources: project brief, the Assa Abloy data files, teacher/DHL feedback and external references "
+     "(Gadeyne on peak slotting; Jungheinrich equipment data) — full list in documentation/sources.md.",
      size=9, color=GREY, italic=True)
 
 page_number_footer()

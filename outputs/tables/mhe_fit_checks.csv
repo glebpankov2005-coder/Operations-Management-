@@ -1,0 +1,7 @@
+Check,Requirement,Result
+Working aisle (reach aisle 3.0 m),"ETV 216i Ast 2,631-2,785 mm",OK - 0.2-0.4 m margin
+Top beam 10.02 m (8 levels x 1.41 m),Max lift 10.7 m,OK - 0.68 m spare
+Clear height 12.2 m,Extended mast 11.7 m at max lift,OK - 0.5 m clearance
+Pallet weight p95 875 kg / p99 1344 kg,"1,600 kg @ 600 mm",OK for 99.4% of SKUs; >1 t pallets slotted on low levels
+Batch picking 2 orders per trip,"ECE 225: 2,400 mm forks, 2,500 kg",OK - 2 EUR pallets / roll cages
+Charging,Li-ion opportunity charging,No battery room; chargers at P&D points
