@@ -525,7 +525,7 @@
         "unit": "pallets",
         "rate_per_h": 25
       },
-      "Receiving - loose container de-stuff": {
+      "Container de-stuffing (outsourced)": {
         "unit": "person-h",
         "rate_per_h": null
       },
@@ -537,15 +537,15 @@
         "unit": "pallets",
         "rate_per_h": 18
       },
-      "Each picking": {
-        "unit": "lines",
-        "rate_per_h": 55
+      "Picking - small orders (trolley, batch)": {
+        "unit": "picker-h",
+        "rate_per_h": null
       },
-      "Case picking": {
-        "unit": "lines",
-        "rate_per_h": 80
+      "Picking - large orders (EJE, to pallet)": {
+        "unit": "picker-h",
+        "rate_per_h": null
       },
-      "Full-pallet picking": {
+      "Full-pallet picking (reach truck)": {
         "unit": "pallets",
         "rate_per_h": 22
       },
@@ -559,9 +559,10 @@
       }
     },
     "net_hours_per_fte": 7.5,
-    "total_fte_avg": 5.4,
-    "total_fte_peak": 10.1,
-    "total_fte_ceil_peak": 16,
+    "total_fte_avg": 4.7,
+    "total_fte_peak": 8.8,
+    "total_fte_ceil_peak": 14,
+    "outsourced_destuff_h_avg": 6.0,
     "labour_table": [
       {
         "Process": "Receiving - palletised (unload+check)",
@@ -573,10 +574,11 @@
         "Hours (peak)": 3.9,
         "FTE avg": 0.31,
         "FTE peak": 0.52,
-        "FTE (ceil peak)": 1
+        "FTE (ceil peak)": 1,
+        "DHL staff": true
       },
       {
-        "Process": "Receiving - loose container de-stuff",
+        "Process": "Container de-stuffing (outsourced)",
         "Driver/day (avg)": 6.0,
         "Unit": "person-h",
         "Rate/h": "-",
@@ -585,7 +587,8 @@
         "Hours (peak)": 12.0,
         "FTE avg": 0.8,
         "FTE peak": 1.6,
-        "FTE (ceil peak)": 2
+        "FTE (ceil peak)": 2,
+        "DHL staff": false
       },
       {
         "Process": "Putaway (reach truck)",
@@ -597,7 +600,8 @@
         "Hours (peak)": 8.3,
         "FTE avg": 0.66,
         "FTE peak": 1.11,
-        "FTE (ceil peak)": 2
+        "FTE (ceil peak)": 2,
+        "DHL staff": true
       },
       {
         "Process": "Replenishment (reach truck)",
@@ -609,34 +613,37 @@
         "Hours (peak)": 3.8,
         "FTE avg": 0.18,
         "FTE peak": 0.51,
-        "FTE (ceil peak)": 1
+        "FTE (ceil peak)": 1,
+        "DHL staff": true
       },
       {
-        "Process": "Each picking",
-        "Driver/day (avg)": 482.6,
-        "Unit": "lines",
-        "Rate/h": 55,
+        "Process": "Picking - small orders (trolley, batch)",
+        "Driver/day (avg)": 3.6,
+        "Unit": "picker-h",
+        "Rate/h": "-",
         "Peak factor": 1.83,
-        "Hours (avg)": 8.8,
-        "Hours (peak)": 16.1,
-        "FTE avg": 1.17,
-        "FTE peak": 2.14,
-        "FTE (ceil peak)": 3
+        "Hours (avg)": 3.6,
+        "Hours (peak)": 6.6,
+        "FTE avg": 0.48,
+        "FTE peak": 0.88,
+        "FTE (ceil peak)": 1,
+        "DHL staff": true
       },
       {
-        "Process": "Case picking",
-        "Driver/day (avg)": 151.0,
-        "Unit": "lines",
-        "Rate/h": 80,
+        "Process": "Picking - large orders (EJE, to pallet)",
+        "Driver/day (avg)": 8.3,
+        "Unit": "picker-h",
+        "Rate/h": "-",
         "Peak factor": 1.83,
-        "Hours (avg)": 1.9,
-        "Hours (peak)": 3.5,
-        "FTE avg": 0.25,
-        "FTE peak": 0.46,
-        "FTE (ceil peak)": 1
+        "Hours (avg)": 8.3,
+        "Hours (peak)": 15.2,
+        "FTE avg": 1.11,
+        "FTE peak": 2.03,
+        "FTE (ceil peak)": 3,
+        "DHL staff": true
       },
       {
-        "Process": "Full-pallet picking",
+        "Process": "Full-pallet picking (reach truck)",
         "Driver/day (avg)": 6.4,
         "Unit": "pallets",
         "Rate/h": 22,
@@ -645,7 +652,8 @@
         "Hours (peak)": 0.5,
         "FTE avg": 0.04,
         "FTE peak": 0.07,
-        "FTE (ceil peak)": 1
+        "FTE (ceil peak)": 1,
+        "DHL staff": true
       },
       {
         "Process": "Packing / consolidation",
@@ -657,7 +665,8 @@
         "Hours (peak)": 25.8,
         "FTE avg": 1.88,
         "FTE peak": 3.44,
-        "FTE (ceil peak)": 4
+        "FTE (ceil peak)": 4,
+        "DHL staff": true
       },
       {
         "Process": "Shipping / loading",
@@ -669,7 +678,8 @@
         "Hours (peak)": 1.7,
         "FTE avg": 0.08,
         "FTE peak": 0.22,
-        "FTE (ceil peak)": 1
+        "FTE (ceil peak)": 1,
+        "DHL staff": true
       }
     ],
     "storage_basis": {
@@ -832,15 +842,34 @@
         "battery": "Li-ion 51.2 V / 360 Ah, opportunity charging",
         "src": "S006"
       },
-      "ECE 225": {
-        "role": "Horizontal order picker - batch picking onto 2 pallets / roll cages",
-        "capacity_kg": 2500,
-        "fork_mm": 2400,
-        "length_mm": 3670,
-        "width_mm": 810,
-        "v_travel_kmh": 12.5,
-        "battery": "24 V",
-        "src": "S007"
+      "EJE 120i": {
+        "role": "Walkie pallet truck - large orders picked onto a pallet",
+        "capacity_kg": 2000,
+        "load_centre_mm": 610,
+        "length_mm": 1575,
+        "width_mm": 720,
+        "wa_mm": "1,414-1,464",
+        "ast_mm": "1,787-1,936",
+        "v_travel_kmh": 5.6,
+        "battery": "Li-ion 25.6 V",
+        "src": "S010"
+      },
+      "EZS 130": {
+        "role": "Tow tractor for a small-parts tugger train (evaluated, not planned)",
+        "tow_kg": 3000,
+        "length_mm": 1315,
+        "width_mm": 600,
+        "wa_mm": "~1,080 (secondary source)",
+        "v_travel_kmh": 10.5,
+        "battery": "24 V, Li-ion option",
+        "src": "S012"
+      },
+      "Pick trolley": {
+        "role": "Manual 3-tier trolley, 6 totes - small orders, zone batch picking",
+        "shelf_mm": "1,000 x 600",
+        "capacity_kg": 250,
+        "per_tier_kg": 80,
+        "src": "S011"
       },
       "ERE 225": {
         "role": "Rider pallet truck - unloading/loading trailers & containers, dock moves",
@@ -859,23 +888,23 @@
       {
         "Move": "Putaway (receiving -> reserve)",
         "Truck": "ETV 216i",
-        "Avg one-way m": 77.0,
-        "Cycle min": 2.46,
-        "Moves/h": 24.4
+        "Avg one-way m": 76.0,
+        "Cycle min": 2.45,
+        "Moves/h": 24.5
       },
       {
         "Move": "Replenishment (reserve -> fast-pick rear)",
         "Truck": "ETV 216i",
-        "Avg one-way m": 30.0,
-        "Cycle min": 1.95,
-        "Moves/h": 30.8
+        "Avg one-way m": 28.0,
+        "Cycle min": 1.93,
+        "Moves/h": 31.1
       },
       {
         "Move": "Full-pallet pick (reserve -> outbound)",
         "Truck": "ETV 216i",
         "Avg one-way m": 78.0,
-        "Cycle min": 2.48,
-        "Moves/h": 24.2
+        "Cycle min": 2.47,
+        "Moves/h": 24.3
       },
       {
         "Move": "Unload pallet (trailer -> receiving lane)",
@@ -897,16 +926,16 @@
         "Model": "Jungheinrich ETV 216i",
         "Task": "Putaway + replenishment + full-pallet picks",
         "Equip-h/day avg": 5.1,
-        "Equip-h/day peak": 9.6,
+        "Equip-h/day peak": 9.5,
         "Units required (peak)": 2,
         "Units recommended": 3
       },
       {
-        "Model": "Jungheinrich ECE 225",
-        "Task": "Case & each batch picking (2 pallets/roll cages per trip)",
-        "Equip-h/day avg": 10.7,
-        "Equip-h/day peak": 19.6,
-        "Units required (peak)": 4,
+        "Model": "Jungheinrich EJE 120i",
+        "Task": "Large orders: pick-to-pallet (one order per pallet)",
+        "Equip-h/day avg": 8.3,
+        "Equip-h/day peak": 15.2,
+        "Units required (peak)": 3,
         "Units recommended": 4
       },
       {
@@ -916,6 +945,14 @@
         "Equip-h/day peak": 4.6,
         "Units required (peak)": 1,
         "Units recommended": 2
+      },
+      {
+        "Model": "Pick trolley (3-tier, 6 totes) + totes",
+        "Task": "Small orders: zone batch picking, sorted at the put-wall",
+        "Equip-h/day avg": 3.6,
+        "Equip-h/day peak": 6.6,
+        "Units required (peak)": 1,
+        "Units recommended": 6
       }
     ],
     "fit_checks": [
@@ -940,9 +977,14 @@
         "Result": "OK for 99.4% of SKUs; >1 t pallets slotted on low levels"
       },
       {
-        "Check": "Batch picking 2 orders per trip",
-        "Requirement": "ECE 225: 2,400 mm forks, 2,500 kg",
-        "Result": "OK - 2 EUR pallets / roll cages"
+        "Check": "Large orders up to p90 671 kg",
+        "Requirement": "EJE 120i 2,000 kg",
+        "Result": "OK - picked onto one pallet"
+      },
+      {
+        "Check": "Small orders (median 7 L)",
+        "Requirement": "Trolley 6 totes, 250 kg",
+        "Result": "OK - ~31 lines per tour"
       },
       {
         "Check": "Charging",
@@ -1028,6 +1070,347 @@
       "pick_peak_hour": 8,
       "pick_peak_over_mean_active_hour": 1.31,
       "picker_capacity_saving_if_levelled_pct": 24.0
+    },
+    "turning_check": [
+      {
+        "Machine": "ETV 216i reach truck",
+        "Size (L x W)": "2,419 x 1,270 mm",
+        "Turning / aisle needed": "Wa 1,665 mm; aisle 2,631-2,785 mm",
+        "Where it drives": "Perimeter + cross-aisles; storage aisles",
+        "Narrowest aisle": "3.0 m",
+        "Result": "OK - turns 90\u00b0 in the 3.2 m cross-aisles; drives through or reverses out"
+      },
+      {
+        "Machine": "EJE 120i pallet truck",
+        "Size (L x W)": "1,575 x 720 mm",
+        "Turning / aisle needed": "Wa 1,414-1,464 mm; aisle 1,787-1,936 mm",
+        "Where it drives": "Fast-pick area, storage aisles, cross-aisles",
+        "Narrowest aisle": "3.0 m",
+        "Result": "OK - aisles open at both ends, so no U-turn needed"
+      },
+      {
+        "Machine": "Pick trolley (manual)",
+        "Size (L x W)": "1,000 x 600 mm",
+        "Turning / aisle needed": "pushed by hand",
+        "Where it drives": "Everywhere in the pick zones",
+        "Narrowest aisle": "3.0 m",
+        "Result": "OK"
+      },
+      {
+        "Machine": "ERE 225 rider pallet truck",
+        "Size (L x W)": "rider truck, 1,000 mm forks",
+        "Turning / aisle needed": "dock work only",
+        "Where it drives": "Dock strips and staging lanes (west + east)",
+        "Narrowest aisle": "open dock area",
+        "Result": "OK - no aisle driving"
+      },
+      {
+        "Machine": "EZS 130 tugger (option)",
+        "Size (L x W)": "1,315 x 600 mm + carts",
+        "Turning / aisle needed": "Wa ~1,080 mm (tractor)",
+        "Where it drives": "Loop on perimeter + cross-aisles only",
+        "Narrowest aisle": "3.2 m",
+        "Result": "OK for a short train; not planned (low volume)"
+      },
+      {
+        "Machine": "ECE 225 order picker (dropped)",
+        "Size (L x W)": "3,670 x 810 mm, 2,400 mm forks",
+        "Turning / aisle needed": "too long for 3.0 m aisles",
+        "Where it drives": "-",
+        "Narrowest aisle": "3.0 m",
+        "Result": "Rejected - cannot turn or U-turn in the aisles; 2 pallets far too big"
+      }
+    ],
+    "justification": [
+      {
+        "Machine": "ETV 216i reach truck",
+        "Process": "Putaway, replenishment, full-pallet picks",
+        "Why (data)": "Pallets stored up to the 8th level (top beam 10.0 m) and two deep - needs 10.7 m lift and telescopic forks; 99.4% of pallets \u2264 1.6 t",
+        "How it is used": "Perimeter + cross-aisles; ~25 putaways/h; feeds fast-pick lanes from the rear",
+        "Units": 3
+      },
+      {
+        "Machine": "EJE 120i pallet truck",
+        "Process": "Large orders: pick-to-pallet",
+        "Why (data)": "16% of orders (23/day) are pallet-sized: median 234 L, 140 kg (p90 671 kg) - too big/heavy for a trolley",
+        "How it is used": "One order per pallet; ~15 lines in ~22 min; drops the pallet at packing",
+        "Units": 4
+      },
+      {
+        "Machine": "Pick trolley + totes",
+        "Process": "Small orders: zone batch picking",
+        "Why (data)": "84% of orders are small (median order 7 L; 75% fit in one tote)",
+        "How it is used": "WMS fills each trolley to its volume/weight limit (~31 lines per tour); put-to-light wall sorts per order",
+        "Units": 6
+      },
+      {
+        "Machine": "ERE 225 rider pallet truck",
+        "Process": "Unloading and loading trailers",
+        "Why (data)": "~99 inbound loads/day in the morning + outbound pallets in the afternoon; rider = less walking, 2.5 t",
+        "How it is used": "One per dock side (west receiving, east shipping)",
+        "Units": 2
+      },
+      {
+        "Machine": "EZS 130 tugger train",
+        "Process": "Transport picked trolleys to packing (option)",
+        "Why (data)": "Fits zone picking, but only ~9 trolley trips/day; a driver would be 26% busy to save ~6 min walking",
+        "How it is used": "Not planned now; adopt if small-order volume ~triples or packing moves away from the pick zones",
+        "Units": 0
+      }
+    ],
+    "container_options": [
+      {
+        "Option": "In-house DHL crew",
+        "How": "2 DHL staff de-stuff each container at door R1",
+        "DHL labour": "6 person-h per container",
+        "Door": "R1 ~3.3 h/day",
+        "Pros": "Full control, flexible timing",
+        "Cons": "Heavy manual handling, training, peak days need 2 crews"
+      },
+      {
+        "Option": "On-site specialist contractor (recommended)",
+        "How": "Contractor crew unloads and palletises at R1, paid per container",
+        "DHL labour": "none",
+        "Door": "R1 ~3.3 h/day",
+        "Pros": "No own labour or peak staffing; specialist speed and safety; cost scales with containers",
+        "Cons": "Per-container fee (D3); booking coordination"
+      },
+      {
+        "Option": "Port / CFS devanning",
+        "How": "Container unpacked and palletised near the port; arrives as a palletised trailer",
+        "DHL labour": "none",
+        "Door": "standard trailer",
+        "Pros": "Simplest receiving - everything palletised",
+        "Cons": "Extra transport and handling cost; ~1 day longer lead time; less control"
+      }
+    ],
+    "departure_plan": {
+      "slot_min": 25,
+      "plan_max_doors_busy": 4,
+      "trailers_planned": 14,
+      "waves": [
+        {
+          "wave": "W1",
+          "start": "06:00",
+          "end": "09:30",
+          "content": "afternoon orders from the day before"
+        },
+        {
+          "wave": "W2",
+          "start": "09:30",
+          "end": "12:45",
+          "content": "rest of the backlog + morning orders"
+        },
+        {
+          "wave": "W3",
+          "start": "12:45",
+          "end": "15:15",
+          "content": "orders received before 12:00 (same-day parcel)"
+        }
+      ],
+      "orders_before_noon_pct": 32.0,
+      "departures": [
+        {
+          "Departure": "10:30",
+          "Carrier": "Ex-works pickup (AM)",
+          "Trailers": 1,
+          "Fed by wave": "W1"
+        },
+        {
+          "Departure": "11:00",
+          "Carrier": "DHL DSV run 1",
+          "Trailers": 1,
+          "Fed by wave": "W1"
+        },
+        {
+          "Departure": "13:30",
+          "Carrier": "Ex-works pickup (PM)",
+          "Trailers": 1,
+          "Fed by wave": "W2"
+        },
+        {
+          "Departure": "14:00",
+          "Carrier": "DHL Parcel NL run 1",
+          "Trailers": 1,
+          "Fed by wave": "W2"
+        },
+        {
+          "Departure": "14:00",
+          "Carrier": "Ex-works pickup (PM)",
+          "Trailers": 1,
+          "Fed by wave": "W2"
+        },
+        {
+          "Departure": "14:30",
+          "Carrier": "DHL DSV run 2",
+          "Trailers": 1,
+          "Fed by wave": "W2"
+        },
+        {
+          "Departure": "15:00",
+          "Carrier": "Customer carriers",
+          "Trailers": 2,
+          "Fed by wave": "W2"
+        },
+        {
+          "Departure": "16:00",
+          "Carrier": "DHL Parcel NL DACH",
+          "Trailers": 1,
+          "Fed by wave": "W3"
+        },
+        {
+          "Departure": "16:15",
+          "Carrier": "DHL Parcel NL run 2",
+          "Trailers": 1,
+          "Fed by wave": "W3"
+        },
+        {
+          "Departure": "16:15",
+          "Carrier": "DHL4YOU",
+          "Trailers": 1,
+          "Fed by wave": "W3"
+        },
+        {
+          "Departure": "16:30",
+          "Carrier": "DHL Connect & Return",
+          "Trailers": 1,
+          "Fed by wave": "W3"
+        },
+        {
+          "Departure": "16:30",
+          "Carrier": "DHL Parcel BE & LU",
+          "Trailers": 1,
+          "Fed by wave": "W3"
+        },
+        {
+          "Departure": "16:45",
+          "Carrier": "DHL Parcel EDC",
+          "Trailers": 1,
+          "Fed by wave": "W3"
+        }
+      ]
+    }
+  },
+  "picking": {
+    "params": {
+      "tote_l": 40.0,
+      "tote_kg": 15.0,
+      "trolley_totes": 6,
+      "small_max_l": 160.0,
+      "small_max_kg": 60.0,
+      "v_walk": 0.8,
+      "v_eje": 1.01,
+      "t_line_small": 25.0,
+      "t_line_large": 40.0,
+      "delay": 1.1
+    },
+    "order_volume": {
+      "median_l": 6.9,
+      "p75_l": 40.0,
+      "p90_l": 176.0,
+      "median_kg": 5.0,
+      "pct_orders_fitting": {
+        "1_tote": 75.1,
+        "4_totes": 89.4,
+        "1_pallet_1000L": 97.9,
+        "2_pallets_2300L": 99.4
+      },
+      "share_volume_orders_over_1m3_pct": 50.0
+    },
+    "segments": [
+      {
+        "segment": "large",
+        "orders_day": 23.0,
+        "lines_day": 343.0,
+        "pct_orders": 16.1,
+        "pct_lines": 54.1,
+        "pct_volume": 88.2
+      },
+      {
+        "segment": "small",
+        "orders_day": 120.2,
+        "lines_day": 291.2,
+        "pct_orders": 83.9,
+        "pct_lines": 45.9,
+        "pct_volume": 11.8
+      }
+    ],
+    "orders_per_trolley": 4.4,
+    "small_orders": [
+      {
+        "Zone": "Fast-pick area (A/B)",
+        "Lines/day": 188.0,
+        "Lines per tour": 30.6,
+        "Tour limited by": "trolley volume",
+        "Walk per tour (m)": 123.0,
+        "Tour (min)": 18.5,
+        "Lines/h": 99.0,
+        "Tours/day": 6.1,
+        "Picker-h avg": 1.89,
+        "Picker-h peak": 3.46
+      },
+      {
+        "Zone": "Reserve low levels (C)",
+        "Lines/day": 104.0,
+        "Lines per tour": 31.3,
+        "Tour limited by": "trolley volume",
+        "Walk per tour (m)": 670.0,
+        "Tour (min)": 31.3,
+        "Lines/h": 60.0,
+        "Tours/day": 3.3,
+        "Picker-h avg": 1.73,
+        "Picker-h peak": 3.17
+      }
+    ],
+    "large_orders": {
+      "orders_day": 23.0,
+      "lines_per_order": 14.9,
+      "lines_fast_pick": 11.6,
+      "lines_reserve": 3.4,
+      "walk_per_order_m": 413.0,
+      "min_per_order": 21.7,
+      "lines_per_h": 41.0,
+      "picker_h_avg": 8.33,
+      "picker_h_peak": 15.25,
+      "kg_median": 140.0,
+      "kg_p90": 671.0,
+      "litres_median": 234.0
+    },
+    "pick_fte_avg": 1.59,
+    "pick_fte_peak": 2.92,
+    "equipment": [
+      {
+        "Item": "Pick trolley (3-tier, 6 totes)",
+        "Use": "Small orders - cluster picking in zones",
+        "Required": 1,
+        "Planned": 6,
+        "Why this number": "2 per picker (picking + at put-wall) + 2 spare"
+      },
+      {
+        "Item": "Totes 600x400 (~40 L)",
+        "Use": "One per small order (more if >40 L / >15 kg)",
+        "Required": 36,
+        "Planned": 54,
+        "Why this number": "trolleys x 6 + 50% in circulation at packing"
+      },
+      {
+        "Item": "Jungheinrich EJE 120i walkie pallet truck",
+        "Use": "Large orders - pick-to-pallet",
+        "Required": 3,
+        "Planned": 4,
+        "Why this number": "peak hours / (7.5 h x 80%) + 1 spare"
+      }
+    ],
+    "tugger": {
+      "loop_m": 201.0,
+      "runs_per_day": 22,
+      "min_per_run": 5.3,
+      "driver_h_day": 1.9,
+      "driver_utilisation_pct": 26.0,
+      "trolleys_per_day": 9.0,
+      "trolleys_per_run": 0.4,
+      "picker_walk_saved_h_day": 0.1,
+      "verdict": "Not justified at current volume - keep as scale-up option"
     }
   }
 }

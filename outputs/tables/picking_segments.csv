@@ -1,0 +1,3 @@
+segment,orders_day,lines_day,pct_orders,pct_lines,pct_volume
+large,23.0,343.0,16.1,54.1,88.2
+small,120.2,291.2,83.9,45.9,11.8

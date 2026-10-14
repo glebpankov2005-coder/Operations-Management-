@@ -1,4 +1,5 @@
 Model,Task,Equip-h/day avg,Equip-h/day peak,Units required (peak),Units recommended
-Jungheinrich ETV 216i,Putaway + replenishment + full-pallet picks,5.1,9.6,2,3
-Jungheinrich ECE 225,Case & each batch picking (2 pallets/roll cages per trip),10.7,19.6,4,4
+Jungheinrich ETV 216i,Putaway + replenishment + full-pallet picks,5.1,9.5,2,3
+Jungheinrich EJE 120i,Large orders: pick-to-pallet (one order per pallet),8.3,15.2,3,4
 Jungheinrich ERE 225,"Unload trailers/containers, load outbound, dock moves",2.2,4.6,1,2
+"Pick trolley (3-tier, 6 totes) + totes","Small orders: zone batch picking, sorted at the put-wall",3.6,6.6,1,6

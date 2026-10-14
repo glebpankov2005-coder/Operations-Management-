@@ -1,0 +1,14 @@
+Departure,Carrier,Trailers,Fed by wave
+10:30,Ex-works pickup (AM),1,W1
+11:00,DHL DSV run 1,1,W1
+13:30,Ex-works pickup (PM),1,W2
+14:00,DHL Parcel NL run 1,1,W2
+14:00,Ex-works pickup (PM),1,W2
+14:30,DHL DSV run 2,1,W2
+15:00,Customer carriers,2,W2
+16:00,DHL Parcel NL DACH,1,W3
+16:15,DHL Parcel NL run 2,1,W3
+16:15,DHL4YOU,1,W3
+16:30,DHL Connect & Return,1,W3
+16:30,DHL Parcel BE & LU,1,W3
+16:45,DHL Parcel EDC,1,W3

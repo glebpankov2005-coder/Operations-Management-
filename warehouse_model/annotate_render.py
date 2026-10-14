@@ -40,12 +40,12 @@ wimg = mpimg.imread(os.path.join(FIGS, "warehouse_workers.png"))
 h2, w2 = wimg.shape[0], wimg.shape[1]
 fig, ax = plt.subplots(figsize=(fig_w, fig_w * h2 / w2 + 1.4))
 ax.imshow(wimg); ax.axis("off")
-ax.set_title("Option B — Worker Movement (Blender, top-down): zone-picking routes along the aisles",
+ax.set_title("Option B — Worker Movement (Blender, top-down): zone batch picking with trolleys, aisles open at both ends",
              fontsize=15, weight="bold", color="#1f2937", pad=12)
 wh = [
-    Patch(fc=(0.85, 0.55, 0.10), label="Picker on ECE 225 · Zone 1 (fast-pick area)"),
-    Patch(fc=(0.49, 0.20, 0.66), label="Picker on ECE 225 · Zone 2 (reserve-left, low levels)"),
-    Patch(fc=(0.03, 0.57, 0.70), label="Picker on ECE 225 · Zone 3 (reserve-right, low levels)"),
+    Patch(fc=(0.85, 0.55, 0.10), label="Picker + trolley · Zone 1 (fast-pick area)"),
+    Patch(fc=(0.49, 0.20, 0.66), label="Picker + trolley · Zone 2 (reserve low levels, left)"),
+    Patch(fc=(0.03, 0.57, 0.70), label="Picker + trolley · Zone 3 (reserve low levels, right)"),
     Patch(fc=(0.10, 0.60, 0.30), label="Reach truck ETV 216i · putaway & replenishment"),
     Patch(fc=(0.86, 0.15, 0.15), label="Pallet truck ERE 225 · pack → east shipping docks"),
 ]

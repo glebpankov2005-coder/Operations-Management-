@@ -1,0 +1,7 @@
+Machine,Size (L x W),Turning / aisle needed,Where it drives,Narrowest aisle,Result
+ETV 216i reach truck,"2,419 x 1,270 mm","Wa 1,665 mm; aisle 2,631-2,785 mm",Perimeter + cross-aisles; storage aisles,3.0 m,OK - turns 90° in the 3.2 m cross-aisles; drives through or reverses out
+EJE 120i pallet truck,"1,575 x 720 mm","Wa 1,414-1,464 mm; aisle 1,787-1,936 mm","Fast-pick area, storage aisles, cross-aisles",3.0 m,"OK - aisles open at both ends, so no U-turn needed"
+Pick trolley (manual),"1,000 x 600 mm",pushed by hand,Everywhere in the pick zones,3.0 m,OK
+ERE 225 rider pallet truck,"rider truck, 1,000 mm forks",dock work only,Dock strips and staging lanes (west + east),open dock area,OK - no aisle driving
+EZS 130 tugger (option),"1,315 x 600 mm + carts","Wa ~1,080 mm (tractor)",Loop on perimeter + cross-aisles only,3.2 m,OK for a short train; not planned (low volume)
+ECE 225 order picker (dropped),"3,670 x 810 mm, 2,400 mm forks",too long for 3.0 m aisles,-,3.0 m,Rejected - cannot turn or U-turn in the aisles; 2 pallets far too big

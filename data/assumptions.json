@@ -168,7 +168,7 @@
       "assumption": "Part of inbound arrives LOOSE (floor-loaded sea containers) and is de-stuffed and palletised by hand",
       "value": "~41% of loads Asian-origin -> 1 container/day avg, 2 at peak; 2-person crew, 3 h per container (2-4 h sensitivity)",
       "unit": "containers/day; h",
-      "reason": "Teacher: shipments come in pallets and loose. Asian-origin share (CN/TW/KR/VN) used as the container proxy; largest receipts (70-100 loads, all CN) take 1-3 days to book in, consistent with de-stuffing. Unload-only benchmark 1-2 h for 2 people (S005); +palletising per SKU, heavy cartons -> 3 h.",
+      "reason": "Teacher: shipments come in pallets and loose. Asian-origin share (CN/TW/KR/VN) used as the container proxy; largest receipts (70-100 loads, all CN) take 1-3 days to book in, consistent with de-stuffing. Unload-only benchmark 1-2 h for 2 people (S005); +palletising per SKU, heavy cartons -> 3 h. De-stuffing is recommended to be OUTSOURCED to an on-site contractor (A026).",
       "source": "Teacher (S004) + measured ORGCOD + S005",
       "impact": "high"
     },
@@ -186,7 +186,7 @@
       "assumption": "MHE cycle-time model parameters",
       "value": "ETV 216i travel 11 km/h + 4.6 s accel per leg; fixed handling 45 s; double-deep +12 s on 50% of moves; mean fork height 5.1 m; ERE 225 at 50% of 14 km/h on dock legs; MHE utilisation 80%",
       "unit": "km/h / s / %",
-      "reason": "Speeds, lift/lower/reach rates and acceleration from Jungheinrich data (S006-S008); handling allowances are assumptions. Gives putaway 2.5 min (24/h) - consistent with the 20/h benchmark (A014). Telescopic-fork residual capacity at height to confirm with Jungheinrich.",
+      "reason": "Speeds, lift/lower/reach rates and acceleration from Jungheinrich data (S006-S008); handling allowances are assumptions. Gives putaway 2.5 min (24/h) - consistent with the 20/h benchmark (A014). Telescopic-fork residual capacity at height to confirm with Jungheinrich. ECE 225 dropped (too long for 3 m aisles, 2-pallet capacity >> order sizes).",
       "source": "Jungheinrich technical data (S006-S008) + planning assumption",
       "impact": "medium"
     },
@@ -206,6 +206,42 @@
       "unit": "% / ratio",
       "reason": "Teacher statement confirmed by ORDER ARRIVE / ALOCATE / PICK timestamps. Future state releases work in waves through the shift (levelling could free ~24% of peak-hour picker capacity).",
       "source": "Teacher (S004) + measured outbound timestamps",
+      "impact": "medium"
+    },
+    {
+      "id": "A024",
+      "assumption": "Picking is split by ORDER SIZE computed from SKU each-dimensions and weights",
+      "value": "small = <=160 L and <=60 kg (4 totes of 40 L / 15 kg) -> trolley; larger -> pick-to-pallet; full-pallet lines -> reach truck",
+      "unit": "L / kg",
+      "reason": "Median order is 7 L; 75% fit one tote, 89% fit 4 totes, but the largest orders carry ~88% of the volume. Tote 600x400 ~40 L usable, <=15 kg per tote for manual handling; trolley 6 totes, filled to 80% of volume/weight (S011).",
+      "source": "Measured (outbound x storage master) + design assumption",
+      "impact": "high"
+    },
+    {
+      "id": "A025",
+      "assumption": "Pick-time model parameters",
+      "value": "walk 0.8 m/s with trolley; EJE 120i at 65% of 5.6 km/h; 25 s per small-order line, 40 s per large-order line; setup 90 / 180 s per tour; +10% delays; 3 waves/day",
+      "unit": "m/s / s",
+      "reason": "Travel computed on the Option B layout (return route in the fast-pick area, S-shape in the reserve aisles); handling times are planning assumptions to validate with DHL time studies (A006).",
+      "source": "Layout geometry + EJE data (S010) + planning assumption",
+      "impact": "high"
+    },
+    {
+      "id": "A026",
+      "assumption": "Loose-container de-stuffing is outsourced to an on-site specialist contractor",
+      "value": "~6 contractor person-h/day (1 container); not counted as DHL staff",
+      "unit": "person-h/day",
+      "reason": "Teacher suggestion (S013). Removes heavy manual handling and peak staffing from DHL; door R1 still used ~3.3 h/day. Alternative: devanning at a port CFS so containers arrive palletised. Per-container fee to be costed in Deliverable 3.",
+      "source": "Teacher (S013) + S005",
+      "impact": "medium"
+    },
+    {
+      "id": "A027",
+      "assumption": "Trailer departure plan with booked carrier time slots",
+      "value": "13 slot departures/day (25-min windows) at the carriers' current median times; 3 pick waves planned backwards (06:00, 09:30, 12:45)",
+      "unit": "-",
+      "reason": "Teacher: 'make a plan on when you want them to leave'. Slots built from each carrier's median departure time (data); max 4 of 5 doors busy at once. Carriers must accept the slots (A020).",
+      "source": "Measured outbound trailer data + planning assumption",
       "impact": "medium"
     }
   ]

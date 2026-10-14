@@ -90,6 +90,7 @@ ind, outd, rel = dm["inbound_doors"], dm["outbound_doors"], dm["order_release"]
 fleet = {f["Model"].replace("Jungheinrich ", ""): f for f in dm["fleet"]}
 sl = pt["share_lines_pct"]; su = pt["share_units_pct"]
 POS_PEAK, POS_TARGET = 8512, 9500
+PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["departure_plan"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
 
 # COVER
@@ -136,9 +137,15 @@ table(["Topic", "Before", "Now (this version)"], [
      f"Measured ~{meas['inbound_loads_day']:.0f} loads/day; 2 shipments/day from Assa Abloy factories, "
      f"pallets + loose containers"],
     ["Dock doors", "3 + 3 assumed", f"Calculated: {N_IN} receiving (west, 1 container dock) + {N_OUT} shipping (east)"],
-    ["Equipment", "Generic truck types",
-     f"Jungheinrich ETV 216i ×{fleet['ETV 216i']['Units recommended']}, ECE 225 ×{fleet['ECE 225']['Units recommended']}, "
-     f"ERE 225 ×{fleet['ERE 225']['Units recommended']} — sized from their technical data"],
+    ["Equipment", "Generic truck types (then ECE 225 for picking)",
+     f"Jungheinrich ETV 216i ×{fleet['ETV 216i']['Units recommended']}, EJE 120i ×{fleet['EJE 120i']['Units recommended']}, "
+     f"ERE 225 ×{fleet['ERE 225']['Units recommended']} + {fleet['Pick trolley (3-tier, 6 totes) + totes']['Units recommended']} pick trolleys; "
+     "ECE 225 dropped (too long for the aisles, 2 pallets far too big for the orders)"],
+    ["Picking", "One method for all orders", f"Split by order size: {segs['small']['pct_orders']:.0f}% small orders on trolleys "
+     f"(batch), {segs['large']['pct_orders']:.0f}% large orders picked onto a pallet"],
+    ["Aisles", "Racks run to 1.5 m from the wall (dead ends)", "Front + rear cross-aisles: every aisle open at both ends — no U-turns"],
+    ["Trailers", "Leave whenever loaded", f"Departure plan by carrier ({dep['trailers_planned']} slots); 3 pick waves planned backwards"],
+    ["Loose containers", "De-stuffed by DHL staff", "Outsourced to an on-site contractor (DHL keeps the dock slot)"],
     ["08:00 peak", "Treated as customer demand", "Caused by the order-release routine → release in waves"],
 ], widths=[3.0, 5.0, 8.0], arr=9)
 
@@ -155,9 +162,9 @@ bullets([
     f"loose — cartons stacked on the container floor.",
     "**Palletised trailer (doors R2–R3):** dock → unload with ERE 225 pallet truck → RF-scan against the ASN → "
     "quantity/quality check → register the load (LPN) → system-directed putaway with an ETV 216i reach truck → confirm.",
-    f"**Loose container (door R1, container dock):** dock → 2-person crew de-stuffs the cartons → sort by SKU on the "
-    f"dock → build and wrap pallets, print LPN labels → scan against the ASN → putaway. About "
-    f"{cp['inbound_pattern']['destuff_h']:.0f} h per 40 ft container (A019, S005).",
+    f"**Loose container (door R1, container dock):** dock → an on-site contractor crew de-stuffs the cartons, sorts "
+    f"them by SKU and builds pallets → DHL prints LPN labels, scans against the ASN and puts away. About "
+    f"{cp['inbound_pattern']['destuff_h']:.0f} h per 40 ft container (A019, A026, Section 4.6).",
     "**Policy applied:** demand-based directed putaway (A/B close to their fast-pick faces, C further away); "
     "pallets over 1 t on low levels; cantilever for extra-long goods.",
     "**Truck route:** reach trucks use the left perimeter aisle and the cross-aisle, never the fast-pick area — "
@@ -172,14 +179,22 @@ bullets([f"**Steps:** fast-pick face below minimum → WMS replenishment task �
          "lanes and trucks the rear, so people and reach trucks never share a face."])
 figure("flow_replenishment.png", "Fig 3. Replenishment flow.", 11)
 doc.add_heading("2.3 Picking (zone + batch / wave)", level=2)
+ov = PK["order_volume"]
 bullets([
-    f"**Pick method follows the orders (A022):** comparing each line's quantity with the SKU's case and pallet "
-    f"quantity gives {sl.get('each', 0):.0f}% each-pick lines, {sl.get('case', 0):.0f}% case lines and "
-    f"{sl.get('full pallet', 0):.0f}% full-pallet lines (by units: {su.get('case', 0):.0f}% case, "
-    f"{su.get('each', 0):.0f}% each, {su.get('full pallet', 0):.0f}% pallet). Picking is each-dominant by line count.",
-    "**Steps:** orders released in waves (not one 08:00 backlog, Section 4.2) → batch single-line orders → picker "
-    "on an ECE 225 collects 2 orders' roll cages/pallets per trip → full pallets by ETV 216i → to consolidation.",
-    "**Where:** A/B fast movers in the fast-pick area; C items at the low levels of the reserve aisles (zones 2–3).",
+    f"**The order decides the method (A022, A024).** The typical order is only {ov['median_l']:.0f} litres "
+    f"({ov['pct_orders_fitting']['1_tote']:.0f}% fit in one tote), while the biggest orders carry most of the volume. "
+    "At release the WMS computes each order's volume and weight from the SKU data and sends it down one of three routes:",
+    f"**Small orders → pick trolley ({segs['small']['pct_orders']:.0f}% of orders, {segs['small']['pct_lines']:.0f}% of lines):** "
+    f"zone batch picking — a picker per zone fills a 6-tote trolley with the wave's lines up to its volume/weight "
+    f"limit (~{PK['small_orders'][0]['Lines per tour']:.0f} lines per tour); the put-to-light wall sorts them per order.",
+    f"**Large orders → pick-to-pallet with an EJE 120i ({segs['large']['pct_orders']:.0f}% of orders, "
+    f"{segs['large']['pct_volume']:.0f}% of volume):** one order per pallet (median {PK['large_orders']['litres_median']:.0f} L, "
+    f"{PK['large_orders']['kg_median']:.0f} kg), dropped at packing.",
+    f"**Full-pallet lines ({sl.get('full pallet', 0):.0f}% of lines) → ETV 216i** straight from reserve to outbound.",
+    "**Where:** A/B items in the fast-pick area (zone 1); C items at the low levels of the reserve aisles (zones 2–3). "
+    "Aisles are open at both ends, so pickers and pallet trucks walk straight through — no U-turns.",
+    "**Why not the ECE 225:** 3.7 m long with 2.4 m forks, it cannot turn in 3.0 m aisles, and its 2 pallets "
+    f"(~2,300 L) would need ~{2300 / ov['median_l']:.0f} typical orders to fill one trip (Section 6.3).",
 ])
 figure("flow_picking.png", "Fig 4. Picking flow (zone + batch/wave).", 12)
 doc.add_heading("2.4 Consolidation, packing & shipping", level=2)
@@ -189,8 +204,8 @@ bullets([
     f"**Measured outbound:** {outd['trailers_per_day_mean']:.0f} trailers/day (p90 {outd['trailers_per_day_p90']:.0f}), "
     f"carrying on average only {outd['pallets_per_trailer_mean']} pallets + {outd['cartons_per_trailer_mean']:.0f} "
     f"cartons; {outd['share_trailers_zero_pallets_pct']:.0f}% of trailers carry no pallets at all (DHL Parcel routes).",
-    f"**Policy applied:** carriers book collection time slots; goods wait in the outbound staging lanes, not in "
-    f"parked trailers; {N_OUT} shipping doors on the east wall (Section 4.4).",
+    f"**Policy applied:** carriers book collection time slots from a fixed departure plan (Section 4.5); goods wait in "
+    f"the outbound staging lanes, not in parked trailers; {N_OUT} shipping doors on the east wall (Section 4.4).",
 ])
 figure("flow_pack_ship.png", "Fig 5. Consolidation, packing & shipping flow.", 12)
 doc.add_heading("2.5 Returns (reverse logistics)", level=2)
@@ -210,8 +225,9 @@ table(["Policy", "Decision", "Why (data)"], [
      "13% SKUs = 80% volume; A = 60% of picks (S003)"],
     ["Zoning", "Fast-pick (A/B) vs reserve; truck routes kept out of the pick zone",
      f"{sl.get('each', 0):.0f}% of order lines are each-picks; safety (S009)"],
-    ["Batching", "Batch single-line / single-unit orders", "50% single-line, 24% single-unit"],
-    ["Order release", "Waves through the shift instead of one 08:00 release",
+    ["Batching", "Small orders: zone batch picking, trolley filled to volume/weight; large: one order per pallet",
+     f"median order {ov['median_l']:.0f} L; {segs['large']['pct_volume']:.0f}% of volume in large orders"],
+    ["Order release", "3 waves (06:00, 09:30, 12:45) planned backwards from trailer departures",
      f"08:00 = {rel['pick_peak_over_mean_active_hour']}× the mean hour (A023)"],
     ["Routing", "S-shape / return within aisles", "reduce travel in reserve"],
     ["Putaway", "System-directed, velocity-based to zone", "align stock to demand"],
@@ -312,6 +328,30 @@ bullets([
     f"would need ~{outd['current_drop_trailer_concurrent_p90']:.0f}.",
     "**Main carriers (trailers/day):** " + ", ".join(f"{carrier_name(k)} {v:.1f}" for k, v in car) + ".",
 ])
+doc.add_heading("4.5 When trailers leave — departure plan", level=2)
+para("Trailers get fixed departure slots, set close to each carrier's current median departure time (measured), and "
+     "the picking waves are planned backwards from them: every wave finishes about 45 minutes before its trailers' "
+     "dock slots, leaving time to pack and stage.")
+figure("departure_plan.png", f"Fig 9. Departure slots on the {N_OUT} shipping doors and the 3 pick waves that feed them "
+       f"(max {dep['plan_max_doors_busy']} doors busy at once).", 17)
+table(["Departure", "Carrier", "Trailers", "Fed by wave"],
+      [[d_["Departure"], d_["Carrier"], d_["Trailers"], d_["Fed by wave"]] for d_ in dep["departures"]],
+      widths=[2.6, 7.0, 2.2, 3.0], arr=9)
+bullets([
+    "**Waves:** " + "; ".join(f"{w_['wave']} {w_['start']}–{w_['end']} ({w_['content']})" for w_ in dep["waves"]) + ".",
+    f"**Same-day service becomes possible:** {dep['orders_before_noon_pct']:.0f}% of orders arrive before 12:00 and can "
+    "go out on the afternoon parcel trailers via wave 3; later orders leave the next day.",
+    f"**Doors:** at most {dep['plan_max_doors_busy']} of the {N_OUT} doors are in use at once (25-minute slots), leaving one free "
+    "for ex-works pickups that arrive late or early.",
+])
+doc.add_heading("4.6 Loose containers — in-house or outsourced?", level=2)
+table(["Option", "How", "DHL labour", "Pros", "Cons"],
+      [[c_["Option"], c_["How"], c_["DHL labour"], c_["Pros"], c_["Cons"]] for c_ in dm["container_options"]],
+      widths=[3.2, 3.8, 2.2, 3.6, 3.4], arr=9)
+para(f"**Recommendation: outsource de-stuffing to an on-site specialist contractor** (A026). It removes the heaviest "
+     f"manual job and the peak staffing from DHL ({cp['outsourced_destuff_h_avg']:.0f} person-hours on an average day), "
+     "while the container still docks at R1. Port devanning is the fall-back if its quote is cheaper. The "
+     "per-container fee goes into the Deliverable 3 cost model.", sa=6)
 
 # 5 LAYOUT & ZONING (3D)
 doc.add_heading("5. Layout & zoning (3-dimensional)", level=1)
@@ -332,16 +372,18 @@ bullets([
     f"**Docks:** {N_IN} receiving (west, R1 = container dock) and {N_OUT} shipping (east). A trailer door needs ~4.3 m "
     "of wall — the 9.9 m receiving and 9.5 m outbound columns are too narrow on the south wall, so the doors sit on "
     "the side walls. This also separates inbound and outbound truck traffic.",
-    "**Aisles:** 3.0 m reach aisles ≥ the ETV 216i working aisle of 2.63–2.79 m (S006); reach trucks travel the "
-    "perimeter aisles and the cross-aisle.",
+    "**Aisles open at both ends:** three 3.2 m cross-aisles (front, middle, rear) break up the racking, so no truck or "
+    "picker ever needs a U-turn. Storage aisles are 3.0 m — wider than the ETV 216i needs (2.63–2.79 m, S006) and "
+    "far wider than the EJE 120i (1.79–1.94 m, S010). The extra aisles cost ~6% of rack length; capacity stays well above "
+    "the ~9,500-position target.",
 ])
-figure("layout_floorplan.png", "Fig 9. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
-figure("layout_orderflow.png", "Fig 10. Main flow on the floor plan: in (R1) → put away → refill → pick → pack → "
+figure("layout_floorplan.png", "Fig 10. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
+figure("layout_orderflow.png", "Fig 11. Main flow on the floor plan: in (R1) → put away → refill → pick → pack → "
        "out (S2). Arrows follow the real truck and picker routes.", 16)
-figure("layout_3d_render.png", "Fig 11. Option B in 3D (Blender): rack rows, fast-pick area, zones, 3 receiving doors "
+figure("layout_3d_render.png", "Fig 12. Option B in 3D (Blender): rack rows, fast-pick area, zones, 3 receiving doors "
        "(west) and 5 shipping doors (east).", 16)
-figure("layout_worker_render.png", "Fig 12. Worker and truck movement (Blender, top-down): pickers on ECE 225, reach "
-       "trucks ETV 216i via perimeter and cross-aisle, ERE 225 to the shipping doors.", 16)
+figure("layout_worker_render.png", "Fig 13. Worker and truck movement (Blender, top-down): pickers with trolleys in "
+       "zones 1–3, reach trucks ETV 216i via perimeter and cross-aisle, ERE 225 to the shipping doors.", 16)
 
 # 6 CAPACITY PLAN
 doc.add_heading("6. Capacity plan — labour & equipment", level=1)
@@ -349,17 +391,50 @@ doc.add_heading("6.1 Labour", level=2)
 para(f"Workload drivers are measured: inbound ~{meas['inbound_loads_day']:.0f} loads/day, outbound "
      f"{meas['outbound_pallets_day']:.0f} pallets + {meas['outbound_cartons_day']:.0f} cartons/day, "
      f"{meas['lines_each_day']:.0f} each lines and {meas['lines_case_day']:.0f} case lines/day, replenishment "
-     f"~{meas['replen_pallets_day']:.0f} pallets/day. Productivity rates are benchmarks (A014); loose containers are "
-     "planned as crew-hours (A019).")
+     f"~{meas['replen_pallets_day']:.0f} pallets/day. Picking hours come from the pick-time model in Section 6.2; other "
+     "rates are benchmarks (A014). Container de-stuffing is outsourced and not counted as DHL staff (A026).")
 table(["Process", "Rate / h", "Peak ×", "FTE avg", "FTE peak"],
       [[r["Process"], r["Rate/h"], r["Peak factor"], f"{r['FTE avg']:.2f}", f"{r['FTE peak']:.2f}"]
        for r in cp["labour_table"]], widths=[7.0, 2.0, 2.0, 2.4, 2.4])
-para(f"**Direct labour ≈ {cp['total_fte_avg']:.1f} FTE on an average day and {cp['total_fte_peak']:.1f} FTE on the "
-     f"peak day** (single shift, 7.5 productive hours). Cross-training covers the peak; supervision and admin "
+para(f"**Direct DHL labour ≈ {cp['total_fte_avg']:.1f} FTE on an average day and {cp['total_fte_peak']:.1f} FTE on the "
+     f"peak day** (single shift, 7.5 productive hours; contractor de-stuffing excluded). Cross-training covers the peak; supervision and admin "
      "come on top.", bold=True, sa=4)
-figure("capacity_plan_fte.png", "Fig 13. Labour requirement by process (average vs peak day).", 14)
+figure("capacity_plan_fte.png", "Fig 14. Labour requirement by process (average vs peak day).", 14)
 
-doc.add_heading("6.2 Machinery — Jungheinrich fleet", level=2)
+doc.add_heading("6.2 Picking — how many people, how efficient", level=2)
+para("The picking method is matched to the demand profile — small, light orders with a few lines, plus a minority of "
+     "pallet-sized orders — using the standard order-picking choices: picker-to-parts, low-level picking, batching and "
+     "zoning (S014). Pick times are modelled on the Option B layout: walking (return route in the fast-pick area, S-shape "
+     "through the reserve aisles) + picking + setup, with a 10% delay allowance (A025).")
+figure("picking_order_volume.png", "Fig 15. Share of orders that fit each carrier: one tote, four totes, one pallet, two pallets (240×80).", 14)
+table(["Segment", "Orders / day", "Lines / day", "% orders", "% lines", "% volume"],
+      [[r["segment"].title(), f"{r['orders_day']:.0f}", f"{r['lines_day']:.0f}", f"{r['pct_orders']:.0f}%",
+        f"{r['pct_lines']:.0f}%", f"{r['pct_volume']:.0f}%"] for r in PK["segments"]], widths=[3.0, 2.6, 2.6, 2.4, 2.4, 2.4])
+table(["Small orders — zone", "Lines / day", "Lines / tour", "Walk / tour (m)", "Lines / h", "Picker-h peak"],
+      [[r["Zone"], f"{r['Lines/day']:.0f}", f"{r['Lines per tour']:.0f}", f"{r['Walk per tour (m)']:.0f}",
+        f"{r['Lines/h']:.0f}", f"{r['Picker-h peak']:.1f}"] for r in PK["small_orders"]], widths=[4.6, 2.2, 2.2, 2.6, 2.0, 2.4])
+lgo = PK["large_orders"]
+bullets([
+    f"**Large orders (EJE 120i):** {lgo['orders_day']:.0f} orders/day, ~{lgo['lines_per_order']:.0f} lines each "
+    f"({lgo['lines_fast_pick']:.0f} in the fast-pick area, {lgo['lines_reserve']:.0f} in the reserve), ~{lgo['walk_per_order_m']:.0f} m "
+    f"and ~{lgo['min_per_order']:.0f} min per order → {lgo['lines_per_h']:.0f} lines/h.",
+    f"**Picking needs {PK['pick_fte_avg']:.1f} FTE on an average day and {PK['pick_fte_peak']:.1f} on the peak day.** "
+    "Trolley batching makes small-order picking about twice as fast as one-order-per-tote picking in the reserve zone.",
+    "**How the volume per trip is ensured:** each trolley batch is closed at 80% of its volume (240 L) or weight (250 kg), "
+    "computed from SKU dimensions — so no trip is overloaded and none runs nearly empty.",
+])
+table(["Item", "Use", "Needed", "Planned", "Why this number"],
+      [[e["Item"], e["Use"], e["Required"], e["Planned"], e["Why this number"]] for e in PK["equipment"]],
+      widths=[4.2, 4.4, 1.6, 1.6, 4.2], arr=2)
+tg = PK["tugger"]
+para(f"**Tugger train (Jungheinrich EZS 130) — evaluated, not planned now.** It fits zone picking (pickers stay in their "
+     f"zone and a train collects the trolleys), and the EZS 130 is built for small-parts tow trains (600 mm wide, tows 3 t, "
+     f"S012). But with batching there are only ~{tg['trolleys_per_day']:.0f} trolley trips a day: a {tg['loop_m']:.0f} m loop "
+     f"every 20 minutes would keep a driver ~{tg['driver_utilisation_pct']:.0f}% busy to save pickers ~"
+     f"{tg['picker_walk_saved_h_day'] * 60:.0f} minutes of walking, because both pick zones end next to packing. "
+     "It becomes worthwhile if small-order volume roughly triples or packing moves away from the pick zones.", sa=8)
+
+doc.add_heading("6.3 Machinery — Jungheinrich fleet", level=2)
 para("Truck models were chosen from Jungheinrich (as advised) to match the layout and loads, and sized with a "
      "cycle-time model built from their published speeds on the Option B routes (A021).")
 table(["Model", "Task", "Equip-h/day avg", "Equip-h/day peak", "Needed", "Planned"],
@@ -371,17 +446,26 @@ bullets([
     f"{fleet['ETV 216i']['Units required (peak)']} cover the peak; a 3rd keeps putaway and replenishment running "
     "during service. Double-deep storage uses a telescopic-fork attachment (the truck has auxiliary hydraulics, "
     "150 bar / 20 l/min); residual capacity at height to be confirmed with Jungheinrich.",
-    "**ECE 225 horizontal order picker (S007):** 2,500 kg, 2.4 m forks — carries 2 pallets or roll cages, so one "
-    "trip serves 2 orders (batch picking).",
+    "**EJE 120i walkie pallet truck (S010):** 2,000 kg, only 1.58 m long and 0.72 m wide — picks large orders onto a "
+    "pallet and moves through the aisles without turning problems.",
+    "**Pick trolleys (S011):** 3-tier, 1,000 × 600 mm, 250 kg, 6 totes — for the small orders.",
     "**ERE 225 rider pallet truck (S008):** 2,500 kg, built for loading and unloading trailers and containers; "
     "one per dock side (west and east).",
     "**Charging:** Li-ion opportunity charging — no battery room is needed; chargers sit at the P&D points.",
     "**Plus:** RF / voice terminals per picker, print-and-apply at packing, roll cages for parcel staging.",
 ])
+para("Why each machine, and how it is used:", sa=4).paragraph_format.keep_with_next = True
+table(["Machine", "Process", "Why (data)", "How it is used", "Units"],
+      [[j_["Machine"], j_["Process"], j_["Why (data)"], j_["How it is used"], j_["Units"]] for j_ in dm["justification"]],
+      widths=[2.8, 2.8, 4.8, 4.4, 1.2], arr=4)
+para("Truck dimensions and turning — can every machine move where it has to?", sa=4).paragraph_format.keep_with_next = True
+table(["Machine", "Size (L × W)", "Turning / aisle needed", "Where it drives", "Result"],
+      [[t_["Machine"], t_["Size (L x W)"], t_["Turning / aisle needed"], t_["Where it drives"], t_["Result"]]
+       for t_ in dm["turning_check"]], widths=[3.0, 2.8, 3.2, 3.4, 3.6], arr=9)
 table(["Move", "Truck", "Avg one-way (m)", "Cycle (min)", "Moves / h"],
       [[c["Move"], c["Truck"], f"{c['Avg one-way m']:.0f}", f"{c['Cycle min']:.2f}", f"{c['Moves/h']:.0f}"]
        for c in dm["cycle_times"]], widths=[6.6, 2.2, 2.6, 2.2, 2.2], arr=2)
-para("Fit checks — layout and loads against the truck data:", sa=4)
+para("Fit checks — layout and loads against the truck data:", sa=4).paragraph_format.keep_with_next = True
 table(["Check", "Requirement", "Result"],
       [[f["Check"], f["Requirement"], f["Result"]] for f in dm["fit_checks"]], widths=[5.6, 4.6, 5.8], arr=9)
 
@@ -391,10 +475,9 @@ para("Full register in data/assumptions.json; sources in documentation/sources.m
 rows = [[a["id"], a["assumption"], a["impact"].upper()] for a in ASSUM["assumptions"] if a["impact"] == "high"]
 table(["ID", "Assumption / open question", "Impact"], rows, widths=[1.5, 11.5, 2.0], arr=2)
 bullets([
-    "**To confirm with DHL:** labour productivity and costs (A006/A014); the 7,000 m² scope (A008); container "
-    "share and de-stuff time (A019); whether carriers accept collection time slots (A020).",
-    "**To confirm with Jungheinrich:** telescopic-fork residual capacity at 10 m and ECE 225 turning space at aisle "
-    "ends (A021).",
+    "**To confirm with DHL:** labour productivity and pick-time standards (A006/A014/A025); the 7,000 m² scope (A008); "
+    "container share and contractor quotes (A019/A026); whether carriers accept the departure slots (A020/A027).",
+    "**To confirm with Jungheinrich:** telescopic-fork residual capacity at 10 m (A021).",
 ])
 
 footer()

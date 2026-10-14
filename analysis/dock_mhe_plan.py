@@ -31,31 +31,22 @@ JH = {
                  "ast_mm": "2,631-2,785", "width_mm": 1270, "v_travel_kmh": 11, "v_travel_max_kmh": 14,
                  "v_lift_laden": 0.59, "v_lift_empty": 0.81, "v_lower": 0.56, "v_reach": 0.24, "reach_mm": 616,
                  "accel_s": 4.6, "battery": "Li-ion 51.2 V / 360 Ah, opportunity charging", "src": "S006"},
-    "ECE 225":  {"role": "Horizontal order picker - batch picking onto 2 pallets / roll cages",
-                 "capacity_kg": 2500, "fork_mm": 2400, "length_mm": 3670, "width_mm": 810,
-                 "v_travel_kmh": 12.5, "battery": "24 V", "src": "S007"},
+    "EJE 120i": {"role": "Walkie pallet truck - large orders picked onto a pallet",
+                 "capacity_kg": 2000, "load_centre_mm": 610, "length_mm": 1575, "width_mm": 720,
+                 "wa_mm": "1,414-1,464", "ast_mm": "1,787-1,936", "v_travel_kmh": 5.6,
+                 "battery": "Li-ion 25.6 V", "src": "S010"},
+    "EZS 130":  {"role": "Tow tractor for a small-parts tugger train (evaluated, not planned)",
+                 "tow_kg": 3000, "length_mm": 1315, "width_mm": 600, "wa_mm": "~1,080 (secondary source)",
+                 "v_travel_kmh": 10.5, "battery": "24 V, Li-ion option", "src": "S012"},
+    "Pick trolley": {"role": "Manual 3-tier trolley, 6 totes - small orders, zone batch picking",
+                 "shelf_mm": "1,000 x 600", "capacity_kg": 250, "per_tier_kg": 80, "src": "S011"},
     "ERE 225":  {"role": "Rider pallet truck - unloading/loading trailers & containers, dock moves",
                  "capacity_kg": 2500, "fork_mm": 1000, "v_travel_kmh": 14, "battery": "Li-ion option (ERE 225i)",
                  "src": "S008"},
 }
 
-# ====================================================== Option B geometry (as warehouse_floorplan.py)
-DEPTH = 70.0
-RECV, OFF, RET, PACK, OUTB, FWD = 262, 250, 180, 450, 216, 500
-dd_area, sel_area, CIRC = 3505, 728, 450
-left_w = (OFF + RET + RECV) / DEPTH; right_w = (PACK + OUTB) / DEPTH
-core_w = (dd_area + sel_area + FWD) / DEPTH; aisle = CIRC / (2 * DEPTH)
-cx0 = left_w + aisle; cx1 = cx0 + core_w
-fwd_h = FWD / core_w; rack_y0, rack_y1 = fwd_h + 1.5, DEPTH - 1.5
-cross_y = (rack_y0 + rack_y1) / 2
-BLOCK, AISLEW = 2.6, 3.0; pitch = BLOCK + AISLEW
-n_mod = int((core_w - AISLEW) // pitch); start = cx0 + (core_w - (n_mod * pitch - AISLEW)) / 2
-aisle_x = np.array([start + m * pitch + BLOCK + AISLEW / 2 for m in range(n_mod - 1)])
-la, ra = left_w + aisle / 2, cx1 + aisle / 2              # perimeter aisles (truck routes)
-rvh, uh = RECV / left_w, OUTB / right_w
-LEVELS, PITCH_M, BASE_M = 8, 1.41, 0.15                   # A011
-lvl_h = BASE_M + PITCH_M * np.arange(LEVELS)              # fork heights per level
-mean_h = float(lvl_h.mean()); top_beam = float(lvl_h.max())
+# ====================================================== Option B geometry (shared module)
+from geometry import (rack_y0, rack_y1, cross_y, aisle_x, la, ra, rvh, uh, PITCH_M, mean_h, top_beam)
 
 # reserve slot grid (aisle face x, position y) for travel distances
 ys = np.concatenate([np.linspace(rack_y0 + 1, cross_y - 2.6, 12), np.linspace(cross_y + 2.6, rack_y1 - 1, 12)])
@@ -182,9 +173,8 @@ ETV_h = (MEAS["inbound_loads_day"] * MEAS["inbound_peak_factor"] * t_put
          + MEAS["replen_pallets_day"] * M["peak"]["units"]["peak_over_avg"] * t_rep
          + MEAS["lines_pallet_day"] * M["peak"]["lines"]["peak_over_avg"] * t_fp) / 60
 ETV_h_avg = (MEAS["inbound_loads_day"] * t_put + MEAS["replen_pallets_day"] * t_rep + MEAS["lines_pallet_day"] * t_fp) / 60
-lab = {r["Process"]: r for r in CP["labour_table"]}
-ECE_h = lab["Each picking"]["Hours (peak)"] + lab["Case picking"]["Hours (peak)"]
-ECE_h_avg = lab["Each picking"]["Hours (avg)"] + lab["Case picking"]["Hours (avg)"]
+PK = M["picking"]
+EJE_h, EJE_h_avg = PK["large_orders"]["picker_h_peak"], PK["large_orders"]["picker_h_avg"]
 cont_pallets_pk = MEAS["inbound_loads_day"] * loose * INP["containers_peak"] / max(INP["containers_avg"], 1)
 out_pal_pk = MEAS["outbound_pallets_max"]
 ERE_h = (pal_peak * t_unload + cont_pallets_pk * t_unload
@@ -195,12 +185,17 @@ avail = NET_H * MHE_UTIL
 fleet = []
 for model, h_avg, h_pk, task, spare in [
     ("ETV 216i", ETV_h_avg, ETV_h, "Putaway + replenishment + full-pallet picks", 1),
-    ("ECE 225", ECE_h_avg, ECE_h, "Case & each batch picking (2 pallets/roll cages per trip)", 0),
+    ("EJE 120i", EJE_h_avg, EJE_h, "Large orders: pick-to-pallet (one order per pallet)", 1),
     ("ERE 225", ERE_h_avg, ERE_h, "Unload trailers/containers, load outbound, dock moves", 1)]:   # +1: one per dock side
     need = max(1, int(np.ceil(h_pk / avail)))
     fleet.append({"Model": f"Jungheinrich {model}", "Task": task,
                   "Equip-h/day avg": round(h_avg, 1), "Equip-h/day peak": round(h_pk, 1),
                   "Units required (peak)": need, "Units recommended": need + spare})
+tro = [e for e in PK["equipment"] if e["Item"].startswith("Pick trolley")][0]
+fleet.append({"Model": "Pick trolley (3-tier, 6 totes) + totes", "Task": "Small orders: zone batch picking, sorted at the put-wall",
+              "Equip-h/day avg": round(sum(r["Picker-h avg"] for r in PK["small_orders"]), 1),
+              "Equip-h/day peak": round(sum(r["Picker-h peak"] for r in PK["small_orders"]), 1),
+              "Units required (peak)": tro["Required"], "Units recommended": tro["Planned"]})
 fleet = pd.DataFrame(fleet)
 save_table(fleet.set_index("Model"), "mhe_fleet.csv")
 
@@ -221,7 +216,8 @@ fit = pd.DataFrame([
     {"Check": f"Top beam {top_beam:.2f} m (8 levels x {PITCH_M} m)", "Requirement": "Max lift 10.7 m", "Result": f"OK - {10.7 - top_beam:.2f} m spare"},
     {"Check": "Clear height 12.2 m", "Requirement": "Extended mast 11.7 m at max lift", "Result": "OK - 0.5 m clearance"},
     {"Check": f"Pallet weight p95 {w.quantile(.95):.0f} kg / p99 {w.quantile(.99):.0f} kg", "Requirement": "1,600 kg @ 600 mm", "Result": f"OK for {100 * (w <= 1600).mean():.1f}% of SKUs; >1 t pallets slotted on low levels"},
-    {"Check": "Batch picking 2 orders per trip", "Requirement": "ECE 225: 2,400 mm forks, 2,500 kg", "Result": "OK - 2 EUR pallets / roll cages"},
+    {"Check": f"Large orders up to p90 {PK['large_orders']['kg_p90']:.0f} kg", "Requirement": "EJE 120i 2,000 kg", "Result": "OK - picked onto one pallet"},
+    {"Check": "Small orders (median 7 L)", "Requirement": "Trolley 6 totes, 250 kg", "Result": f"OK - ~{PK['small_orders'][0]['Lines per tour']:.0f} lines per tour"},
     {"Check": "Charging", "Requirement": "Li-ion opportunity charging", "Result": "No battery room; chargers at P&D points"},
 ])
 save_table(fit.set_index("Check"), "mhe_fit_checks.csv")
@@ -242,6 +238,116 @@ release = {"orders_arrive_15_17_pct": round(float(prof.loc[[15, 16], "Orders arr
            "allocated_16_18_pct": round(float(prof.loc[[16, 17], "Orders released (allocated)"].sum()), 0),
            "pick_peak_hour": peak_hour, "pick_peak_over_mean_active_hour": round(peak_ratio, 2),
            "picker_capacity_saving_if_levelled_pct": round((1 - 1 / peak_ratio) * 100, 0)}
+
+# ====================================================== turning / aisle check (all picking & handling machines)
+turning = pd.DataFrame([
+    {"Machine": "ETV 216i reach truck", "Size (L x W)": "2,419 x 1,270 mm", "Turning / aisle needed": "Wa 1,665 mm; aisle 2,631-2,785 mm",
+     "Where it drives": "Perimeter + cross-aisles; storage aisles", "Narrowest aisle": "3.0 m", "Result": "OK - turns 90° in the 3.2 m cross-aisles; drives through or reverses out"},
+    {"Machine": "EJE 120i pallet truck", "Size (L x W)": "1,575 x 720 mm", "Turning / aisle needed": "Wa 1,414-1,464 mm; aisle 1,787-1,936 mm",
+     "Where it drives": "Fast-pick area, storage aisles, cross-aisles", "Narrowest aisle": "3.0 m", "Result": "OK - aisles open at both ends, so no U-turn needed"},
+    {"Machine": "Pick trolley (manual)", "Size (L x W)": "1,000 x 600 mm", "Turning / aisle needed": "pushed by hand",
+     "Where it drives": "Everywhere in the pick zones", "Narrowest aisle": "3.0 m", "Result": "OK"},
+    {"Machine": "ERE 225 rider pallet truck", "Size (L x W)": "rider truck, 1,000 mm forks", "Turning / aisle needed": "dock work only",
+     "Where it drives": "Dock strips and staging lanes (west + east)", "Narrowest aisle": "open dock area", "Result": "OK - no aisle driving"},
+    {"Machine": "EZS 130 tugger (option)", "Size (L x W)": "1,315 x 600 mm + carts", "Turning / aisle needed": "Wa ~1,080 mm (tractor)",
+     "Where it drives": "Loop on perimeter + cross-aisles only", "Narrowest aisle": "3.2 m", "Result": "OK for a short train; not planned (low volume)"},
+    {"Machine": "ECE 225 order picker (dropped)", "Size (L x W)": "3,670 x 810 mm, 2,400 mm forks", "Turning / aisle needed": "too long for 3.0 m aisles",
+     "Where it drives": "-", "Narrowest aisle": "3.0 m", "Result": "Rejected - cannot turn or U-turn in the aisles; 2 pallets far too big"},
+])
+save_table(turning.set_index("Machine"), "mhe_turning_check.csv")
+
+# ====================================================== why each machine (justification)
+ov = PK["order_volume"]; lg = PK["large_orders"]; seg = {r["segment"]: r for r in PK["segments"]}
+def units(key):
+    return int(fleet.loc[fleet.Model.str.contains(key), "Units recommended"].iloc[0])
+just = pd.DataFrame([
+    {"Machine": "ETV 216i reach truck", "Process": "Putaway, replenishment, full-pallet picks",
+     "Why (data)": f"Pallets stored up to the 8th level (top beam {top_beam:.1f} m) and two deep - needs 10.7 m lift and telescopic forks; 99.4% of pallets ≤ 1.6 t",
+     "How it is used": f"Perimeter + cross-aisles; ~{60 / t_put:.0f} putaways/h; feeds fast-pick lanes from the rear", "Units": units("ETV")},
+    {"Machine": "EJE 120i pallet truck", "Process": "Large orders: pick-to-pallet",
+     "Why (data)": f"{seg['large']['pct_orders']:.0f}% of orders ({seg['large']['orders_day']:.0f}/day) are pallet-sized: median {lg['litres_median']:.0f} L, {lg['kg_median']:.0f} kg (p90 {lg['kg_p90']:.0f} kg) - too big/heavy for a trolley",
+     "How it is used": f"One order per pallet; ~{lg['lines_per_order']:.0f} lines in ~{lg['min_per_order']:.0f} min; drops the pallet at packing", "Units": units("EJE")},
+    {"Machine": "Pick trolley + totes", "Process": "Small orders: zone batch picking",
+     "Why (data)": f"{seg['small']['pct_orders']:.0f}% of orders are small (median order {ov['median_l']:.0f} L; {ov['pct_orders_fitting']['1_tote']:.0f}% fit in one tote)",
+     "How it is used": f"WMS fills each trolley to its volume/weight limit (~{PK['small_orders'][0]['Lines per tour']:.0f} lines per tour); put-to-light wall sorts per order", "Units": units("trolley")},
+    {"Machine": "ERE 225 rider pallet truck", "Process": "Unloading and loading trailers",
+     "Why (data)": f"~{MEAS['inbound_loads_day']:.0f} inbound loads/day in the morning + outbound pallets in the afternoon; rider = less walking, 2.5 t",
+     "How it is used": "One per dock side (west receiving, east shipping)", "Units": units("ERE")},
+    {"Machine": "EZS 130 tugger train", "Process": "Transport picked trolleys to packing (option)",
+     "Why (data)": f"Fits zone picking, but only ~{PK['tugger']['trolleys_per_day']:.0f} trolley trips/day; a driver would be {PK['tugger']['driver_utilisation_pct']:.0f}% busy to save ~{PK['tugger']['picker_walk_saved_h_day'] * 60:.0f} min walking",
+     "How it is used": "Not planned now; adopt if small-order volume ~triples or packing moves away from the pick zones", "Units": 0},
+])
+save_table(just.set_index("Machine"), "mhe_justification.csv")
+
+# ====================================================== loose containers: in-house vs outsourced
+cont = pd.DataFrame([
+    {"Option": "In-house DHL crew", "How": "2 DHL staff de-stuff each container at door R1",
+     "DHL labour": f"{INP['destuff_crew'] * INP['destuff_h']:.0f} person-h per container", "Door": f"R1 ~{door_container:.1f} h/day",
+     "Pros": "Full control, flexible timing", "Cons": "Heavy manual handling, training, peak days need 2 crews"},
+    {"Option": "On-site specialist contractor (recommended)", "How": "Contractor crew unloads and palletises at R1, paid per container",
+     "DHL labour": "none", "Door": f"R1 ~{door_container:.1f} h/day",
+     "Pros": "No own labour or peak staffing; specialist speed and safety; cost scales with containers", "Cons": "Per-container fee (D3); booking coordination"},
+    {"Option": "Port / CFS devanning", "How": "Container unpacked and palletised near the port; arrives as a palletised trailer",
+     "DHL labour": "none", "Door": "standard trailer",
+     "Pros": "Simplest receiving - everything palletised", "Cons": "Extra transport and handling cost; ~1 day longer lead time; less control"},
+])
+save_table(cont.set_index("Option"), "container_options.csv")
+
+# ====================================================== trailer departure plan (when trailers leave) + backward waves
+SLOT_MIN = 25                                       # dock window: p90 dock time 22 min + buffer
+DEP = [  # (time, carrier, trailers) - set around today's median departure per carrier (data), booked as slots
+    ("10:30", "Ex-works pickup (AM)", 1), ("11:00", "DHL DSV run 1", 1),
+    ("13:30", "Ex-works pickup (PM)", 1), ("14:00", "DHL Parcel NL run 1", 1), ("14:00", "Ex-works pickup (PM)", 1),
+    ("14:30", "DHL DSV run 2", 1), ("15:00", "Customer carriers", 2),
+    ("16:00", "DHL Parcel NL DACH", 1), ("16:15", "DHL Parcel NL run 2", 1), ("16:15", "DHL4YOU", 1),
+    ("16:30", "DHL Connect & Return", 1), ("16:30", "DHL Parcel BE & LU", 1), ("16:45", "DHL Parcel EDC", 1),
+]
+def hm(t):
+    h_, mm_ = t.split(":"); return int(h_) + int(mm_) / 60
+win_list = []
+for t, c, n in DEP:
+    for _ in range(n):
+        win_list.append((hm(t) - SLOT_MIN / 60, hm(t), c))
+win_list.sort()
+doors_free = [0.0] * OUT_DOORS; assign = []
+for a, b, c in win_list:                            # greedy door assignment
+    d = min(range(OUT_DOORS), key=lambda i: (doors_free[i] > a, doors_free[i]))
+    assign.append((d, a, b, c)); doors_free[d] = max(doors_free[d], b)
+plan_max = max_concurrent([w_[0] for w_ in win_list], [w_[1] for w_ in win_list])
+WAVES = [("W1", "06:00", "09:30", "afternoon orders from the day before"),
+         ("W2", "09:30", "12:45", "rest of the backlog + morning orders"),
+         ("W3", "12:45", "15:15", "orders received before 12:00 (same-day parcel)")]
+before_noon = float((orders["ORDER ARRIVE DATE"].dt.hour < 12).mean() * 100)
+departures = pd.DataFrame([{"Departure": t, "Carrier": c, "Trailers": n,
+                            "Fed by wave": "W1" if hm(t) < 12 else ("W2" if hm(t) < 15.5 else "W3")} for t, c, n in DEP])
+save_table(departures.set_index("Departure"), "departure_plan.csv")
+
+fig, ax = plt.subplots(figsize=(10.5, 4.2))
+wc = {"W1": "#9db4fb", "W2": "#FFCC00", "W3": "#f2a6a6"}
+for w_, a, b, txt in WAVES:
+    ax.barh(OUT_DOORS + 0.9, hm(b) - hm(a), left=hm(a), height=0.7, color=wc[w_], edgecolor="white")
+    ax.text((hm(a) + hm(b)) / 2, OUT_DOORS + 0.9, f"{w_} pick wave {a}-{b}", ha="center", va="center", fontsize=8.5, weight="bold")
+for d, a, b, c in assign:
+    col = RED if ("Parcel" in c or "DHL4YOU" in c or "Connect" in c) else ("#2b6cb0" if "DSV" in c else "#2f855a")
+    ax.barh(d, b - a, left=a, height=0.55, color=col, edgecolor="white")
+    short = {"Ex-works pickup (AM)": "Ex-works", "Ex-works pickup (PM)": "Ex-works", "DHL DSV run 1": "DSV", "DHL DSV run 2": "DSV",
+             "DHL Parcel NL run 1": "NL", "DHL Parcel NL run 2": "NL", "DHL Parcel NL DACH": "DACH", "DHL4YOU": "4YOU",
+             "DHL Connect & Return": "C&R", "DHL Parcel BE & LU": "BE-LU", "DHL Parcel EDC": "EDC", "Customer carriers": "Cust."}[c]
+    ax.text((a + b) / 2, d + 0.40, short, ha="center", va="bottom", fontsize=6.8)
+ax.set_yticks(list(range(OUT_DOORS)) + [OUT_DOORS + 0.9])
+ax.set_yticklabels([f"Door S{i + 1}" for i in range(OUT_DOORS)] + ["Picking"], fontsize=9)
+ax.set_xlim(6, 18.3); ax.set_xticks(range(6, 19)); ax.set_xticklabels([f"{h_:02d}:00" for h_ in range(6, 19)], fontsize=8)
+ax.grid(axis="x"); ax.grid(axis="y", visible=False)
+from matplotlib.patches import Patch
+ax.legend(handles=[Patch(color=RED, label="DHL Parcel routes"), Patch(color="#2b6cb0", label="DHL DSV"),
+                   Patch(color="#2f855a", label="Ex-works / customer carriers")], loc="lower left", fontsize=8, frameon=False)
+ax.set_ylim(-0.6, OUT_DOORS + 1.5)
+ax.set_title(f"When trailers leave: departure slots on {OUT_DOORS} shipping doors, planned backwards into 3 pick waves "
+             f"(max {plan_max} doors busy at once)", fontsize=10)
+save_fig(fig, "departure_plan.png")
+departure = {"slot_min": SLOT_MIN, "plan_max_doors_busy": plan_max, "trailers_planned": int(sum(n for _, _, n in DEP)),
+             "waves": [{"wave": w_, "start": a, "end": b, "content": t} for w_, a, b, t in WAVES],
+             "orders_before_noon_pct": round(before_noon, 0), "departures": departures.to_dict("records")}
 
 # ====================================================== figures
 fig, ax = plt.subplots(figsize=(8.6, 3.9))
@@ -279,7 +385,8 @@ update_metrics("dock_mhe", {
                       "receiving_window_h": RECV_WINDOW, "door_util": DOOR_UTIL,
                       "trailer_door_h": round(door_trailer, 2), "container_door_h": round(door_container, 2)},
     "outbound_doors": out_summary, "carriers_trailers_per_day": carriers.head(10).to_dict(),
-    "order_release": release,
+    "order_release": release, "turning_check": turning.to_dict("records"), "justification": just.to_dict("records"),
+    "container_options": cont.to_dict("records"), "departure_plan": departure,
 })
 
 print("CYCLE TIMES"); print(cycle.to_string(index=False))

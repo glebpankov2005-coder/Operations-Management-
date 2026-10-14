@@ -1,0 +1,4 @@
+Item,Use,Required,Planned,Why this number
+"Pick trolley (3-tier, 6 totes)",Small orders - cluster picking in zones,1,6,2 per picker (picking + at put-wall) + 2 spare
+Totes 600x400 (~40 L),One per small order (more if >40 L / >15 kg),36,54,trolleys x 6 + 50% in circulation at packing
+Jungheinrich EJE 120i walkie pallet truck,Large orders - pick-to-pallet,3,4,peak hours / (7.5 h x 80%) + 1 spare

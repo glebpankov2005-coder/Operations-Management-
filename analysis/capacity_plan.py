@@ -93,17 +93,22 @@ DESTUFF_CREW, DESTUFF_H = 2, 3.0  # 2-person crew, 3 h per loose 40' container (
 loose_loads_share = asia_pct / 100
 
 # ------------------------------------------------- BENCHMARK productivities (A014)
+# picking hours come from the layout-based pick-time model (picking_plan.py), not from flat benchmarks
+PK = M["picking"]
+sm_avg = sum(r["Picker-h avg"] for r in PK["small_orders"]); sm_pk = sum(r["Picker-h peak"] for r in PK["small_orders"])
+lg_avg, lg_pk = PK["large_orders"]["picker_h_avg"], PK["large_orders"]["picker_h_peak"]
 PROD = {   # process: (unit, rate per person-hour, driver avg/day, peak factor)
     "Receiving - palletised (unload+check)": ("pallets", 25, inbound_loads_day * (1 - loose_loads_share), inbound_peakf),
-    "Receiving - loose container de-stuff":  ("person-h", None, CONTAINERS_AVG * DESTUFF_CREW * DESTUFF_H, CONTAINERS_PEAK / CONTAINERS_AVG),
+    "Container de-stuffing (outsourced)":    ("person-h", None, CONTAINERS_AVG * DESTUFF_CREW * DESTUFF_H, CONTAINERS_PEAK / CONTAINERS_AVG),
     "Putaway (reach truck)":                 ("pallets", 20, inbound_loads_day, inbound_peakf),
     "Replenishment (reach truck)":           ("pallets", 18, replen_pallets_day, units_peakf),
-    "Each picking":                          ("lines",   55, lines_each, lines_peakf),
-    "Case picking":                          ("lines",   80, lines_case, lines_peakf),
-    "Full-pallet picking":                   ("pallets", 22, lines_pallet, lines_peakf),
+    "Picking - small orders (trolley, batch)": ("picker-h", None, sm_avg, sm_pk / sm_avg),
+    "Picking - large orders (EJE, to pallet)": ("picker-h", None, lg_avg, lg_pk / lg_avg),
+    "Full-pallet picking (reach truck)":     ("pallets", 22, lines_pallet, lines_peakf),
     "Packing / consolidation":               ("lines",   45, lines_each + lines_case, lines_peakf),
     "Shipping / loading":                    ("pallets", 30, outbound_pallets_day, units_peakf),
 }
+OUTSOURCED = {"Container de-stuffing (outsourced)"}   # contractor hours - not DHL staff (A026)
 NET_H = 7.5   # productive hours per FTE per shift (A015)
 
 rows = []
@@ -115,7 +120,7 @@ for fn, (unit, rate, drv_avg, pf) in PROD.items():
                  "Rate/h": "-" if rate is None else rate, "Peak factor": round(pf, 2),
                  "Hours (avg)": round(h_avg, 1), "Hours (peak)": round(h_peak, 1),
                  "FTE avg": round(h_avg / NET_H, 2), "FTE peak": round(h_peak / NET_H, 2),
-                 "FTE (ceil peak)": int(np.ceil(h_peak / NET_H))})
+                 "FTE (ceil peak)": int(np.ceil(h_peak / NET_H)), "DHL staff": fn not in OUTSOURCED})
 plan = pd.DataFrame(rows).set_index("Process")
 save_table(plan, "capacity_plan_labour.csv")
 save_table(win.set_index("snapshot"), "inbound_receipts_windows.csv")
@@ -141,9 +146,10 @@ metrics = {
                                 "lines_without_master": n_no_master},
     "assumptions_productivity": {k: {"unit": v[0], "rate_per_h": v[1]} for k, v in PROD.items()},
     "net_hours_per_fte": NET_H,
-    "total_fte_avg": round(float(plan["FTE avg"].sum()), 1),
-    "total_fte_peak": round(float(plan["FTE peak"].sum()), 1),
-    "total_fte_ceil_peak": int(plan["FTE (ceil peak)"].sum()),
+    "total_fte_avg": round(float(plan.loc[plan["DHL staff"], "FTE avg"].sum()), 1),
+    "total_fte_peak": round(float(plan.loc[plan["DHL staff"], "FTE peak"].sum()), 1),
+    "total_fte_ceil_peak": int(plan.loc[plan["DHL staff"], "FTE (ceil peak)"].sum()),
+    "outsourced_destuff_h_avg": round(float(plan.loc[list(OUTSOURCED), "Hours (avg)"].sum()), 1),
     "labour_table": plan.reset_index().to_dict("records"),
 }
 # -------------------- storage feasibility at the CORRECTED target (A004/A010) --------------------
@@ -211,4 +217,4 @@ print(f"PICK TYPE (order-derived, % lines): {share_lines} | % units: {share_unit
 print(f"INBOUND {inbound_loads_day:.1f} loads/day (max {inbound_max_day:.0f}, x{inbound_peakf:.2f}), Asia-origin {asia_pct:.0f}%")
 print(f"OUTBOUND {outbound_pallets_day:.1f} pallets/day + {outbound_cartons_day:.0f} cartons/day | replen {replen_pallets_day:.1f} pallets/day")
 print(plan[["Driver/day (avg)", "Rate/h", "Hours (peak)", "FTE avg", "FTE peak"]].to_string())
-print(f"TOTAL FTE avg {plan['FTE avg'].sum():.1f}  peak {plan['FTE peak'].sum():.1f}")
+print(f"DHL FTE avg {plan.loc[plan['DHL staff'],'FTE avg'].sum():.1f}  peak {plan.loc[plan['DHL staff'],'FTE peak'].sum():.1f} (de-stuffing outsourced)")

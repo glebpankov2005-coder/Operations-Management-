@@ -1,0 +1,6 @@
+Machine,Process,Why (data),How it is used,Units
+ETV 216i reach truck,"Putaway, replenishment, full-pallet picks",Pallets stored up to the 8th level (top beam 10.0 m) and two deep - needs 10.7 m lift and telescopic forks; 99.4% of pallets ≤ 1.6 t,Perimeter + cross-aisles; ~25 putaways/h; feeds fast-pick lanes from the rear,3
+EJE 120i pallet truck,Large orders: pick-to-pallet,"16% of orders (23/day) are pallet-sized: median 234 L, 140 kg (p90 671 kg) - too big/heavy for a trolley",One order per pallet; ~15 lines in ~22 min; drops the pallet at packing,4
+Pick trolley + totes,Small orders: zone batch picking,84% of orders are small (median order 7 L; 75% fit in one tote),WMS fills each trolley to its volume/weight limit (~31 lines per tour); put-to-light wall sorts per order,6
+ERE 225 rider pallet truck,Unloading and loading trailers,"~99 inbound loads/day in the morning + outbound pallets in the afternoon; rider = less walking, 2.5 t","One per dock side (west receiving, east shipping)",2
+EZS 130 tugger train,Transport picked trolleys to packing (option),"Fits zone picking, but only ~9 trolley trips/day; a driver would be 26% busy to save ~6 min walking",Not planned now; adopt if small-order volume ~triples or packing moves away from the pick zones,0

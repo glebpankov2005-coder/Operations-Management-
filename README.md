@@ -42,7 +42,9 @@ The Word files are **generated** from the analysis by `analysis/build_report.py`
 | `capacity.py` | Storage-concept sizing vs the 7,000 m² / 12.2 m envelope |
 | `decision_matrix.py` | Weighted option scoring + sensitivity |
 | `capacity_plan.py` | Labour (FTE) plan, order-derived pick type, inbound receipts, corrected storage feasibility |
-| `dock_mhe_plan.py` | Dock-door calculation (inbound & outbound), Jungheinrich MHE fleet, 08:00 order-release analysis |
+| `geometry.py` | Shared Option B layout geometry for the travel / cycle-time models |
+| `picking_plan.py` | Order volume segmentation, pick-time model (lines/h, FTE), picking equipment, tugger evaluation |
+| `dock_mhe_plan.py` | Dock doors, trailer departure plan, Jungheinrich fleet, turning checks, machinery justification, container options, 08:00 release |
 | `warehouse_floorplan.py` | To-scale floor plan + main order-flow figure (docks, aisles, arrows) |
 | `flowcharts.py` · `layout.py` | Process flowcharts, 2D layout/order/worker flow, 3D massing |
 | `build_report.py` · `build_report_d2.py` | Generate the Word deliverables |
@@ -54,6 +56,7 @@ python analysis/data_quality.py       # Phase 0
 python analysis/sku_analysis.py        # + inventory/order/abc/peak
 python analysis/capacity.py            # storage concepts
 python analysis/decision_matrix.py     # option selection
+python analysis/picking_plan.py        # order segments, pick-time model, picking equipment
 python analysis/capacity_plan.py       # labour, pick type, inbound, feasibility
 python analysis/dock_mhe_plan.py       # dock doors + Jungheinrich MHE + order release
 python analysis/flowcharts.py          # process flowcharts
@@ -72,10 +75,15 @@ python analysis/build_report_d2.py     # Deliverable 2 .docx
 - Inbound: **2 shipments/day** from Assa Abloy factories, ~99 loads/day, **~41% loose in containers** (de-stuffed by hand).
 - Docks (calculated): **3 receiving** (west, 1 container dock) + **5 shipping** (east, with carrier time slots).
 - **Recommended concept: Option B** (hybrid density + velocity slotting + zone/batch picking).
-- Labour ≈ **5.4 FTE avg / 10.1 peak**; MHE (Jungheinrich) = **3× ETV 216i** reach truck, **4× ECE 225** order picker, **2× ERE 225** pallet truck.
+- Picking split by **order size** (median order 7 L): 84% small orders → **trolley batch picking**; 16% large orders (88% of volume) → **pick-to-pallet**.
+- Every storage aisle is **open at both ends** (front, middle, rear cross-aisles) → no U-turns.
+- Trailers leave on a **departure plan** (13 carrier slots); 3 pick waves planned backwards; loose-container de-stuffing **outsourced**.
+- DHL labour ≈ **4.7 FTE avg / 8.8 peak**; MHE (Jungheinrich) = **3× ETV 216i** reach truck, **4× EJE 120i** walkie pallet truck, **2× ERE 225** rider pallet truck + **6 pick trolleys** (ECE 225 rejected; EZS 130 tugger evaluated, not needed at current volume).
 
 ## ❓ Open items (see `data/assumptions.json`)
 - **A008** — is 7,000 m² the whole 4-client site or the Assa-only envelope? (Shifts B vs C.)
 - **A006 / A014** — DHL labour rates, equipment prices, real productivities (needed for Deliverable 3).
-- **A019 / A020** — container share & de-stuff time; carrier acceptance of collection time slots.
+- **A019 / A026** — container share; contractor quotes for de-stuffing.
+- **A020 / A027** — carriers accepting the departure slots.
+- **A025** — pick-time standards to validate with DHL time studies.
 - **A021** — Jungheinrich to confirm telescopic-fork residual capacity at height.

@@ -370,8 +370,9 @@ bullets([
     f"≈{pct['Double-deep']:.0f}% of the envelope for storage + working areas — room to grow.",
     "**Picking:** zone + batch/wave picking (batches the 50% single-line orders); A-movers in a golden-zone "
     "forward pick; voice/RF; put-to-light consolidation at pack.",
-    "**MHE:** reach trucks with telescopic forks (Jungheinrich ETV 216i), horizontal order pickers (ECE 225), "
-    "rider pallet trucks (ERE 225), voice/RF, print-and-apply — sized in Deliverable 2.",
+    "**MHE:** reach trucks with telescopic forks (Jungheinrich ETV 216i), pick trolleys for small orders and walkie "
+    "pallet trucks (EJE 120i) for large orders, rider pallet trucks (ERE 225) at the docks, voice/RF, print-and-apply "
+    "— sized in Deliverable 2.",
     "**Policies:** velocity (demand-ABC) slotting, hybrid random-within-zone storage, min/max replenishment, "
     "FIFO via FIF DATE where relevant.",
     "**Verdict:** fits with buffer, materially lower travel/labour than A, moderate CAPEX — strongest business case.",

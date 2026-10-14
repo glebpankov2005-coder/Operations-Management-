@@ -78,7 +78,8 @@ ax.text(cx0 + core_w/2, fwd_h/2, "FAST-PICK AREA  (best-sellers)  ·  500 m²",
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 
 # reserve racks: vertical double-deep blocks + aisles, with a central cross-aisle
-rack_y0, rack_y1 = fwd_h + 1.5, DEPTH - 1.5
+END_AISLE = 3.2                        # front + rear cross-aisles: every storage aisle open at BOTH ends (no U-turns)
+rack_y0, rack_y1 = fwd_h + END_AISLE, DEPTH - END_AISLE
 cross_y0, cross_y1 = (rack_y0+rack_y1)/2 - 1.6, (rack_y0+rack_y1)/2 + 1.6
 runs = [(rack_y0, cross_y0), (cross_y1, rack_y1)]
 BLOCK, AISLEW = 2.6, 3.0            # double-deep block (2 rows) + reach aisle
@@ -99,12 +100,15 @@ for m in range(n_mod):
             ax.plot([bx, bx+BLOCK], [by, by], color="white", lw=0.5, alpha=0.8, zorder=2.1)
     # aisle number at top
     if m < n_mod:
-        ax.text(bx + BLOCK + AISLEW/2, rack_y1 + 1.4, f"A{aisle_no}", ha="center", fontsize=6, color=SUB, zorder=3)
+        ax.text(bx + BLOCK + AISLEW/2, rack_y1 + 0.7, f"A{aisle_no}", ha="center", fontsize=6, color=SUB, zorder=3)
         aisle_no += 1
 # cross aisle label
-ax.text(cx0 + core_w/2, (cross_y0+cross_y1)/2, "cross-aisle", ha="center", va="center",
+ax.text(cx0 + core_w/2, (cross_y0+cross_y1)/2, "middle cross-aisle", ha="center", va="center",
         fontsize=7, style="italic", color=SUB, zorder=3,
         bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.8))
+for yy_, lab in [((fwd_h + rack_y0) / 2, "front cross-aisle (3.2 m)"), (DEPTH - 1.0, "rear cross-aisle (3.2 m)")]:
+    ax.text(cx0 + core_w * 0.72, yy_, lab, ha="center", va="center", fontsize=6.5, style="italic", color=SUB,
+            zorder=3, bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.8))
 # zone captions over racks
 ax.text(cx0 + (sel_from*pitch)/2, rack_y1 - 3, "TWO-DEEP PALLET RACKS (main storage)  ·  3,505 m²",
         ha="center", fontsize=8.5, weight="bold", color="#3b5bdb", zorder=3,
@@ -164,7 +168,7 @@ ax.text(tb_x+tb_w/2, tb_y+tb_h-0.8, "Project OTM — Assa Abloy @ DHL Bemmel", h
         fontsize=7.6, weight="bold", color=INK, zorder=7)
 rows = [("DRAWING", "Option B — warehouse floor plan (rack-level)"),
         ("POSITIONS", "~9,500 target (peak 8,512 ÷ 0.90) + headroom"),
-        ("DOCKS / MHE", "3 in (W) · 5 out (E) · ETV 216i, ECE 225, ERE 225"),
+        ("DOCKS / MHE", "3 in (W) · 5 out (E) · ETV 216i, EJE 120i, ERE 225"),
         ("SCALE / SIZE", f"~1:400  ·  {L:.0f} × {DEPTH:.0f} m = 6,541 m²  (93%)"),
         ("DATE / REV", "2026  ·  Draft A")]
 for i, (k, v) in enumerate(rows):
