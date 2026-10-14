@@ -91,6 +91,7 @@ fleet = {f["Model"].replace("Jungheinrich ", ""): f for f in dm["fleet"]}
 sl = pt["share_lines_pct"]; su = pt["share_units_pct"]
 POS_PEAK, POS_TARGET = 8512, 9500
 PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["departure_plan"]
+DE = M["design_evaluation"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
 
 # COVER
@@ -148,6 +149,18 @@ table(["Topic", "Before", "Now (this version)"], [
     ["Loose containers", "De-stuffed by DHL staff", "Outsourced to an on-site contractor (DHL keeps the dock slot)"],
     ["08:00 peak", "Treated as customer demand", "Caused by the order-release routine → release in waves"],
 ], widths=[3.0, 5.0, 8.0], arr=9)
+
+para("The design follows the steps of the Week 3 design approach (Baker & Canessa, 2009, S017) and was iterated "
+     "after each feedback round:", sa=4)
+table(["Design step (W3)", "Where it is done"], [
+    ["Define requirements and objective", "D1 §9 requirements; brief limits 7,000 m² / 12.2 m"],
+    ["Collect and analyse data", "D1 §3–8 (SKUs, stock, orders, ABC, peaks); D2 §4.1 inbound"],
+    ["Process flows, handling, storage and throughput", "D2 §2 processes; §4 docks, departures, order release"],
+    ["Equipment, storage and handling systems, policies", "D2 §3 policies and COI slotting; §6.2–6.3 picking and machinery"],
+    ["Layout, zones and flows", "D2 §5, incl. the U-shaped vs flow-through evaluation"],
+    ["Evaluate (cost, performance)", "D2 §6 capacity and W3 KPIs; Deliverable 3 CAPEX/OPEX"],
+    ["Iterate", "14,074 → 9,500 positions; ECE 225 → trolleys + EJE 120i; front/rear cross-aisles; docks to side walls"],
+], widths=[6.0, 10.0], arr=9)
 
 # 2 FUTURE-STATE PROCESSES
 doc.add_heading("2. Future-state processes", level=1)
@@ -229,7 +242,8 @@ table(["Policy", "Decision", "Why (data)"], [
      f"median order {ov['median_l']:.0f} L; {segs['large']['pct_volume']:.0f}% of volume in large orders"],
     ["Order release", "3 waves (06:00, 09:30, 12:45) planned backwards from trailer departures",
      f"08:00 = {rel['pick_peak_over_mean_active_hour']}× the mean hour (A023)"],
-    ["Routing", "S-shape / return within aisles", "reduce travel in reserve"],
+    ["Routing", "Largest gap in the reserve aisles; return route in the fast-pick area",
+     "shortest walk of 4 W3 policies tested (Section 6.2)"],
     ["Putaway", "System-directed, velocity-based to zone", "align stock to demand"],
     ["Replenishment", "Min/max top-up from the rear of the lanes", "keep faces filled at peak"],
     ["Dock scheduling", "Carrier time slots; stage, then live-load; 1 container dock",
@@ -254,6 +268,22 @@ bullets([
     "parallel picking.",
     "**Levers in priority order** (S003): slotting → order batching → wave-release timing → pick-path sequencing.",
     "**Validate by simulation** at 150% / 200% / 250% of normal volume (Deliverable 3).",
+])
+
+co = DE["coi"]
+doc.add_heading("3.2 Slotting by Cube-per-Order Index (COI) and affinity", level=2)
+para("W3 key principle: the racking configuration should match each product's turnover, using the COI = storage space "
+     "a SKU needs ÷ how often it is picked (S017). Low COI = little space, many picks → closest to packing.", sa=4)
+table(["COI quintile", "A SKUs", "B SKUs", "C SKUs"],
+      [[r["COI_quintile"], r.get("A", 0), r.get("B", 0), r.get("C", 0)] for r in DE["coi_vs_abc"]], widths=[4.0, 3.0, 3.0, 3.0])
+bullets([
+    f"**COI confirms the ABC slotting:** the best COI fifth of SKUs carries {co['picks_in_best_quintile_pct']:.0f}% of all "
+    f"picks, the best two fifths {co['picks_in_best_two_quintiles_pct']:.0f}% — these fill the fast-pick area first.",
+    f"**COI corrects ABC in two places:** {co['bulky_A_skus']} A items are bulky (poor COI) → kept on pallet faces at ground level "
+    f"near packing, not in carton-flow; {co['small_fast_C_skus']} C items are tiny but picked often (best COI) → moved into the fast-pick shelving.",
+    f"**Affinity:** in multi-line orders, {co['same_family_rate_pct']:.0f}% of item pairs share a product family vs "
+    f"{co['random_baseline_pct']:.0f}% by chance → families are slotted together within each zone. Half of all orders are "
+    "single-line, so affinity refines COI rather than replacing it.",
 ])
 
 # 4 INBOUND, ORDER RELEASE & DOCKS
@@ -385,6 +415,39 @@ figure("layout_3d_render.png", "Fig 12. Option B in 3D (Blender): rack rows, fas
 figure("layout_worker_render.png", "Fig 13. Worker and truck movement (Blender, top-down): pickers with trolleys in "
        "zones 1–3, reach trucks ETV 216i via perimeter and cross-aisle, ERE 225 to the shipping doors.", 16)
 
+doc.add_heading("5.1 Layout concept: U-shaped or flow-through?", level=2)
+para("W3 asks to produce a few basic concepts, evaluate them on travel distance and select the best. The two dock "
+     "configurations of Huertas et al. (2007) were compared on the Option B layout, with class-based storage and the "
+     "measured inbound mix:", sa=4)
+table(["Criterion", "Flow-through (chosen)", "U-shaped"],
+      [[r["Criterion"], r["Flow-through"], r["U-shaped"]] for r in DE["concept_table"]], widths=[5.0, 5.5, 5.5], arr=9)
+para(f"**Verdict:** {DE['concept_verdict']}", sa=6)
+doc.add_heading("5.2 Rack and aisle configuration — the W3 design questions", level=2)
+dc = {c["Question (W3)"]: c for c in DE["w3_checks"]}
+table(["Question (W3)", "Our answer", "Why"], [
+    ["How many aisles?", "10 storage aisles between 11 rack modules", "storage area for ~9,500 positions with 3.0 m reach aisles"],
+    ["How long is each aisle?", "~56 m, split into two runs of ~26.5 m", "middle cross-aisle halves the walk to any face"],
+    ["Cross-aisles — where, how many?", "3: front, middle, rear (3.2 m)", "aisles open at both ends → largest-gap routing, no U-turns; costs ~6% rack length"],
+    ["How do pallets go into the racking?", "EUR 800×1200 lengthwise, 3 per 2.7 m section; two deep per side", "telescopic forks on the ETV 216i; 26 SKUs > 2.4 m on cantilever"],
+    ["How wide is the aisle?", "3.0 m storage, 3.2 m cross/perimeter", "ETV 216i needs 2.63–2.79 m; EJE 120i 1.79–1.94 m"],
+    ["1-way or 2-way traffic?", "storage aisles: one truck at a time; main aisles: trucks one-way (west up with put-aways, east down to packing)", "pickers stay in their zones; fewer crossings"],
+    ["How high is each level? All the same?", "1.41 m pitch → 8 levels; taller loads on the top level", "p90 load height 1.16 m + 0.25 m beam/clearance; top load ~1 m under the roof"],
+    ["Product characteristics?", f"heaviest item {dc['Heaviest SKU (single item)']['Answer'].split('— ')[-1]}; pallets > 1 t low", "mechanical handling only for heavy items; 1,600 kg truck rating"],
+], widths=[3.6, 6.2, 6.2], arr=9)
+hzd = DE["hazmat"]
+doc.add_heading("5.3 Legal aspects of pallet storage", level=2)
+bullets([
+    "**Racking (EN 15512 / EN 15635, S015):** racks designed to EN 15512; in use, a trained employee inspects visually every "
+    "week and a competent expert at least every 12 months; damage is classed green/amber/red and every bay shows a load sign.",
+    "**Fire safety:** the top of the highest load stays ~1 m below the 12.2 m roof (sprinkler clearance assumed ≥ 0.5 m, A011 — "
+    "to confirm against the sprinkler design).",
+    f"**Hazardous goods (PGS 15, S016):** {hzd['skus']} SKUs are flagged hazardous ({hzd['loads']:,} loads, ~20% of loads). If these "
+    "are packaged hazardous substances, the stored quantity is far above PGS 15's 10,000 kg threshold, so a segregated, 60-minute "
+    "fire-resistant hazmat section, separation of incompatible classes and only day stock on the work floor are required. The data "
+    "only flags 0/1 — the hazard class (e.g. lithium batteries → PGS 37) must be confirmed before sizing the section (A028).",
+    "**Manual handling:** totes are limited to 15 kg (A024); items up to 90 kg each are only moved with pallet trucks or lift aids.",
+])
+
 # 6 CAPACITY PLAN
 doc.add_heading("6. Capacity plan — labour & equipment", level=1)
 doc.add_heading("6.1 Labour", level=2)
@@ -434,6 +497,21 @@ para(f"**Tugger train (Jungheinrich EZS 130) — evaluated, not planned now.** I
      f"{tg['picker_walk_saved_h_day'] * 60:.0f} minutes of walking, because both pick zones end next to packing. "
      "It becomes worthwhile if small-order volume roughly triples or packing moves away from the pick zones.", sa=8)
 
+para("Routing policy (W3) — expected walk per tour in the reserve zone, by policy:", sa=4)
+table(["Tour", "Lines in reserve", "S-shape", "Return", "Midpoint", "Largest gap", "Best"],
+      [[r["Tour"], f"{r['Lines in reserve']:.0f}", f"{r['S-shape']:.0f} m", f"{r['Return']:.0f} m", f"{r['Midpoint']:.0f} m",
+        f"{r['Largest gap']:.0f} m", r["Best"]] for r in PK["routing"]], widths=[4.6, 1.8, 1.8, 1.8, 1.8, 2.0, 2.2], arr=1)
+para("Largest-gap routing is used in the reserve aisles (possible because the aisles are open at both ends); the fast-pick "
+     "area is a single long face worked with a return route from packing.", sa=6)
+para("Data-handling hardware (W3):", sa=4)
+table(["Option", "Fit with our profile", "Decision"], [
+    ["Paper pick lists", "5,291 SKUs, many look-alike parts, half the orders single-line → error-prone, no live stock", "Not used"],
+    ["RF handheld / ring scanner", "scan-to-confirm location and item; works for receiving, put-away, trolleys and pallets", "Used in all processes"],
+    ["Voice picking", "hands-free, good for heavy case picking, but item check still needs a scan", "Option for large-order picking"],
+    ["Pick-to-light", "fastest per pick, but a light on thousands of faces is costly for ~640 lines/day", "Not used in pick zones"],
+    ["Put-to-light wall", f"sorts batch-picked small orders ({segs['small']['pct_orders']:.0f}% of orders) into orders at packing", "Used at packing"],
+], widths=[3.6, 8.4, 4.0], arr=9)
+
 doc.add_heading("6.3 Machinery — Jungheinrich fleet", level=2)
 para("Truck models were chosen from Jungheinrich (as advised) to match the layout and loads, and sized with a "
      "cycle-time model built from their published speeds on the Option B routes (A021).")
@@ -469,6 +547,12 @@ para("Fit checks — layout and loads against the truck data:", sa=4).paragraph_
 table(["Check", "Requirement", "Result"],
       [[f["Check"], f["Requirement"], f["Result"]] for f in dm["fit_checks"]], widths=[5.6, 4.6, 5.8], arr=9)
 
+doc.add_heading("6.4 Expected performance on the W3 KPIs", level=2)
+para("W3 names the KPIs that layout, storage and picking design drive. Expected values for Option B (Deliverable 3 adds cost "
+     "and the full KPI set):", sa=4).paragraph_format.keep_with_next = True
+table(["KPI (W3)", "Expected", "Basis"],
+      [[k["KPI (W3)"], k["Expected"], k["Basis"]] for k in DE["kpis"]], widths=[3.4, 6.2, 6.4], arr=9)
+
 # 7 ASSUMPTIONS
 doc.add_heading("7. Assumptions & open questions", level=1)
 para("Full register in data/assumptions.json; sources in documentation/sources.md. High-impact items:")
@@ -478,6 +562,7 @@ bullets([
     "**To confirm with DHL:** labour productivity and pick-time standards (A006/A014/A025); the 7,000 m² scope (A008); "
     "container share and contractor quotes (A019/A026); whether carriers accept the departure slots (A020/A027).",
     "**To confirm with Jungheinrich:** telescopic-fork residual capacity at 10 m (A021).",
+    "**To confirm with Assa Abloy:** the hazard class of the 138 flagged SKUs, which decides the hazmat section (A028).",
 ])
 
 footer()

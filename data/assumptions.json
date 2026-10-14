@@ -238,10 +238,28 @@
     {
       "id": "A027",
       "assumption": "Trailer departure plan with booked carrier time slots",
-      "value": "13 slot departures/day (25-min windows) at the carriers' current median times; 3 pick waves planned backwards (06:00, 09:30, 12:45)",
+      "value": "14 trailer slots over 13 departure times/day (25-min windows) at the carriers' current median times; 3 pick waves planned backwards (06:00, 09:30, 12:45)",
       "unit": "-",
       "reason": "Teacher: 'make a plan on when you want them to leave'. Slots built from each carrier's median departure time (data); max 4 of 5 doors busy at once. Carriers must accept the slots (A020).",
       "source": "Measured outbound trailer data + planning assumption",
+      "impact": "medium"
+    },
+    {
+      "id": "A028",
+      "assumption": "Hazardous SKUs: hazard class unknown - PGS 15 (packaged hazardous substances) or PGS 37 (lithium batteries) to be confirmed",
+      "value": "138 SKUs, 2,197 loads (~20% of loads), gross product weight ~385 t",
+      "unit": "SKUs / loads / kg",
+      "reason": "Data only flags HAZMAT 0/1. If these are packaged hazardous substances, storage is far above the 10,000 kg PGS 15 threshold, triggering a 60-min fire-resistant compartment, separation of incompatible classes and firefighting provisions (S016). Gross product weight overstates the hazardous content. A segregated hazmat section is reserved; size and construction depend on the confirmed classes.",
+      "source": "Measured (storage HAZMAT flag) + PGS 15 (S016); class to confirm with Assa Abloy / DHL",
+      "impact": "high"
+    },
+    {
+      "id": "A029",
+      "assumption": "Layout concept: flow-through kept after evaluating a U-shaped alternative (W3 method)",
+      "value": "U-shaped: -9% put-away travel (~10 reach-truck min/day), ~6 vs 8 doors only if all inbound arrives before noon",
+      "unit": "-",
+      "reason": "Huertas et al. (2007) favour U-shaped for strong-ABC sites; our picking travel is identical in both (packing east) and C items bring 46% of inbound loads, so the gain is small; flow-through separates inbound, returns and outbound.",
+      "source": "design_evaluation.py travel model + S017",
       "impact": "medium"
     }
   ]

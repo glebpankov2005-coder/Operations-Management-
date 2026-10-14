@@ -1,0 +1,7 @@
+Criterion,Flow-through,U-shaped
+"Put-away travel (reach truck, per load, one way)",65 m,59 m (-9%)
+Reach-truck time saved per day,-,~10 min
+"Picking travel (all picks start/end at packing, east)",same,same
+Dock doors,8 (separate in/out),~6 if inbound always arrives before noon (shared)
+Traffic and errors (Huertas et al.),"Inbound and outbound separated - less congestion, fewer mix-ups","Inbound, returns and outbound share one dock face"
+Fit to our profile (Huertas et al.),"Suits high volume, long/narrow buildings",Suits strong ABC (ours: 13% of SKUs = 80%)

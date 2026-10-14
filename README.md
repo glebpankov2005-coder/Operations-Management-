@@ -45,6 +45,7 @@ The Word files are **generated** from the analysis by `analysis/build_report.py`
 | `geometry.py` | Shared Option B layout geometry for the travel / cycle-time models |
 | `picking_plan.py` | Order volume segmentation, pick-time model (lines/h, FTE), picking equipment, tugger evaluation |
 | `dock_mhe_plan.py` | Dock doors, trailer departure plan, Jungheinrich fleet, turning checks, machinery justification, container options, 08:00 release |
+| `design_evaluation.py` | Week 3 alignment: U-shaped vs flow-through evaluation, COI slotting + affinity, lead time per region, class data checks, hazmat vs PGS 15, W3 KPIs |
 | `warehouse_floorplan.py` | To-scale floor plan + main order-flow figure (docks, aisles, arrows) |
 | `flowcharts.py` · `layout.py` | Process flowcharts, 2D layout/order/worker flow, 3D massing |
 | `build_report.py` · `build_report_d2.py` | Generate the Word deliverables |
@@ -59,6 +60,7 @@ python analysis/decision_matrix.py     # option selection
 python analysis/picking_plan.py        # order segments, pick-time model, picking equipment
 python analysis/capacity_plan.py       # labour, pick type, inbound, feasibility
 python analysis/dock_mhe_plan.py       # dock doors + Jungheinrich MHE + order release
+python analysis/design_evaluation.py   # W3: layout concepts, COI, lead time per region, KPIs
 python analysis/flowcharts.py          # process flowcharts
 python analysis/layout.py              # layout areas
 python analysis/warehouse_floorplan.py # floor plan + main order-flow figure
@@ -77,7 +79,7 @@ python analysis/build_report_d2.py     # Deliverable 2 .docx
 - **Recommended concept: Option B** (hybrid density + velocity slotting + zone/batch picking).
 - Picking split by **order size** (median order 7 L): 84% small orders → **trolley batch picking**; 16% large orders (88% of volume) → **pick-to-pallet**.
 - Every storage aisle is **open at both ends** (front, middle, rear cross-aisles) → no U-turns.
-- Trailers leave on a **departure plan** (13 carrier slots); 3 pick waves planned backwards; loose-container de-stuffing **outsourced**.
+- Trailers leave on a **departure plan** (14 trailer slots over 13 departure times); 3 pick waves planned backwards; loose-container de-stuffing **outsourced**.
 - DHL labour ≈ **4.7 FTE avg / 8.8 peak**; MHE (Jungheinrich) = **3× ETV 216i** reach truck, **4× EJE 120i** walkie pallet truck, **2× ERE 225** rider pallet truck + **6 pick trolleys** (ECE 225 rejected; EZS 130 tugger evaluated, not needed at current volume).
 
 ## ❓ Open items (see `data/assumptions.json`)

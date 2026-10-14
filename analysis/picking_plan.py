@@ -72,10 +72,46 @@ L_F = core_w - 4.0                        # usable length of the fast-pick modul
 A = len(aisle_x); SPAN = float(aisle_x[-1] - aisle_x[0])
 def dist_F(n):                            # return routing along the module (P&D at east end, next to packing)
     return 0.0 if n <= 0 else 2 * L_F * n / (n + 1)
-def dist_C(n):                            # S-shape through storage aisles open at both ends
+# Reserve zone: routing policies from the W3 lecture (S-shape, return, midpoint, largest gap) compared by Monte
+# Carlo on the real aisle geometry (aisles open at both ends; P&D at the east end of the front cross-aisle).
+LB = storage_aisle_len
+X_PD = float(aisle_x[-1]) + 5.0
+RNG = np.random.default_rng(7)
+def _route(policy, aisles, ys):
+    xs = aisle_x[aisles]; horiz = 2 * (X_PD - xs.min())
+    picked = np.unique(aisles); k = len(picked)
+    ymax = {a: ys[aisles == a].max() for a in picked}
+    if policy == "Return" or (k == 1 and policy in ("Midpoint", "Largest gap")):
+        return horiz + sum(2 * v for v in ymax.values())
+    if policy == "S-shape":
+        last = picked[-1]                                  # aisle nearest the P&D is done last
+        return horiz + (k - 1 if k % 2 else k) * LB + (2 * ymax[last] if k % 2 else 0)
+    vert = 2 * LB                                          # first and last picked aisles traversed fully
+    for a in picked[1:-1]:
+        y = np.sort(ys[aisles == a])
+        if policy == "Midpoint":
+            f, b = y[y <= LB / 2], y[y > LB / 2]
+            vert += (2 * f.max() if len(f) else 0) + (2 * (LB - b.min()) if len(b) else 0)
+        else:                                              # Largest gap: skip the biggest empty stretch
+            gaps = np.diff(np.concatenate([[0], y, [LB]]))
+            vert += 2 * (LB - gaps.max())
+    return horiz + vert
+POLICIES = ["S-shape", "Return", "Midpoint", "Largest gap"]
+def route_compare(n, sims=3000):
+    out = {p: [] for p in POLICIES}
+    for _ in range(sims):
+        m = max(1, RNG.poisson(n)) if n < 8 else int(round(n))
+        a = RNG.integers(0, A, m); y = RNG.uniform(0, LB, m)
+        for p in POLICIES:
+            out[p].append(_route(p, a, y))
+    return {p: float(np.mean(v)) for p, v in out.items()}
+_route_cache = {}
+def dist_C(n):                            # expected walk with the BEST policy for this tour size
     if n <= 0: return 0.0
-    k = A * (1 - (1 - 1 / A) ** n)        # expected aisles visited
-    return k * storage_aisle_len + 2 * SPAN + 0.5 * storage_aisle_len   # + return leg if k is odd
+    key = round(n, 1)
+    if key not in _route_cache:
+        _route_cache[key] = route_compare(n)
+    return min(_route_cache[key].values())
 
 # ------------------------------------------------ SMALL orders: zone BATCH picking on trolleys, sorted at the put-wall
 # The WMS builds each trolley batch from the wave's lines in one zone, filled to the trolley's VOLUME and
@@ -117,6 +153,15 @@ large = {"orders_day": round(large_orders_day, 1), "lines_per_order": round(floa
          "picker_h_peak": round(large_orders_day * LINES_PEAKF * t_order / 3600, 2),
          "kg_median": round(float(l_ord.kg.median()), 0), "kg_p90": round(float(l_ord.kg.quantile(.9)), 0),
          "litres_median": round(float(l_ord.litres.median()), 0)}
+
+# ------------------------------------------------ routing-policy comparison (W3) for the tours actually planned
+n_small_C = float(small.loc[small.Zone.str.startswith("Reserve"), "Lines per tour"].iloc[0])
+routing = []
+for label, n_ in [("Small-order trolley tour (reserve zone)", n_small_C), ("Large-order pallet tour (reserve part)", float(nC))]:
+    r_ = _route_cache.get(round(n_, 1)) or route_compare(n_)
+    best = min(r_, key=r_.get)
+    routing.append({"Tour": label, "Lines in reserve": round(n_, 1), **{k: round(v, 0) for k, v in r_.items()}, "Best": best})
+save_table(pd.DataFrame(routing).set_index("Tour"), "picking_routing_policies.csv")
 
 # ------------------------------------------------ people and equipment
 small_h_avg, small_h_pk = small["Picker-h avg"].sum(), small["Picker-h peak"].sum()
@@ -165,7 +210,7 @@ update_metrics("picking", {
     "orders_per_trolley": round(orders_per_trolley, 1),
     "small_orders": small.to_dict("records"), "large_orders": large,
     "pick_fte_avg": round(pick_fte_avg, 2), "pick_fte_peak": round(pick_fte_pk, 2),
-    "equipment": equipment, "tugger": tugger,
+    "equipment": equipment, "tugger": tugger, "routing": routing,
 })
 
 # figure: order volume -> which container fits
@@ -186,3 +231,4 @@ print("LARGE", large)
 print(f"PICK FTE avg {pick_fte_avg:.2f} peak {pick_fte_pk:.2f}")
 print("EQUIP", [(e['Item'], e['Required'], e['Planned']) for e in equipment])
 print("TUGGER", tugger)
+print("ROUTING"); [print(" ", r) for r in routing]

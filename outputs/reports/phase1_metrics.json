@@ -560,8 +560,8 @@
     },
     "net_hours_per_fte": 7.5,
     "total_fte_avg": 4.7,
-    "total_fte_peak": 8.8,
-    "total_fte_ceil_peak": 14,
+    "total_fte_peak": 8.6,
+    "total_fte_ceil_peak": 13,
     "outsourced_destuff_h_avg": 6.0,
     "labour_table": [
       {
@@ -623,23 +623,23 @@
         "Rate/h": "-",
         "Peak factor": 1.83,
         "Hours (avg)": 3.6,
-        "Hours (peak)": 6.6,
-        "FTE avg": 0.48,
-        "FTE peak": 0.88,
+        "Hours (peak)": 6.5,
+        "FTE avg": 0.47,
+        "FTE peak": 0.87,
         "FTE (ceil peak)": 1,
         "DHL staff": true
       },
       {
         "Process": "Picking - large orders (EJE, to pallet)",
-        "Driver/day (avg)": 8.3,
+        "Driver/day (avg)": 7.8,
         "Unit": "picker-h",
         "Rate/h": "-",
         "Peak factor": 1.83,
-        "Hours (avg)": 8.3,
-        "Hours (peak)": 15.2,
-        "FTE avg": 1.11,
-        "FTE peak": 2.03,
-        "FTE (ceil peak)": 3,
+        "Hours (avg)": 7.8,
+        "Hours (peak)": 14.3,
+        "FTE avg": 1.04,
+        "FTE peak": 1.9,
+        "FTE (ceil peak)": 2,
         "DHL staff": true
       },
       {
@@ -933,8 +933,8 @@
       {
         "Model": "Jungheinrich EJE 120i",
         "Task": "Large orders: pick-to-pallet (one order per pallet)",
-        "Equip-h/day avg": 8.3,
-        "Equip-h/day peak": 15.2,
+        "Equip-h/day avg": 7.8,
+        "Equip-h/day peak": 14.3,
         "Units required (peak)": 3,
         "Units recommended": 4
       },
@@ -950,7 +950,7 @@
         "Model": "Pick trolley (3-tier, 6 totes) + totes",
         "Task": "Small orders: zone batch picking, sorted at the put-wall",
         "Equip-h/day avg": 3.6,
-        "Equip-h/day peak": 6.6,
+        "Equip-h/day peak": 6.5,
         "Units required (peak)": 1,
         "Units recommended": 6
       }
@@ -1133,7 +1133,7 @@
         "Machine": "EJE 120i pallet truck",
         "Process": "Large orders: pick-to-pallet",
         "Why (data)": "16% of orders (23/day) are pallet-sized: median 234 L, 140 kg (p90 671 kg) - too big/heavy for a trolley",
-        "How it is used": "One order per pallet; ~15 lines in ~22 min; drops the pallet at packing",
+        "How it is used": "One order per pallet; ~15 lines in ~20 min; drops the pallet at packing",
         "Units": 4
       },
       {
@@ -1354,12 +1354,12 @@
         "Lines/day": 104.0,
         "Lines per tour": 31.3,
         "Tour limited by": "trolley volume",
-        "Walk per tour (m)": 670.0,
-        "Tour (min)": 31.3,
-        "Lines/h": 60.0,
+        "Walk per tour (m)": 624.0,
+        "Tour (min)": 30.3,
+        "Lines/h": 62.0,
         "Tours/day": 3.3,
-        "Picker-h avg": 1.73,
-        "Picker-h peak": 3.17
+        "Picker-h avg": 1.67,
+        "Picker-h peak": 3.06
       }
     ],
     "large_orders": {
@@ -1367,17 +1367,17 @@
       "lines_per_order": 14.9,
       "lines_fast_pick": 11.6,
       "lines_reserve": 3.4,
-      "walk_per_order_m": 413.0,
-      "min_per_order": 21.7,
-      "lines_per_h": 41.0,
-      "picker_h_avg": 8.33,
-      "picker_h_peak": 15.25,
+      "walk_per_order_m": 337.0,
+      "min_per_order": 20.3,
+      "lines_per_h": 44.0,
+      "picker_h_avg": 7.8,
+      "picker_h_peak": 14.28,
       "kg_median": 140.0,
       "kg_p90": 671.0,
       "litres_median": 234.0
     },
-    "pick_fte_avg": 1.59,
-    "pick_fte_peak": 2.92,
+    "pick_fte_avg": 1.51,
+    "pick_fte_peak": 2.77,
     "equipment": [
       {
         "Item": "Pick trolley (3-tier, 6 totes)",
@@ -1411,6 +1411,333 @@
       "trolleys_per_run": 0.4,
       "picker_walk_saved_h_day": 0.1,
       "verdict": "Not justified at current volume - keep as scale-up option"
-    }
+    },
+    "routing": [
+      {
+        "Tour": "Small-order trolley tour (reserve zone)",
+        "Lines in reserve": 31.3,
+        "S-shape": 660.0,
+        "Return": 895.0,
+        "Midpoint": 665.0,
+        "Largest gap": 624.0,
+        "Best": "Largest gap"
+      },
+      {
+        "Tour": "Large-order pallet tour (reserve part)",
+        "Lines in reserve": 3.4,
+        "S-shape": 247.0,
+        "Return": 254.0,
+        "Midpoint": 221.0,
+        "Largest gap": 220.0,
+        "Best": "Largest gap"
+      }
+    ]
+  },
+  "design_evaluation": {
+    "w3_checks": [
+      {
+        "Question (W3)": "Most ordered product",
+        "Answer": "A000493031 \u2014 in 268 orders",
+        "Note": "1,947 units picked in Q2"
+      },
+      {
+        "Question (W3)": "Heaviest SKU (single item)",
+        "Answer": "A000316052 \u2014 90.0 kg per piece",
+        "Note": "heaviest pallet (cleaned) 5,039 kg; p99 pallet 1,344 kg"
+      },
+      {
+        "Question (W3)": "Longest SKU",
+        "Answer": "A000432677 \u2014 1095 cm",
+        "Note": "26 SKUs longer than 2.4 m -> cantilever racking"
+      },
+      {
+        "Question (W3)": "Most lines in one order",
+        "Answer": "191 lines",
+        "Note": "median order = 1 line"
+      },
+      {
+        "Question (W3)": "Max pallets in stock",
+        "Answer": "11,015 loads in 8,512 locations",
+        "Note": "June 2025 snapshot (peak of the quarter)"
+      }
+    ],
+    "leadtime_by_region": [
+      {
+        "SHIP TO COUNTRY": "NLD",
+        "orders": 5115,
+        "median_h": 24.6,
+        "mean_h": 38.6,
+        "p90_h": 97.8,
+        "within_48h": 70.9
+      },
+      {
+        "SHIP TO COUNTRY": "BEL",
+        "orders": 1707,
+        "median_h": 24.7,
+        "mean_h": 37.9,
+        "p90_h": 83.5,
+        "within_48h": 74.2
+      },
+      {
+        "SHIP TO COUNTRY": "DEU",
+        "orders": 793,
+        "median_h": 23.4,
+        "mean_h": 56.0,
+        "p90_h": 171.4,
+        "within_48h": 70.2
+      },
+      {
+        "SHIP TO COUNTRY": "FRA",
+        "orders": 381,
+        "median_h": 8.0,
+        "mean_h": 31.6,
+        "p90_h": 117.2,
+        "within_48h": 80.6
+      },
+      {
+        "SHIP TO COUNTRY": "CHE",
+        "orders": 172,
+        "median_h": 140.1,
+        "mean_h": 104.1,
+        "p90_h": 166.1,
+        "within_48h": 23.8
+      },
+      {
+        "SHIP TO COUNTRY": "LUX",
+        "orders": 112,
+        "median_h": 24.1,
+        "mean_h": 30.6,
+        "p90_h": 74.1,
+        "within_48h": 81.2
+      },
+      {
+        "SHIP TO COUNTRY": "POL",
+        "orders": 57,
+        "median_h": 120.5,
+        "mean_h": 128.8,
+        "p90_h": 204.1,
+        "within_48h": 19.3
+      },
+      {
+        "SHIP TO COUNTRY": "AUT",
+        "orders": 46,
+        "median_h": 26.0,
+        "mean_h": 55.5,
+        "p90_h": 121.7,
+        "within_48h": 58.7
+      },
+      {
+        "SHIP TO COUNTRY": "GBR",
+        "orders": 37,
+        "median_h": 120.0,
+        "mean_h": 99.2,
+        "p90_h": 154.4,
+        "within_48h": 27.0
+      },
+      {
+        "SHIP TO COUNTRY": "CZE",
+        "orders": 36,
+        "median_h": 107.8,
+        "mean_h": 108.2,
+        "p90_h": 168.2,
+        "within_48h": 5.6
+      },
+      {
+        "SHIP TO COUNTRY": "ITA",
+        "orders": 34,
+        "median_h": 108.1,
+        "mean_h": 96.2,
+        "p90_h": 143.6,
+        "within_48h": 17.6
+      },
+      {
+        "SHIP TO COUNTRY": "EST",
+        "orders": 33,
+        "median_h": 74.2,
+        "mean_h": 112.8,
+        "p90_h": 230.4,
+        "within_48h": 18.2
+      },
+      {
+        "SHIP TO COUNTRY": "SWE",
+        "orders": 31,
+        "median_h": 70.9,
+        "mean_h": 86.2,
+        "p90_h": 146.4,
+        "within_48h": 22.6
+      },
+      {
+        "SHIP TO COUNTRY": "HRV",
+        "orders": 31,
+        "median_h": 143.5,
+        "mean_h": 127.9,
+        "p90_h": 149.1,
+        "within_48h": 12.9
+      },
+      {
+        "SHIP TO COUNTRY": "ISR",
+        "orders": 25,
+        "median_h": 147.9,
+        "mean_h": 124.1,
+        "p90_h": 183.7,
+        "within_48h": 4.0
+      },
+      {
+        "SHIP TO COUNTRY": "FIN",
+        "orders": 24,
+        "median_h": 71.0,
+        "mean_h": 118.6,
+        "p90_h": 263.9,
+        "within_48h": 0.0
+      },
+      {
+        "SHIP TO COUNTRY": "ESP",
+        "orders": 22,
+        "median_h": 75.0,
+        "mean_h": 77.5,
+        "p90_h": 139.6,
+        "within_48h": 27.3
+      },
+      {
+        "SHIP TO COUNTRY": "SVN",
+        "orders": 20,
+        "median_h": 142.2,
+        "mean_h": 131.1,
+        "p90_h": 170.4,
+        "within_48h": 15.0
+      }
+    ],
+    "concepts": {
+      "Flow-through (receiving west, shipping east)": {
+        "putaway_one_way_m": 64.9,
+        "per_class_m": {
+          "A": 66.7,
+          "B": 65.0,
+          "C": 63.5
+        },
+        "putaway_km_day": 12.8
+      },
+      "U-shaped (receiving + shipping on the east wall)": {
+        "putaway_one_way_m": 59.0,
+        "per_class_m": {
+          "A": 45.1,
+          "B": 56.2,
+          "C": 70.4
+        },
+        "putaway_km_day": 11.7
+      }
+    },
+    "concept_table": [
+      {
+        "Criterion": "Put-away travel (reach truck, per load, one way)",
+        "Flow-through": "65 m",
+        "U-shaped": "59 m (-9%)"
+      },
+      {
+        "Criterion": "Reach-truck time saved per day",
+        "Flow-through": "-",
+        "U-shaped": "~10 min"
+      },
+      {
+        "Criterion": "Picking travel (all picks start/end at packing, east)",
+        "Flow-through": "same",
+        "U-shaped": "same"
+      },
+      {
+        "Criterion": "Dock doors",
+        "Flow-through": "8 (separate in/out)",
+        "U-shaped": "~6 if inbound always arrives before noon (shared)"
+      },
+      {
+        "Criterion": "Traffic and errors (Huertas et al.)",
+        "Flow-through": "Inbound and outbound separated - less congestion, fewer mix-ups",
+        "U-shaped": "Inbound, returns and outbound share one dock face"
+      },
+      {
+        "Criterion": "Fit to our profile (Huertas et al.)",
+        "Flow-through": "Suits high volume, long/narrow buildings",
+        "U-shaped": "Suits strong ABC (ours: 13% of SKUs = 80%)"
+      }
+    ],
+    "concept_verdict": "Keep flow-through. U-shaped saves only ~9% put-away travel (~10 reach-truck minutes/day) because slow C items still bring 46% of inbound loads and picking travel is identical; its door saving depends on all inbound arriving before noon, which sea containers cannot guarantee. Flow-through keeps inbound, returns and outbound apart and fits the side-wall dock lengths.",
+    "inbound_share_by_class_pct": {
+      "C": 46.0,
+      "B": 20.0,
+      "A": 34.0
+    },
+    "doors_flow_through": 8,
+    "doors_u_shaped": 6,
+    "coi": {
+      "skus_scored": 2270,
+      "picks_in_best_quintile_pct": 55.0,
+      "picks_in_best_two_quintiles_pct": 72.0,
+      "A_skus_in_best_two_quintiles_pct": 56.0,
+      "bulky_A_skus": 134,
+      "small_fast_C_skus": 119,
+      "same_family_rate_pct": 62.0,
+      "random_baseline_pct": 40.0,
+      "single_line_orders_pct": 51.0
+    },
+    "coi_vs_abc": [
+      {
+        "COI_quintile": "Q1 (best)",
+        "A": 162,
+        "B": 173,
+        "C": 119
+      },
+      {
+        "COI_quintile": "Q2",
+        "A": 110,
+        "B": 150,
+        "C": 194
+      },
+      {
+        "COI_quintile": "Q3",
+        "A": 78,
+        "B": 136,
+        "C": 240
+      },
+      {
+        "COI_quintile": "Q4",
+        "A": 78,
+        "B": 91,
+        "C": 285
+      },
+      {
+        "COI_quintile": "Q5 (worst)",
+        "A": 56,
+        "B": 72,
+        "C": 326
+      }
+    ],
+    "hazmat": {
+      "skus": 138,
+      "loads": 2197,
+      "kg_in_stock": 384895.0,
+      "pgs15_threshold_kg": 10000,
+      "above_threshold": true
+    },
+    "kpis": [
+      {
+        "KPI (W3)": "Dock-to-stock time",
+        "Expected": "~1.5 h per palletised trailer; ~3.8 h per loose container",
+        "Basis": "unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container de-stuffed by contractor"
+      },
+      {
+        "KPI (W3)": "Put-away cycle time",
+        "Expected": "2.5 min per pallet (~24 per truck-hour)",
+        "Basis": "ETV 216i cycle model on the Option B routes (S006)"
+      },
+      {
+        "KPI (W3)": "Pick rate",
+        "Expected": "~56 lines per picker-hour overall (fast-pick 99, reserve 62, large orders 44)",
+        "Basis": "pick-time model, largest-gap routing, trolley batching"
+      },
+      {
+        "KPI (W3)": "On-time shipment rate",
+        "Expected": "target \u2265 98% staged before the booked departure",
+        "Basis": "waves end 45 min before each slot; today 50.1% of lines are staged 'LATE' (A005, definition to confirm)"
+      }
+    ]
   }
 }

@@ -3,8 +3,8 @@ Receiving - palletised (unload+check),58.3,pallets,25,1.69,2.3,3.9,0.31,0.52,1,T
 Container de-stuffing (outsourced),6.0,person-h,-,2.0,6.0,12.0,0.8,1.6,2,False
 Putaway (reach truck),98.9,pallets,20,1.69,4.9,8.3,0.66,1.11,2,True
 Replenishment (reach truck),24.3,pallets,18,2.85,1.3,3.8,0.18,0.51,1,True
-"Picking - small orders (trolley, batch)",3.6,picker-h,-,1.83,3.6,6.6,0.48,0.88,1,True
-"Picking - large orders (EJE, to pallet)",8.3,picker-h,-,1.83,8.3,15.2,1.11,2.03,3,True
+"Picking - small orders (trolley, batch)",3.6,picker-h,-,1.83,3.6,6.5,0.47,0.87,1,True
+"Picking - large orders (EJE, to pallet)",7.8,picker-h,-,1.83,7.8,14.3,1.04,1.9,2,True
 Full-pallet picking (reach truck),6.4,pallets,22,1.83,0.3,0.5,0.04,0.07,1,True
 Packing / consolidation,633.6,lines,45,1.83,14.1,25.8,1.88,3.44,4,True
 Shipping / loading,17.7,pallets,30,2.85,0.6,1.7,0.08,0.22,1,True

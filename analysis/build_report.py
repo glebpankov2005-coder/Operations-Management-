@@ -246,6 +246,13 @@ bullets([
     " — an NL hub serving Western Europe.",
 ])
 figure("order_pick_type_derived.png", "Fig 3. Pick type derived from the orders (line quantity vs case / pallet quantity).", 13)
+DE = M["design_evaluation"]
+para("Delivery lead time per region (order received → trailer dispatched), countries with ≥ 20 orders:", space_after=4)
+table(["Country", "Orders", "Median h", "Mean h", "p90 h", "≤ 48 h"],
+      [[r["SHIP TO COUNTRY"], f"{int(r['orders']):,}", f"{r['median_h']:.0f}", f"{r['mean_h']:.0f}", f"{r['p90_h']:.0f}",
+        f"{r['within_48h']:.0f}%"] for r in DE["leadtime_by_region"]], widths=[2.6, 2.4, 2.4, 2.4, 2.4, 2.4])
+bullets(["**NL, BE, DE, LU and FR ship in about a day** (median 8–25 h); **Switzerland (~140 h) and Poland (~120 h) take 5–6 "
+         "days**, pointing at customs or weekly consolidation for export — a service question to raise with DHL."])
 
 # ============================ 6. ABC ============================
 doc.add_heading("6. Demand-based ABC classification", level=1)
@@ -308,6 +315,9 @@ bullets([
     f"**Stock vs demand mismatch** — {a['skus_shipped_not_in_stock']:,} shipped-not-stocked; a further set "
     "of stocked-not-shipped SKUs are dead-stock candidates. To confirm handling (cross-dock vs obsolete).",
 ])
+para("Data checks requested in class (Week 3):", space_after=4)
+table(["Question", "Answer", "Note"], [[c["Question (W3)"], c["Answer"], c["Note"]] for c in M["design_evaluation"]["w3_checks"]],
+      widths=[4.2, 5.4, 6.4], align_right_from=9)
 
 # ============================ 9. DESIGN REQUIREMENTS ============================
 doc.add_heading("9. Headline design requirements (input to design options)", level=1)
