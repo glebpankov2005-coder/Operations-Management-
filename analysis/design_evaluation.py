@@ -39,8 +39,8 @@ checks = [
      "Note": f"{int(ob[ob.PRTNUM == by_orders.index[0]]['PICKED QTY'].sum()):,} units picked in Q2"},
     {"Question (W3)": "Heaviest SKU (single item)", "Answer": f"{ea_w.idxmax()} — {ea_w.max():.1f} kg per piece",
      "Note": f"heaviest pallet (cleaned) {pa_w.max():,.0f} kg; p99 pallet {pa_w.quantile(.99):,.0f} kg"},
-    {"Question (W3)": "Longest SKU", "Answer": f"{ea_l.idxmax()} — {ea_l.max():.0f} cm",
-     "Note": f"{int((ea_l > 240).sum())} SKUs longer than 2.4 m -> cantilever racking"},
+    {"Question (W3)": "Longest SKU", "Answer": f"{ea_l[ea_l <= 205].idxmax()} — {ea_l[ea_l <= 205].max():.0f} cm (realistic maximum ~2 m, door size)",
+     "Note": f"{int((ea_l > 205).sum())} SKUs recorded longer than 2.05 m (up to {ea_l.max():.0f} cm for a 0.5 kg item) are data errors (A043)"},
     {"Question (W3)": "Most lines in one order", "Answer": f"{int(lpo.max())} lines", "Note": f"median order = {lpo.median():.0f} line"},
     {"Question (W3)": "Max pallets in stock", "Answer": f"{max(s['loads_LODNUM'] for s in snaps):,} loads in "
      f"{max(s['occupied_locations'] for s in snaps):,} locations", "Note": "June 2025 snapshot (peak of the quarter)"},
@@ -144,7 +144,34 @@ hz_flag = hz["HAZMAT"].astype(str).str.strip().str.upper()
 hz = hz[~hz_flag.isin(["", "0", "N", "NAN", "NONE", "NO"])]
 hz_kg = float((pd.to_numeric(hz["QTY"], errors="coerce") * pd.to_numeric(hz["EA WGT"], errors="coerce")).sum())
 hazmat = {"skus": int(hz["PART"].nunique()), "loads": int(hz["LODNUM"].nunique()), "kg_in_stock": round(hz_kg, 0),
-          "pgs15_threshold_kg": 10000, "above_threshold": bool(hz_kg > 10000)}
+          "pgs15_threshold_kg": 10000, "above_threshold": bool(hz_kg > 10000),
+          "share_loads_pct": round(hz["LODNUM"].nunique() / latest["LODNUM"].nunique() * 100, 1),
+          "count_method": "unique LODNUM with HAZMAT = 1 in the 01-06-2025 snapshot; weight = QTY x EA WGT (gross product weight)"}
+# per snapshot (same method) - shows the counts are consistent, the stock just grew
+hz_snap = []
+for nm_, sn_ in all_storage().items():
+    f_ = sn_["HAZMAT"].astype(str).str.strip().str.upper(); h_ = sn_[~f_.isin(["", "0", "N", "NAN", "NONE", "NO"])]
+    hz_snap.append({"snapshot": nm_[-16:-6], "skus": int(h_["PART"].nunique()), "loads": int(h_["LODNUM"].nunique()),
+                    "t": round(float((pd.to_numeric(h_["QTY"], errors="coerce") * pd.to_numeric(h_["EA WGT"], errors="coerce")).sum()) / 1000, 0)})
+hazmat["by_snapshot"] = hz_snap
+# classification by customs code (COMPONENT CODE = HS code): what the product is -> most likely hazard -> Dutch rule
+HS = {"8303": ("Safes and strong-boxes (electronic locks)", "lithium cells in equipment (UN3481 / UN3091, class 9)", "PGS 37-2"),
+      "8301": ("Locks and padlocks (electronic)", "lithium cells in equipment (UN3481 / UN3091, class 9)", "PGS 37-2"),
+      "8471": ("Readers / data units", "lithium cells in equipment (UN3481, class 9)", "PGS 37-2"),
+      "8531": ("Alarm and signalling devices", "lithium cells in equipment (UN3481 / UN3091, class 9)", "PGS 37-2"),
+      "8525": ("Cameras", "lithium cells in equipment (UN3481, class 9)", "PGS 37-2"),
+      "8507": ("Batteries (loose)", "lithium batteries (UN3480 / UN3090, class 9)", "PGS 37-2"),
+      "3403": ("Lubricants", "possibly aerosols or flammable liquids (class 2 / 3)", "PGS 15"),
+      "4819": ("Cardboard boxes", "unclear - packaging should not be hazardous; check the flag", "check flag")}
+hz["hs4"] = hz["COMPONENT CODE"].apply(lambda v: f"{int(float(v)):010d}"[:4] if pd.notna(pd.to_numeric(v, errors="coerce")) else "none")
+hz["kg"] = pd.to_numeric(hz["QTY"], errors="coerce") * pd.to_numeric(hz["EA WGT"], errors="coerce")
+cls = hz.groupby("hs4").agg(skus=("PART", "nunique"), loads=("LODNUM", "nunique"), t=("kg", lambda x: round(float(x.sum()) / 1000, 1)))
+cls = cls.sort_values("loads", ascending=False)
+hazmat["classes"] = [{"HS": k, "What it is": HS.get(k, ("other", "unknown", "check"))[0], "Likely hazard": HS.get(k, ("", "unknown", ""))[1],
+                      "Dutch rule": HS.get(k, ("", "", "check"))[2], "SKUs": int(r.skus), "Loads": int(r.loads), "t": float(r.t)}
+                     for k, r in cls.iterrows()]
+hazmat["pgs37_share_loads_pct"] = round(float(cls.loc[[k for k in cls.index if HS.get(k, ("", "", ""))[2] == "PGS 37-2"], "loads"].sum() / cls["loads"].sum() * 100), 0)
+hazmat["family_203_share_pct"] = round(float(hz.loc[hz["PART FAMILY"] == 203, "LODNUM"].nunique() / hz["LODNUM"].nunique() * 100), 0)
 
 # ============================================================ 6. expected KPIs (slide 9)
 cyc = {c["Move"]: c for c in DM["cycle_times"]}
@@ -159,7 +186,7 @@ pick_rate = all_lines / (small_h + lg["picker_h_avg"])
 staged_late_today = 50.1
 kpis = [
     {"KPI (W3)": "Dock-to-stock time", "Expected": f"~{dock_to_stock_trailer:.1f} h per palletised trailer; ~{dock_to_stock_container:.1f} h per loose container",
-     "Basis": "unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container de-stuffed by contractor"},
+     "Basis": "unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container unpacked in its own zone at R1"},
     {"KPI (W3)": "Put-away cycle time", "Expected": f"{t_put:.1f} min per pallet (~{60 / t_put:.0f} per truck-hour)",
      "Basis": "ETV 216i cycle model on the Option B routes (S006)"},
     {"KPI (W3)": "Pick rate", "Expected": f"~{pick_rate:.0f} lines per picker-hour overall "

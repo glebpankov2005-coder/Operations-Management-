@@ -379,7 +379,7 @@ doc.add_heading("Option B — Hybrid density + velocity slotting + zone/batch pi
 bullets([
     "**Storage:** single-deep pallet racking placed back-to-back (one pallet each side of the rack, every pallet "
     "directly reachable from an aisle), 3.0 m reach-truck aisles, 8 levels; selective racks for irregular SKUs + a "
-    f"forward-pick module (carton-flow / shelving) for fast case/each; cantilever for XLONG goods. "
+    f"forward-pick module (carton-flow / shelving) for fast case/each; a long-goods module for XLONG pallets; bin shelving for small slow parts. "
     f"≈{pct['Selective - narrow aisle']:.0f}% of the envelope for storage + working areas.",
     "**Update (Deliverable 3):** first drafted as double-deep; changed to single-deep back-to-back (team decision: no two-deep racks). "
     "The drawn layout already holds 9,504 positions (target ~9,500), and no telescopic forks are needed.",
@@ -424,7 +424,7 @@ bullets([
     "ABC mismatch → velocity slotting is a cheap, high-value win; 73% single-load tail → dense reserve.",
     "**Conditions before locking:** confirm the 7,000 m² scope (A008); obtain labour/equipment costs (A006) to "
     "confirm B vs C in the financial model (done in Deliverable 3); the EURO/K3/XLONG pallet mix was checked against the "
-    "single-deep racks in Deliverable 3 (long pallets crosswise, > 2.4 m on cantilever).",
+    "single-deep racks in Deliverable 3 (long pallets up to 2.05 m in 4.5 m bays behind a 3.2 m aisle).",
 ])
 para("Recommended concept preview (detailed layout and 3D in Deliverable 2):", size=9.5, color=GREY, italic=True, space_after=4)
 figure("layout_floorplan.png", "Fig 9. Recommended Option B — warehouse floor plan (rack-level, to scale).", 16)

@@ -226,7 +226,27 @@ ld = snap.drop_duplicates("LODNUM")
 def _num(c):
     x = pd.to_numeric(ld[c], errors="coerce"); return x.where((x > 0) & (x < 9999))     # 9999 = missing in the WMS
 plen, phgt = _num("PA LEN"), _num("PA HGT")
-LG = {"loads_over_1_9m": int(((plen > 190) & (plen <= 240)).sum()), "loads_over_2_4m": int((plen > 240).sum())}
+# Feedback 2: nothing longer than a door (~2 m) can come in; the longest real carrier is the 2.05 m XLONG pallet.
+# Lengths above 205 cm (up to an "11 m" item of 0.5 kg and 1 cm high) are WMS data errors and are capped.
+MAX_LEN = 205.0
+LG = {"loads_long": int(((plen > 130) & (plen <= MAX_LEN)).sum()), "loads_over_2_05m_data_error": int((plen > MAX_LEN).sum()),
+      "max_len_cm": MAX_LEN}
+LG["loads_long_capped"] = LG["loads_long"] + LG["loads_over_2_05m_data_error"]
+long_w = act.reindex(ld.loc[plen > 130, "LODNUM"]).dropna()
+LG["long_load_kg_max"] = round(float(long_w.max()), 0); LG["long_load_kg_p95"] = round(float(long_w.quantile(.95)), 0)
+# Right-angle stacking aisle (VDI 2198): Ast = Wa + sqrt((l6 - x)^2 + (b12/2)^2) + a, a = 200 mm safety.
+# x is solved from the two Ast values on the ETV 216i data sheet (S006): 2,631 mm (1000x1200 crosswise) and
+# 2,785 mm (800x1200 lengthwise), with Wa = 1,665 mm -> x = 524 / 372 mm; the smaller x (larger sweep) is used.
+WA, A_SAFE = 1665.0, 200.0
+def _x(ast, l6, b12):
+    return l6 - np.sqrt((ast - WA - A_SAFE) ** 2 - (b12 / 2) ** 2)
+X_FORK = min(_x(2631, 1000, 1200), _x(2785, 1200, 800))
+def ast(l6, b12):
+    return WA + np.sqrt((l6 - X_FORK) ** 2 + (b12 / 2) ** 2) + A_SAFE
+LG.update({"x_mm": round(float(X_FORK), 0), "ast_eur_mm": round(float(ast(1200, 800)), 0),
+           "ast_long_crosswise_mm": round(float(ast(800, 2050)), 0),        # forks under the 2.05 m side, 0.8 m deep
+           "load_centre_long_mm": 400, "long_aisle_mm": 3200,
+           "capacity_if_forked_short_side_kg": round(1600 * 600 / 1025, 0)})   # 2.05 m deep -> load centre 1,025 mm
 from geometry import LEVELS as _LV
 _pos = json.load(open(os.path.join(os.path.dirname(__file__), "..", "outputs", "reports", "phase1_metrics.json"), encoding="utf-8"))["layout"]["positions_total"]
 TL = {"loads_1_16_to_1_68": int(((phgt > 116) & (phgt <= 168)).sum()), "loads_over_1_68": int((phgt > 168).sum()),
@@ -239,8 +259,9 @@ fit = pd.DataFrame([
     {"Check": f"Actual load weight in stock (qty x unit weight): {LW['over_1000']} loads > 1 t, {LW['over_1600']} > 1.6 t", "Requirement": "1,600 kg @ 600 mm",
      "Result": "OK - the few loads > 1.6 t go to floor positions, moved with the ERE 225 (2.5 t)"},
     {"Check": "Single-deep (back-to-back) racks", "Requirement": "every pallet reachable from an aisle", "Result": "OK - standard forks; no telescopic attachment, no residual-capacity loss"},
-    {"Check": f"Long pallets: {LG['loads_over_1_9m']} loads 1.9-2.4 m (XLONG/CONS), {LG['loads_over_2_4m']} > 2.4 m", "Requirement": "fit the rack and the 3.0 m aisle",
-     "Result": "OK - 1.9-2.4 m pallets stored crosswise, 1 per 2.7 m bay in the odd/long modules (forks enter the long side); > 2.4 m on cantilever"},
+    {"Check": f"Long pallets: {LG['loads_long']} loads 1.3-2.05 m (+{LG['loads_over_2_05m_data_error']} recorded longer = data errors, capped at 2.05 m)",
+     "Requirement": f"aisle >= Ast {LG['ast_long_crosswise_mm']:.0f} mm with a 2.05 m load crosswise",
+     "Result": "OK - long-goods module with 4.5 m bays (2 pallets each) behind a 3.2 m aisle; forks under the long side (load centre 400 mm, full 1.6 t)"},
     {"Check": f"Tall loads: {TL['loads_1_16_to_1_68']} loads 1.16-1.68 m, {TL['loads_over_1_68']} > 1.68 m", "Requirement": "1.41 m level pitch",
      "Result": f"OK - top level (~1.7 m free under the roof clearance) has {TL['top_level_positions']:,} positions; > 1.68 m on the floor"},
     {"Check": f"Large orders up to p90 {PK['large_orders']['kg_p90']:.0f} kg", "Requirement": "EJE 120i 2,000 kg", "Result": "OK - picked onto one pallet"},
@@ -269,7 +290,7 @@ release = {"orders_arrive_15_17_pct": round(float(prof.loc[[15, 16], "Orders arr
 # ====================================================== turning / aisle check (all picking & handling machines)
 turning = pd.DataFrame([
     {"Machine": "ETV 216i reach truck", "Size (L x W)": "2,419 x 1,270 mm", "Turning / aisle needed": "Wa 1,665 mm; aisle 2,631-2,785 mm",
-     "Where it drives": "Perimeter + cross-aisles; storage aisles", "Narrowest aisle": "3.0 m", "Result": "OK - turns 90° in the 3.2 m cross-aisles; drives through or reverses out"},
+     "Where it drives": "Perimeter + cross-aisles; storage aisles", "Narrowest aisle": "3.0 m", "Result": f"OK - turns 90° in the 3.2 m cross-aisles; with a 2.05 m long load it needs {LG['ast_long_crosswise_mm']:.0f} mm -> long goods only via 3.2 m aisles"},
     {"Machine": "EJE 120i pallet truck", "Size (L x W)": "1,575 x 720 mm", "Turning / aisle needed": "Wa 1,414-1,464 mm; aisle 1,787-1,936 mm",
      "Where it drives": "Fast-pick area, storage aisles, cross-aisles", "Narrowest aisle": "3.0 m", "Result": "OK - aisles open at both ends, so no U-turn needed"},
     {"Machine": "Pick trolley (manual)", "Size (L x W)": "1,000 x 600 mm", "Turning / aisle needed": "pushed by hand",
@@ -332,6 +353,59 @@ loose_zone = {"containers_sampled": int(len(rc)), "loads_per_container_median": 
               "parts_m2": {k: round(v, 0) for k, v in zone_parts.items()},
               "area_needed_m2": round(zone_need, 0), "area_planned_m2": LOOSE_M2,
               "crew": INP["destuff_crew"], "hours_per_container": INP["destuff_h"]}
+
+# ---- feedback 2: is the space enough for BIG containers? Use the receiving area beside door R2 on container days.
+def zone_need(skus, loads):
+    """m2 to unpack one container: conveyor lane + one build spot per SKU + finished pallets + label/wrap, +30% walkways."""
+    return (24.0 + 3.0 * skus + PALLET_FLOOR * min(loads, buffer_pal) + 16.0) * 1.3
+rc["need_m2"] = [zone_need(k, n) for k, n in zip(rc["skus"], rc["loads"])]
+# receiving staging actually used by a palletised trailer: unloaded at ~60/h, put away by 2 ETVs in parallel
+pal_pk = MEAS["inbound_loads_day"] * (1 - MEAS["inbound_asia_origin_pct"] / 100) * MEAS["inbound_peak_factor"]
+unload_h = 60 / t_unload; put_h = 2 * 60 / t_put
+staged_max = pal_pk * max(0.0, 1 - put_h / unload_h)
+from geometry import RECV as RECV_M2
+recv_need = (staged_max * PALLET_FLOOR + 30.0) * 1.3                      # + QC / check bench 30 m2
+# R2 is the trailer door next to the container zone; blocking it frees the north half of receiving for unpacking
+R2_LEND = round(float(min(RECV_M2 - recv_need, RECV_M2 / 2)), 0)
+cap_zone, cap_lent = LOOSE_M2, LOOSE_M2 + R2_LEND
+loose_zone.update({
+    "skus_per_container_p90": float(rc["skus"].quantile(.9)), "loads_per_container_p90": float(rc["loads"].quantile(.9)),
+    "need_m2_median": round(float(rc["need_m2"].median()), 0), "need_m2_p90": round(float(rc["need_m2"].quantile(.9)), 0),
+    "need_m2_max": round(float(rc["need_m2"].max()), 0),
+    "share_fit_zone_pct": round(float((rc["need_m2"] <= cap_zone).mean() * 100), 0),
+    "share_fit_with_r2_pct": round(float((rc["need_m2"] <= cap_lent).mean() * 100), 0),
+    "recv_staged_pallets_peak": round(float(staged_max), 0), "recv_need_m2": round(float(recv_need), 0),
+    "r2_lend_m2": R2_LEND, "area_with_r2_m2": cap_lent,
+    "doors_left_when_r2_blocked": 2, "doors_needed_base": int(inbound["Doors needed"].iloc[0]),
+    "doors_needed_peak": int(inbound["Doors needed"].iloc[1]),
+})
+
+# ---- feedback 2: validate the 216 m2 outbound staging and 450 m2 packing areas from the measured trailers
+CAGE_M2 = 1.0                                               # roll cage 800 x 720 mm + access
+aft = tr[tr["TRAILER DISPATCED DATE"].dt.hour >= 14]        # afternoon trailers wait together after wave 3
+st_day = aft.groupby("day").agg(pal=("pal", "sum"), ctn=("ctn", "sum"))
+st_day["cages"] = np.ceil(st_day["ctn"] / 20.0)
+st_day["m2"] = (st_day["pal"] * PALLET_FLOOR + st_day["cages"] * CAGE_M2) * 1.3
+outbound_area = {"staged_pallets_p90": round(float(st_day["pal"].quantile(.9)), 0), "staged_cages_p90": round(float(st_day["cages"].quantile(.9)), 0),
+                 "need_m2_median": round(float(st_day["m2"].median()), 0), "need_m2_p90": round(float(st_day["m2"].quantile(.9)), 0),
+                 "need_m2_max": round(float(st_day["m2"].max()), 0), "planned_m2": 216,
+                 "share_days_fit_pct": round(float((st_day["m2"] <= 216).mean() * 100), 0)}
+pk_fte = [r for r in CP["labour_table"] if r["Process"].startswith("Packing")][0]["FTE peak"]
+stations = int(np.ceil(pk_fte)); V = M["picking"]["small_parts"]
+large_wave_pk = M["picking"]["large_orders"]["orders_day"] * M["peak"]["orders"]["peak_over_avg"] / 3
+pack_parts = {f"Pack stations ({stations} x 10 m2: bench, scale, printer, working space)": stations * 10.0,
+              "Put-to-light wall (90 slots, both sides)": 22.0,
+              "Put-wall: room for the small-parts shelving is added below": 0.0,
+              f"Large orders waiting to be packed (peak wave {large_wave_pk:.0f} pallets x {PALLET_FLOOR} m2)": large_wave_pk * PALLET_FLOOR,
+              "Stretch wrapper incl. safety zone": 12.0,
+              "Trolleys and empty totes": 10.0,
+              "Packaging material (one day of cartons, film, labels)": 40.0}
+pack_parts = {k: v for k, v in pack_parts.items() if v > 0}
+shelf_m2 = V["shelf_bays"] * 1.1                                         # bay 0.6 m2 + share of a 1 m picking aisle
+pack_need = sum(pack_parts.values()) * 1.3 + shelf_m2
+pack_parts[f"Small-parts bin shelving ({V['shelf_bays']} bays, incl. aisles)"] = shelf_m2
+packing_area = {"parts_m2": {k: round(v, 0) for k, v in pack_parts.items()}, "need_m2": round(pack_need, 0), "planned_m2": 450,
+                "spare_m2": round(450 - pack_need, 0)}
 
 # ====================================================== loose containers: who does the work in the zone
 cont = pd.DataFrame([
@@ -441,6 +515,7 @@ update_metrics("dock_mhe", {
     "outbound_doors": out_summary, "carriers_trailers_per_day": carriers.head(10).to_dict(),
     "order_release": release, "turning_check": turning.to_dict("records"), "justification": just.to_dict("records"),
     "container_options": cont.to_dict("records"), "departure_plan": departure, "loose_zone": loose_zone,
+    "outbound_area": outbound_area, "packing_area": packing_area,
     "load_checks": {"weight": LW, "long": LG, "tall": TL},
 })
 
@@ -451,3 +526,4 @@ print("\nFLEET"); print(fleet.to_string(index=False))
 print("\nRELEASE", release)
 print("\nLOOSE ZONE", loose_zone)
 print("LOAD CHECKS", LW, LG, TL)
+print("OUTBOUND AREA", outbound_area); print("PACKING AREA", packing_area)

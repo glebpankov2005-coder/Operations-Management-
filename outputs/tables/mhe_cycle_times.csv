@@ -1,5 +1,5 @@
 Move,Truck,Avg one-way m,Cycle min,Moves/h
-Putaway (receiving -> reserve),ETV 216i,79.0,2.38,25.2
+Putaway (receiving -> reserve),ETV 216i,78.0,2.38,25.2
 Replenishment (reserve -> fast-pick rear),ETV 216i,28.0,1.83,32.8
 Full-pallet pick (reserve -> outbound),ETV 216i,78.0,2.37,25.3
 Unload pallet (trailer -> receiving lane),ERE 225,19.0,0.99,60.7

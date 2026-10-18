@@ -1,10 +1,10 @@
 Item,Group,Qty / yr,Unit,Unit cost EUR,Source,Total EUR/yr
-"Direct DHL labour (receiving, putaway, replenishment, picking, packing, loading)",Labour,9083.306666666667,paid h,28.0,capacity plan (D2 §6) x A030,254332.58666666667
-Loose-container zone crew (2 people x 3 h per container),Labour,1561.6000000000001,paid h,28.0,"A019 x A030 (or contractor fee, see break-even)",43724.8
-Team leader + inventory control / admin,Labour,2928.0,paid h,36.333333333333336,A032 x A030,106384.0
+"Direct DHL labour (receiving, putaway, replenishment, picking, packing, loading)",Labour,9161.386666666667,paid h,20.0,capacity plan (D2 §6) x A030,183227.73333333334
+Loose-container zone crew (2 people x 3 h per container),Labour,1561.6000000000001,paid h,20.0,"A019 x A030 (or contractor fee, see break-even)",31232.000000000004
+Team leader + inventory control / admin,Labour,2928.0,paid h,26.0,A032 x A030,76128.0
 ETV 216i reach truck lease (2),Machinery,24.0,truck-months,900.0,A038 / S021,21600.0
 EJE 120i pallet truck lease (3),Machinery,36.0,truck-months,150.0,A038,5400.0
 ERE 225 rider pallet truck lease (2),Machinery,24.0,truck-months,350.0,A038,8400.0
-Electricity for trucks,Machinery,8442.4,kWh,0.2046,A039 / S022,1727.31504
+Electricity for trucks,Machinery,8113.0,kWh,0.2046,A039 / S022,1659.9198000000001
 Rack inspection (EN 15635) and repairs,Upkeep,1.0,per year,2500.0,A040 / S015,2500.0
 "IT support, licences, device spares",Upkeep,1.0,per year,10725.0,A040,10725.0

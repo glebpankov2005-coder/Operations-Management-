@@ -1,6 +1,6 @@
 Question (W3),Answer,Note
 Most ordered product,A000493031 — in 268 orders,"1,947 units picked in Q2"
 Heaviest SKU (single item),A000316052 — 90.0 kg per piece,"heaviest pallet (cleaned) 5,039 kg; p99 pallet 1,344 kg"
-Longest SKU,A000432677 — 1095 cm,26 SKUs longer than 2.4 m -> cantilever racking
+Longest SKU,"A000132438 — 205 cm (realistic maximum ~2 m, door size)",76 SKUs recorded longer than 2.05 m (up to 1095 cm for a 0.5 kg item) are data errors (A043)
 Most lines in one order,191 lines,median order = 1 line
 Max pallets in stock,"11,015 loads in 8,512 locations",June 2025 snapshot (peak of the quarter)

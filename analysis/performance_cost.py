@@ -24,18 +24,22 @@ BLUE, ORANGE, AQUA, YELLOW, GREY, INK = "#2a78d6", "#eb6834", "#1baf7a", "#eda10
 # ======================================================================= cost register
 # value, low, high, unit, assumption id, source / basis
 COST = {
-    "labour_rate":   (28.0, 24.0, 34.0, "EUR per paid hour (operative)", "A030",
-                      "CAO Beroepsgoederenvervoer 2025 wage scales B-C EUR 14.40-18.28/h (S019) x 1.08 holiday pay x 1.33 employer "
-                      "premiums (CBS transport & storage: EUR 10.9 premiums on EUR 33.5 wages per worked hour, S018) x 1.19 paid-but-not-worked "
-                      "time; stays below the CBS sector average of EUR 44.4 (which includes drivers and managers)"),
-    "lead_rate":     (38.0, 32.0, 45.0, "EUR per paid hour (team leader)", "A030", "CAO scale F-G EUR 23-25/h (S019) x same factors"),
-    "admin_rate":    (33.0, 28.0, 40.0, "EUR per paid hour (inventory control / admin)", "A030", "between operative and team leader"),
+    "labour_rate":   (20.0, 20.0, 28.0, "EUR per paid hour (operative)", "A030",
+                      "teacher feedback (S026): EUR 20/h for a warehouse operator; high end EUR 28/h = CAO wage (S019) x employer "
+                      "premiums (S018) x holiday pay x paid-not-worked time"),
+    "lead_rate":     (27.0, 27.0, 38.0, "EUR per paid hour (team leader)", "A030", "operator rate x 1.35 (CAO scale F-G vs B-C, S019)"),
+    "admin_rate":    (24.0, 24.0, 33.0, "EUR per paid hour (inventory control / admin)", "A030", "operator rate x 1.2"),
     "paid_h_shift":  (8.0, 8.0, 8.0, "paid hours per shift", "A015", "7.5 productive + breaks"),
     "days_year":     (244, 244, 244, "working days per year", "A031", "61 operating days measured in Q2 2025 x 4"),
     "indirect_fte":  (1.5, 1.0, 2.0, "FTE", "A032", "1 team leader (span ~1:9 at peak) + 0.5 inventory control / WMS admin"),
     "rack_pp":       (130.0, 80.0, 200.0, "EUR per pallet position, installed", "A033",
                       "EU selective racking EUR 80-140/position equipment (S020) + 30-50% install; installed 75-150 (S020); 12 m frames -> upper half"),
-    "cantilever_pp": (250.0, 150.0, 400.0, "EUR per arm position", "A033", "assumption: ~2x a pallet position (heavier column + arms)"),
+    "long_bay_pp":   (160.0, 100.0, 250.0, "EUR per long-goods position (4.5 m beams)", "A033", "assumption: ~1.25x a standard position (longer, heavier beams)"),
+    "shelf_bay":     (200.0, 153.0, 245.0, "EUR per bin-shelving bay (1.0 x 0.6 x 2.5 m)", "A042", "Manutan shelving EUR 153-245 per section (S030)"),
+    "vlm_unit":      (60000.0, 48000.0, 90000.0, "EUR per Kardex Shuttle XP 500 incl. installation (compared option)", "A042",
+                      "new Shuttle XP 500 (2,450 x 864 trays) EUR 48,000 (S027); 4,050 mm trays + installation -> EUR 60,000 assumed"),
+    "vlm_slot":      (8.0, 6.0, 12.0, "EUR per half-bin slot (bin + divider)", "A042", "half of a 600x400 tote EUR 14.56-19.95 (S025)"),
+    "vlm_integr":    (10000.0, 5000.0, 20000.0, "EUR one-off", "A042", "assumption: WMS link to the lift controller + light pointer"),
     "rack_reuse":    (25.0, 15.0, 40.0, "EUR per position to dismantle + re-assemble existing racking", "A033",
                       "assumption: ~20% of a new installed position; only if today's racking fits the new layout (to confirm with DHL)"),
     "rack_protect":  (0.05, 0.03, 0.08, "share of racking cost", "A033", "end-of-aisle guards, upright protectors, load signs (EN 15635, S015)"),
@@ -69,7 +73,8 @@ C = {k: v[0] for k, v in COST.items()}
 DAYS = C["days_year"]
 
 # ======================================================================= quantities from the design
-POS = LAY["positions_total"]; POS_ODD = LAY["positions_odd_long"]
+POS = LAY["positions_total"]; POS_LONG = LAY["positions_long"]
+VLM = PK["small_parts"]                          # small-parts storage (bin shelving; Kardex lift compared)
 fleet = {f["Model"].replace("Jungheinrich ", ""): f for f in DM["fleet"]}
 n_etv, n_eje, n_ere = (fleet[m]["Units recommended"] for m in ("ETV 216i", "EJE 120i", "ERE 225"))
 tro = [e for e in PK["equipment"] if e["Item"].startswith("Pick trolley")][0]["Planned"]
@@ -91,15 +96,16 @@ ptl_slots = int(np.ceil(small_orders_wave_pk * 1.2 / 10) * 10)
 rf_units = int(np.ceil(np.ceil(fte_pk + C["indirect_fte"]) * 1.2))
 pack_stations = int(np.ceil(float(labour.loc["Packing / consolidation", "FTE peak"])))
 roll_cages = int(np.ceil(MEAS["outbound_cartons_day"] * M["peak"]["units"]["peak_over_avg"] / 20 * 1.25))
-cantilever_arms = 40                                   # 26 loads > 2.4 m (D2) -> 2 double-sided columns runs, 40 arm levels
 loose = DM["loose_zone"]
 containers_year = CP["inbound_pattern"]["containers_avg"] * DAYS
 
 # ======================================================================= CAPEX
 capex_rows = [
-    ("Storage", "Single-deep pallet racking (incl. installation)", POS, "positions", C["rack_pp"], "A033 / S020"),
-    ("Storage", "Cantilever racking for goods > 2.4 m", cantilever_arms, "arm positions", C["cantilever_pp"], "A033"),
+    ("Storage", "Single-deep pallet racking (incl. installation)", POS - POS_LONG, "positions", C["rack_pp"], "A033 / S020"),
+    ("Storage", "Long-goods racking, 4.5 m bays (2.05 m pallets)", POS_LONG, "positions", C["long_bay_pp"], "A033"),
     ("Storage", "Rack protection, end guards, load signs", 1, "lot", C["rack_protect"] * POS * C["rack_pp"], "A033 / S015"),
+    ("Small-item storage", "Bin shelving for small parts (next to the put-wall)", VLM["shelf_bays"], "bays", C["shelf_bay"], "A042 / S030"),
+    ("Small-item storage", "Half-bins and dividers", VLM["shelf_bays"] * VLM["slots_per_bay"], "slots", C["vlm_slot"], "A042 / S025"),
     ("Picking", "Carton-flow bays, fast-pick area", flow_bays, "bays", C["flow_bay"], "A034 / S025"),
     ("Picking", "Pick trolleys (3-tier, 6 totes)", tro, "trolleys", C["trolley"], "S011 / S025"),
     ("Picking", "Totes 600 x 400", totes, "totes", C["tote"], "S025"),
@@ -125,7 +131,7 @@ capex_rows.append(("Contingency", f"Contingency {C['contingency']:.0%}", 1, "lot
 capex = pd.DataFrame(capex_rows, columns=["Group", "Item", "Qty", "Unit", "Unit price EUR", "Source"])
 capex["Total EUR"] = capex["Qty"] * capex["Unit price EUR"]
 CAPEX = float(capex["Total EUR"].sum())
-life = {"Storage": C["life_rack"], "Picking": C["life_equip"], "Sorting & packing": C["life_equip"],
+life = {"Storage": C["life_rack"], "Small-item storage": C["life_equip"], "Picking": C["life_equip"], "Sorting & packing": C["life_equip"],
         "Loose-container zone": C["life_equip"], "IT": C["life_it"], "One-off": C["life_equip"], "Contingency": C["life_equip"]}
 capex["Life (yrs)"] = capex["Group"].map(life)
 capex["Depreciation EUR/yr"] = capex["Total EUR"] / capex["Life (yrs)"]
@@ -193,24 +199,48 @@ n_large = PK["large_orders"]["lines_per_order"]
 t_small_today = (pp.get("t_setup_small", 90.0) + walk_spread(n_small) / pp["v_walk"] + n_small * pp["t_line_small"]) * pp["delay"]
 t_large_today = (180.0 + walk_spread(n_large) / pp["v_eje"] + n_large * pp["t_line_large"]) * pp["delay"]
 pick_today_h = (seg["small"]["orders_day"] * t_small_today + seg["large"]["orders_day"] * t_large_today) / 3600
-pick_future_h = sum(r["Picker-h avg"] for r in PK["small_orders"]) + PK["large_orders"]["picker_h_avg"]
+pick_future_h = sum(r["Picker-h avg"] for r in PK["small_orders"]) + PK["large_orders"]["picker_h_avg"] + VLM["picker_h_avg"]
 peak_ratio = DM["order_release"]["pick_peak_over_mean_active_hour"]
 pick_today_staffed_h = pick_today_h * peak_ratio                        # staffed for the 08:00 release peak
 levers = pd.DataFrame([
-    {"Lever": "Batch picking + demand-based slotting (fast-pick area)", "Today h/day": round(pick_today_h, 1),
-     "Future h/day": round(pick_future_h, 1)},
+    {"Lever": "Batch picking + demand-based slotting (fast-pick area)", "Today h/day": pick_today_h, "Future h/day": pick_future_h},
     {"Lever": "Wave release instead of one evening release (no 08:00 peak staffing)",
-     "Today h/day": round(pick_today_staffed_h - pick_today_h, 1), "Future h/day": 0.0},
+     "Today h/day": pick_today_staffed_h - pick_today_h, "Future h/day": 0.0},
 ])
 levers["Saved h/day"] = levers["Today h/day"] - levers["Future h/day"]
 levers["Saved EUR/yr"] = levers["Saved h/day"].apply(paid_hours) * C["labour_rate"]
 SAVING = float(levers["Saved EUR/yr"].sum())
 PAYBACK = CAPEX / SAVING if SAVING > 0 else float("inf")
 # if DHL can re-use the racking already standing in Bemmel (re-assembled to the new layout), only the rest is new
-rack_items = capex["Item"].str.startswith(("Single-deep pallet racking", "Rack protection"))
+rack_items = capex["Item"].str.startswith(("Single-deep pallet racking", "Long-goods racking", "Rack protection"))
 CAPEX_REUSE = float((capex.loc[~rack_items & (capex["Group"] != "Contingency"), "Total EUR"].sum()
                      + POS * C["rack_reuse"]) * (1 + C["contingency"]))
 PAYBACK_REUSE = CAPEX_REUSE / SAVING if SAVING > 0 else float("inf")
+# the labour saving comes from the PROCESS changes (batching, fast-pick area, put-wall, waves); racks and lifts are
+# capacity (needed to store the stock), so the process part is paid back on its own
+proc_items = capex["Item"].str.startswith(("Carton-flow", "Pick trolleys", "Totes", "Put-to-light", "WMS set-up", "RF terminals"))
+CAPEX_PROCESS = float(capex.loc[proc_items, "Total EUR"].sum() * (1 + C["contingency"]))
+PAYBACK_PROCESS = CAPEX_PROCESS / SAVING if SAVING > 0 else float("inf")
+
+# ---- small-item storage: compare the options for the slow small SKUs (feedback 2: Kardex or other high-density)
+SHELF_M2, SHELF_RATE, LIFT_RATE = 1.1, 50.0, 75.0                     # m2 per bay incl. aisle; lines/h shelving / lift (S028)
+slots_ = VLM["slots_needed"]; lines_v = VLM["lines_day"]; bays = VLM["shelf_bays"]
+def lab(rate): return paid_hours(lines_v / rate) * C["labour_rate"]
+small_opts = pd.DataFrame([
+    {"Option": "Keep in pallet racks (today)", "Floor m²": round(VLM["freed_rack_locations"] * LAY["dd_area_m2"] / POS, 0),
+     "Pallet positions used": VLM["freed_rack_locations"], "CAPEX EUR": VLM["freed_rack_locations"] * C["rack_pp"],
+     "Pick rate lines/h": PK["small_orders"][1]["Lines/h"], "Picking EUR/yr": lab(PK["small_orders"][1]["Lines/h"]),
+     "Notes": "one 1 m³ pallet location for a few litres of stock; long walks in the reserve aisles"},
+    {"Option": "Bin shelving next to the put-wall (chosen)", "Floor m²": round(bays * SHELF_M2, 0), "Pallet positions used": 0,
+     "CAPEX EUR": bays * C["shelf_bay"] + bays * VLM["slots_per_bay"] * C["vlm_slot"], "Pick rate lines/h": SHELF_RATE, "Picking EUR/yr": lab(SHELF_RATE),
+     "Notes": f"{bays} bays, 2.5 m high; cheapest; fits in the packing area's spare floor; items go straight into the put-wall"},
+    {"Option": "Kardex Shuttle XP 500 lifts", "Floor m²": round(VLM["lift_units"] * 22.0, 0), "Pallet positions used": 0,
+     "CAPEX EUR": VLM["lift_units"] * C["vlm_unit"] + VLM["lift_units"] * VLM["trays"] * VLM["slots_per_tray"] * C["vlm_slot"] + C["vlm_integr"],
+     "Pick rate lines/h": LIFT_RATE, "Picking EUR/yr": lab(LIFT_RATE),
+     "Notes": f"{VLM['lift_units']} lifts ~10 m high; 3x denser, light pointer; but busy only ~{lines_v / (VLM['lift_units'] * 7.5 * LIFT_RATE):.0%} of the day"},
+])
+small_opts["Yearly cost EUR"] = small_opts["CAPEX EUR"] / C["life_equip"] + small_opts["Picking EUR/yr"]
+save_table(small_opts.set_index("Option"), "d3_small_item_options.csv")
 save_table(levers.set_index("Lever"), "d3_levers.csv")
 
 # ======================================================================= order lead time: today (measured) vs future (modelled)
@@ -267,51 +297,75 @@ lt = {"orders": int(od["today_h"].notna().sum()),
       "future_same_day_pct": round(float(same_day(od["arr"], od["future_disp"]).mean() * 100), 0),
       "future_within_24h_pct": round(float((od["future_h"] <= 24).mean() * 100), 0)}
 
-# ======================================================================= KPI set
+# ======================================================================= KPI set (our own design KPIs + the W3 standard ones)
 snaps = M["inventory"]["snapshots"]
 occ_mean = float(np.mean([s["occupied_locations"] for s in snaps])); occ_peak = max(s["occupied_locations"] for s in snaps)
 growth_q = (snaps[-1]["occupied_locations"] / snaps[0]["occupied_locations"]) ** (3 / 2) - 1   # 2 months -> per quarter
-months_headroom = np.log(POS / occ_peak) / np.log(1 + growth_q) * 3
+rack_need = occ_peak - VLM["freed_rack_locations"]                    # small slow SKUs leave the racks for the lifts
+months_headroom = np.log(POS / rack_need) / np.log(1 + growth_q) * 3
+months_headroom_12 = np.log((POS + LAY["positions_12th_module"]) / rack_need) / np.log(1 + growth_q) * 3
 w3 = {k["KPI (W3)"]: k for k in DE["kpis"]}
-pick_rate = (seg["small"]["lines_day"] + seg["large"]["lines_day"]) / pick_future_h
+picked_lines = seg["small"]["lines_day"] + seg["large"]["lines_day"]
+pick_rate = picked_lines / pick_future_h
 direct_lph = M["peak"]["lines"]["mean"] / dir_h_day
-outd = DM["outbound_doors"]
+outd = DM["outbound_doors"]; LZ = DM["loose_zone"]; OA = DM["outbound_area"]
 etv_u, eje_u, ere_u = (fleet[m]["Utilisation avg %"] for m in ("ETV 216i", "EJE 120i", "ERE 225"))
+lg_ = PK["large_orders"]
+fast_lines = PK["small_orders"][0]["Lines/day"] + lg_["lines_fast_pick"] * lg_["orders_day"]
+fast_hit = fast_lines / picked_lines
+walk_m = (sum(r["Walk per tour (m)"] * r["Tours/day"] for r in PK["small_orders"]) + lg_["walk_per_order_m"] * lg_["orders_day"])
+walk_per_line = walk_m / picked_lines
+lift_area = VLM["shelf_bays"] * SHELF_M2
+sku_density_lift = VLM["skus"] / lift_area
+sku_density_rack = VLM["freed_rack_locations"] / (VLM["freed_rack_locations"] * LAY["dd_area_m2"] / POS) * 1.0   # 1 SKU per location
+lift_util = VLM["lines_day"] / VLM["rate_lines_h"]                  # picker-hours per day at the shelving
+cont_h = DM["inbound_doors"]["container_door_h"]
 kpis = [
-    # group, KPI, how measured, today (data), future (design), target / benchmark
-    ("Space", "Pallet positions vs peak need", "positions provided / peak occupied locations",
-     f"{occ_peak:,} occupied (peak)", f"{POS:,} positions ({occ_peak / POS:.0%} full at peak, {occ_mean / POS:.0%} on average)", "≤ 90% full at peak (A010)"),
-    ("Space", "Floor area used", "zones + aisles / 7,000 m²", "—", f"{LAY['total_area_m2']:,} m² ({LAY['pct_of_7000']:.0f}%)", "≤ 7,000 m²"),
-    ("Space", "Storage headroom", "months until the racks are full if stock keeps growing as in Apr–Jun",
-     f"+{(snaps[-1]['occupied_locations'] / snaps[0]['occupied_locations'] - 1):.0%} locations in 2 months", f"~{months_headroom:.0f} months", "≥ 12 months → clear dead stock, add a 12th rack module"),
-    ("Inbound", "Dock-to-stock time", "truck at the door → pallet in its location",
-     "large China receipts take 1–3 days to book in", w3["Dock-to-stock time"]["Expected"], "< 3.5 h best-in-class (S023)"),
-    ("Inbound", "Put-away cycle time", "minutes per pallet, reach truck", "—", w3["Put-away cycle time"]["Expected"], "≤ 3 min"),
-    ("Picking", "Pick rate", "order lines per picker-hour", "—",
-     f"~{pick_rate:.0f} lines/h (fast-pick {PK['small_orders'][0]['Lines/h']:.0f}, reserve {PK['small_orders'][1]['Lines/h']:.0f}, large orders {PK['large_orders']['lines_per_h']:.0f})",
-     "≥ 50 lines/h"),
-    ("Picking", "Picking hours per day", "picker-hours, average day",
+    # group, KPI, type, how we calculate it, today (data), future (design), target
+    ("Space", "Rack fill at peak", "own", "pallet locations used at the peak ÷ rack positions",
+     f"{occ_peak:,} locations used", f"{rack_need / POS:.0%} ({rack_need:,} of {POS:,}; small parts moved to bin shelving)", "≤ 90%"),
+    ("Space", "Storage headroom", "own", "months until the racks are full at the Apr–Jun growth rate",
+     f"+{(snaps[-1]['occupied_locations'] / snaps[0]['occupied_locations'] - 1):.0%} locations in 2 months",
+     f"~{months_headroom:.0f} months (~{months_headroom_12:.0f} with a 12th module)", "≥ 12 months"),
+    ("Space", "Small-item density", "own", "SKUs stored per m² of floor",
+     f"~{sku_density_rack:.1f} SKUs/m² (one pallet location each)", f"~{sku_density_lift:.0f} SKUs/m² in bin shelving", "≥ 5× better"),
+    ("Space", "Floor area used", "own", "zones + aisles ÷ 7,000 m²", "—", f"{LAY['total_area_m2']:,} m² ({LAY['pct_of_7000']:.0f}%)", "≤ 7,000 m²"),
+    ("Inbound", "Dock-to-stock time", "W3", "truck at the door → pallet in its location",
+     "big China receipts take 1–3 days to book in", w3["Dock-to-stock time"]["Expected"], "< 3.5 h (S023)"),
+    ("Inbound", "Containers unpacked inside their zone", "own", "% of containers whose unpacking fits the 190 m² zone",
+     "—", f"{LZ['share_fit_zone_pct']:.0f}% (another {LZ['share_fit_with_r2_pct'] - LZ['share_fit_zone_pct']:.0f}% by lending door R2)", "≥ 90%"),
+    ("Inbound", "Container door time", "own", "dock-on + unpack + palletise per 40 ft container", "—", f"~{cont_h:.1f} h", "≤ 4 h"),
+    ("Inbound", "Put-away cycle time", "W3", "minutes per pallet, reach truck", "—", w3["Put-away cycle time"]["Expected"], "≤ 3 min"),
+    ("Picking", "Pick rate", "W3", "order lines per picker-hour", "—",
+     f"~{pick_rate:.0f} lines/h (fast-pick {PK['small_orders'][0]['Lines/h']:.0f}, reserve {PK['small_orders'][1]['Lines/h']:.0f}, "
+     f"large orders {lg_['lines_per_h']:.0f}, small-parts shelving {VLM['rate_lines_h']:.0f})", "≥ 50 lines/h"),
+    ("Picking", "Fast-pick hit rate", "own", "lines picked in the fast-pick area ÷ all picked lines", "—", f"{fast_hit:.0%}", "≥ 60%"),
+    ("Picking", "Walking per picked line", "own", "metres walked in all tours ÷ picked lines", "—", f"~{walk_per_line:.0f} m", "≤ 15 m"),
+    ("Picking", "Trolley fill", "own", "volume or weight filled per trolley tour", "—", "80% (batch closed at 80%)", "75–85%"),
+    ("Picking", "Small-parts picking time", "own", "small-parts lines ÷ 50 lines/h", "—", f"{lift_util:.1f} h/day for {VLM['lines_day']:.0f} lines", "≤ 2 h/day"),
+    ("Picking", "Picking hours per day", "own", "picker-hours, average day",
      f"~{pick_today_staffed_h:.0f} h (modelled: single-order picking, staffed for the 08:00 peak)", f"{pick_future_h:.1f} h", "—"),
-    ("Picking", "Pick accuracy", "% of orders without a picking error",
+    ("Picking", "Pick accuracy", "W3", "% of orders without a picking error",
      "not in the data", "≥ 99.7% (scan every pick + put-to-light check)", "median 99.3%, best 99.68% (S023)"),
-    ("Service", "Order lead time (per order)", "order received → trailer leaves",
-     f"median {lt['today_median_h']:.0f} h, p90 {lt['today_p90_h']:.0f} h", f"median {lt['future_median_h']:.0f} h, p90 {lt['future_p90_h']:.0f} h", "next day; same day if in before 12:00"),
-    ("Service", "Orders shipped the same day", "% of orders",
-     f"{lt['today_same_day_pct']:.0f}%", f"{lt['future_same_day_pct']:.0f}%", "all orders in before 12:00"),
-    ("Service", "On-time staging", "% of lines staged before the planned departure",
-     "49.9% (50.1% 'LATE', A005)", "≥ 98% (waves planned back from departures)", "≥ 98%"),
-    ("Docks", "Trailers at the doors at once", "busy day, p90",
-     f"{outd['current_drop_trailer_concurrent_p90']:.0f} (parked all day)", f"max {DM['departure_plan']['plan_max_doors_busy']} of {outd['doors_recommended']} doors (time slots)", "≤ 5 doors"),
-    ("People", "Direct labour", "FTE, average / peak day", "not in the data", f"{fte_avg:.1f} / {fte_pk:.1f} FTE + {C['indirect_fte']:.1f} indirect", "—"),
-    ("People", "Labour productivity", "order lines per direct labour hour", "—", f"{direct_lph:.1f} lines/h", "—"),
-    ("Machinery", "Truck utilisation (average day)", "operating h / (units × 7.5 h)", "—",
+    ("Service", "Order lead time (per order)", "own", "order received → trailer leaves",
+     f"median {lt['today_median_h']:.0f} h, p90 {lt['today_p90_h']:.0f} h", f"median {lt['future_median_h']:.0f} h, p90 {lt['future_p90_h']:.0f} h", "p90 ≤ 72 h"),
+    ("Service", "Orders out within 24 h", "own", "% of orders", f"{lt['today_within_24h_pct']:.0f}%", f"{lt['future_within_24h_pct']:.0f}%", "≥ 60%"),
+    ("Service", "On-time shipment", "W3", "% of lines staged before the planned departure",
+     "49.9% (50.1% 'LATE', A005)", "≥ 98% (every wave ends ≥ 45 min before its trailers leave)", "≥ 98%"),
+    ("Docks", "Trailers at the doors at once", "own", "busy day, p90",
+     f"{outd['current_drop_trailer_concurrent_p90']:.0f} (parked all day)", f"max {DM['departure_plan']['plan_max_doors_busy']} of {outd['doors_recommended']} doors (time slots)", "≤ 5"),
+    ("Docks", "Outbound staging fill", "own", "staging m² needed on the busiest afternoon ÷ 216 m²", "—",
+     f"{OA['need_m2_max'] / OA['planned_m2']:.0%} (p90 day {OA['need_m2_p90'] / OA['planned_m2']:.0%})", "≤ 80%"),
+    ("People", "Direct labour", "own", "FTE, average / peak day", "not in the data", f"{fte_avg:.1f} / {fte_pk:.1f} FTE + {C['indirect_fte']:.1f} indirect", "—"),
+    ("People", "Labour productivity", "own", "order lines per direct labour hour", "—", f"{direct_lph:.1f} lines/h", "—"),
+    ("Machinery", "Truck utilisation (average day)", "own", "operating h ÷ (units × 7.5 h)", "—",
      f"ETV {etv_u:.0f}% · EJE {eje_u:.0f}% · ERE {ere_u:.0f}%", "peak day ≤ 80%"),
-    ("Cost", "Cost per order line", "(OPEX + depreciation) / lines", "—", f"€{unit_cost['per_order_line']:.2f}", "—"),
-    ("Cost", "Cost per order", "(OPEX + depreciation) / orders", "—", f"€{unit_cost['per_order']:.2f}", "—"),
-    ("Safety", "Trucks and pickers separated", "pick zones without reach-truck traffic", "—",
-     "100% of pick faces (trucks refill from the rear / use perimeter + cross-aisles)", "0 lost-time incidents"),
+    ("Cost", "Cost per order line", "own", "(OPEX + depreciation) ÷ lines", "—", f"€{unit_cost['per_order_line']:.2f}", "—"),
+    ("Cost", "Cost per order", "own", "(OPEX + depreciation) ÷ orders", "—", f"€{unit_cost['per_order']:.2f}", "—"),
+    ("Safety", "Trucks and pickers separated", "own", "pick faces without reach-truck traffic", "—",
+     "100% (trucks refill from the rear and use the perimeter + cross-aisles)", "0 lost-time incidents"),
 ]
-kpi_df = pd.DataFrame(kpis, columns=["Group", "KPI", "How it is measured", "Today (data)", "Future (design)", "Target / benchmark"])
+kpi_df = pd.DataFrame(kpis, columns=["Group", "KPI", "Type", "How it is measured", "Today (data)", "Future (design)", "Target / benchmark"])
 save_table(kpi_df.set_index("KPI"), "d3_kpis.csv")
 
 # ======================================================================= volume stress test (D2 §3.1 promise)
@@ -341,7 +395,7 @@ def annual_cost(**over):
     return lab + mhe + rack_d + other
 base_cost = annual_cost()
 sens_rows = []
-for name, lo, hi in [("Labour rate (€24–34/h)", {"labour_rate": COST["labour_rate"][1]}, {"labour_rate": COST["labour_rate"][2]}),
+for name, lo, hi in [("Labour rate (€20–28/h)", {"labour_rate": COST["labour_rate"][1]}, {"labour_rate": COST["labour_rate"][2]}),
                      ("Productivity ±20% (labour hours)", {"_lab_f": 0.8}, {"_lab_f": 1.2}),
                      ("Reach-truck lease (€495–1,550/month)", {"lease_etv": COST["lease_etv"][1]}, {"lease_etv": COST["lease_etv"][2]}),
                      ("Racking price (€80–200/position)", {"rack_pp": COST["rack_pp"][1]}, {"rack_pp": COST["rack_pp"][2]})]:
@@ -467,13 +521,17 @@ update_metrics("performance_cost", {
     "unit_cost": {k: round(v, 2) for k, v in unit_cost.items()},
     "volumes_year": {"lines": round(lines_y, 0), "orders": round(orders_y, 0), "inbound_pallets": round(inb_y, 0)},
     "loose_cost_per_container": round(loose_cost_container, 0),
-    "levers": levers.to_dict("records"), "saving_year": round(SAVING, 0), "payback_years": round(PAYBACK, 1),
+    "levers": levers.round(2).to_dict("records"), "saving_year": round(SAVING, 0), "payback_years": round(PAYBACK, 1),
     "capex_reuse_racking": round(CAPEX_REUSE, 0), "payback_reuse_years": round(PAYBACK_REUSE, 1),
+    "capex_process": round(CAPEX_PROCESS, 0), "payback_process_years": round(PAYBACK_PROCESS, 2),
+    "small_item_options": small_opts.round(0).to_dict("records"),
     "pick_today_h": round(pick_today_h, 3), "pick_today_staffed_h": round(pick_today_staffed_h, 3), "pick_future_h": round(pick_future_h, 3),
     "leadtime": lt, "kpis": kpi_df.to_dict("records"), "stress": stress.to_dict("records"),
     "sensitivity": sens.round(0).to_dict("records"), "sensitivity_base": round(base_cost, 0),
     "storage": {"occupied_peak": occ_peak, "occupied_mean": round(occ_mean, 0), "growth_per_quarter_pct": round(growth_q * 100, 1),
-                "months_headroom": round(float(months_headroom), 1), "fte_avg": round(fte_avg, 1), "fte_peak": round(fte_pk, 1)},
+                "months_headroom": round(float(months_headroom), 1), "months_headroom_12": round(float(months_headroom_12), 1),
+                "rack_need_peak": int(rack_need), "fast_hit_pct": round(fast_hit * 100, 0), "walk_per_line_m": round(walk_per_line, 1),
+                "small_parts_h_day": round(lift_util, 2), "sku_density_lift": round(sku_density_lift, 0), "sku_density_rack": round(sku_density_rack, 1), "fte_avg": round(fte_avg, 1), "fte_peak": round(fte_pk, 1)},
     "sorting": sorting,
 })
 
@@ -482,6 +540,7 @@ print(f"CAPEX €{CAPEX:,.0f} | depreciation €{DEPR:,.0f}/yr")
 print(opex[["Item", "Qty / yr", "Unit cost EUR", "Total EUR/yr"]].to_string(index=False))
 print(f"OPEX €{OPEX:,.0f}/yr | annual incl. depreciation €{ANNUAL:,.0f} | unit {unit_cost}")
 print(f"loose zone in-house €{loose_cost_container:,.0f}/container")
+print(small_opts.to_string(index=False)); print(f"process CAPEX €{CAPEX_PROCESS:,.0f} payback {PAYBACK_PROCESS:.2f} yrs")
 print(levers.to_string(index=False)); print(f"saving €{SAVING:,.0f}/yr, payback {PAYBACK:.1f} yrs | reuse racking: CAPEX €{CAPEX_REUSE:,.0f}, payback {PAYBACK_REUSE:.1f} yrs")
 print("LEAD TIME", lt)
 print(stress.to_string(index=False)); print(sens.to_string(index=False))

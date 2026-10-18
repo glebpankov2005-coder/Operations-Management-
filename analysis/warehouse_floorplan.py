@@ -74,30 +74,30 @@ END_AISLE = 3.2                        # front + rear cross-aisles: every storag
 rack_y0, rack_y1 = fwd_h + END_AISLE, DEPTH - END_AISLE
 cross_y0, cross_y1 = (rack_y0+rack_y1)/2 - 1.6, (rack_y0+rack_y1)/2 + 1.6
 runs = [(rack_y0, cross_y0), (cross_y1, rack_y1)]
-BLOCK, AISLEW = 2.6, 3.0            # back-to-back block (2 single-deep rows of 1.2 m + flue) + reach aisle
-pitch = BLOCK + AISLEW
-n_mod = int((core_w - AISLEW) // pitch)
-start = cx0 + (core_w - (n_mod*pitch - AISLEW)) / 2
-sel_from = n_mod - 2                 # last 2 modules = selective + cantilever
+from geometry import BLOCK, AISLEW, pitch, n_mod, start, mod_x, aisle_w, LONG_BAY, LONG_PER_BAY, LONG_AISLE
+sel_from = n_mod - 2                 # module 10 = odd / irregular items, module 11 = long goods (4.5 m bays)
 aisle_no = 1
 BAY, PAL_PER_BAY = 2.7, 3            # 2.7 m bay holds 3 EUR pallets (800 mm side to the aisle)
 bays_per_row = sum(int((y1 - y0) // BAY) for (y0, y1) in runs)
+long_bays_per_row = sum(int((y1 - y0) // LONG_BAY) for (y0, y1) in runs)
 positions_per_module = 2 * bays_per_row * PAL_PER_BAY * LEVELS
-positions_total = n_mod * positions_per_module
-positions_odd = 2 * positions_per_module
+positions_long = 2 * long_bays_per_row * LONG_PER_BAY * LEVELS
+positions_odd = positions_per_module
+positions_total = (n_mod - 1) * positions_per_module + positions_long
 for m in range(n_mod):
-    bx = start + m*pitch
+    bx = mod_x[m]
     is_sel = m >= sel_from
     fill = "#c3d2fb" if is_sel else "#8aa4fb"
     edge = "#6d8bfa"
     for (y0, y1) in runs:
         ax.add_patch(Rectangle((bx, y0), BLOCK, y1-y0, facecolor=fill, edgecolor=edge, lw=1.0, zorder=2))
         ax.plot([bx+BLOCK/2, bx+BLOCK/2], [y0, y1], color="white", lw=0.8, zorder=2.1)  # back-to-back split
-        for by in np.arange(y0+2.7, y1, 2.7):                                            # bay divisions
+        bay_ = LONG_BAY if m == n_mod - 1 else BAY
+        for by in np.arange(y0+bay_, y1, bay_):                                          # bay divisions
             ax.plot([bx, bx+BLOCK], [by, by], color="white", lw=0.5, alpha=0.8, zorder=2.1)
     # aisle number at top
     if m < n_mod:
-        ax.text(bx + BLOCK + AISLEW/2, rack_y1 + 0.7, f"A{aisle_no}", ha="center", fontsize=6, color=SUB, zorder=3)
+        ax.text(bx + BLOCK + (aisle_w[m] if m < n_mod - 1 else AISLEW)/2, rack_y1 + 0.7, f"A{aisle_no}", ha="center", fontsize=6, color=SUB, zorder=3)
         aisle_no += 1
 # cross aisle label
 ax.text(cx0 + core_w/2, (cross_y0+cross_y1)/2, "middle cross-aisle", ha="center", va="center",
@@ -110,7 +110,7 @@ for yy_, lab in [((fwd_h + rack_y0) / 2, "front cross-aisle (3.2 m)"), (DEPTH - 
 ax.text(cx0 + (sel_from*pitch)/2, rack_y1 - 3, "SINGLE-DEEP PALLET RACKS, BACK-TO-BACK (main storage)  ·  3,505 m²",
         ha="center", fontsize=8.5, weight="bold", color="#3b5bdb", zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
-ax.text(start + (sel_from+0.9)*pitch, rack_y0 + 8, "RACKS FOR\nODD / LONG\nITEMS · 728 m²", ha="center",
+ax.text(mod_x[sel_from] + pitch * 0.95, rack_y0 + 8, "ODD ITEMS +\nLONG GOODS\n(4.5 m bays)", ha="center",
         fontsize=7, weight="bold", color="#3b5bdb", rotation=0, zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 
@@ -128,7 +128,7 @@ def docks_side(x_wall, y_centre, n, prefix, outside):
                 weight="bold", zorder=13, rotation=90)
     return ys_
 # R1 = container dock beside the loose-container zone; R2-R3 = palletised trailers beside receiving
-in_doors = np.concatenate([docks_side(0, rvh + 3.2, 1, "R", "left"), np.array([4.2, 4.2 + DOOR_PITCH])])
+in_doors = np.concatenate([docks_side(0, rvh + 3.2, 1, "R", "left"), np.array([rvh - 4.5, rvh - 4.5 - DOOR_PITCH])])
 for i, dy in enumerate(in_doors[1:], 2):
     ax.add_patch(FancyBboxPatch((-2.3, dy - 1.5), 1.7, 3.0, boxstyle="round,pad=0,rounding_size=0.3",
                  facecolor=STEEL, edgecolor="white", lw=0.8, zorder=12))
@@ -193,7 +193,7 @@ ret_cx = left_w/2
 ret_cy = DEPTH - oh - rh/2
 pack_cx, pack_cy = rax + right_w/2, DEPTH - ph/2
 out_cx, out_cy = rax + right_w/2, uh/2
-aisleA2 = start + pitch + BLOCK + AISLEW/2
+aisleA2 = mod_x[1] + BLOCK + AISLEW/2
 
 import matplotlib.patheffects as pe
 from matplotlib.path import Path
@@ -211,14 +211,14 @@ def badge(x, y, n, color):
     ax.text(x, y, str(n), ha="center", va="center", fontsize=10, weight="bold", color=color, zorder=11)
 
 cd_y = (cross_y0 + cross_y1) / 2
-aisle_c = [start + k * pitch + BLOCK + AISLEW / 2 for k in range(n_mod - 1)]
+aisle_c = [mod_x[k] + BLOCK + aisle_w[k] / 2 for k in range(n_mod - 1)]
 x_ref = aisle_c[3]                                     # storage aisle A4 (open channel) for the refill run
 pk_y = DEPTH - 5.5                                     # entry height into packing (above its label)
 x5 = pack_cx + 1.2
 
 # ---- main flow 1-6 : In -> put away -> refill -> pick -> pack -> out ----
-route([(-1.45, in_doors[1]), (left_w * 0.62, in_doors[1])], BLUE)                      # 1 in through R2 (pallets)
-badge(left_w * 0.18, in_doors[1], 1, BLUE)
+route([(-1.45, in_doors[2]), (left_w * 0.62, in_doors[2])], BLUE)                      # 1 in through R3 (pallets)
+badge(left_w * 0.18, in_doors[2], 1, BLUE)
 ORANGE = "#d97706"                                                                     # loose container: R1 -> zone -> receiving
 route([(-1.45, in_doors[0]), (left_w * 0.55, in_doors[0]), (left_w * 0.55, rvh - 3.0)], ORANGE)
 badge(left_w * 0.18, in_doors[0], "C", ORANGE)
@@ -251,7 +251,7 @@ print("Saved layout_orderflow.png")
 from _util import update_metrics
 zones = [("Receiving & inbound staging", RECV), ("Loose-container zone (unpack & palletise)", LOOSE),
          ("Offices & amenities", OFF), ("Returns / VAS", RET),
-         ("Single-deep pallet racks (A/B/C reserve)", dd_area), ("Selective + cantilever (odd / long items)", sel_area),
+         ("Single-deep pallet racks (A/B/C reserve)", dd_area), ("Odd-item + long-goods modules", sel_area),
          ("Fast-pick area (carton-flow / shelving)", FWD), ("Packing & consolidation", PACK),
          ("Outbound staging & shipping", OUTB), ("Circulation / aisles", CIRC)]
 update_metrics("layout", {
@@ -259,8 +259,10 @@ update_metrics("layout", {
     "pct_of_7000": round(TOTAL_AREA / 7000 * 100, 0), "fits_7000": bool(TOTAL_AREA <= 7000),
     "zones": [{"Zone": z, "Area m2": int(a), "% of building": f"{a / TOTAL_AREA:.0%}"} for z, a in zones],
     "rack_modules": int(n_mod), "storage_aisles": int(n_mod - 1), "levels": int(LEVELS),
-    "bays_per_row": int(bays_per_row), "positions_total": int(positions_total),
-    "positions_standard": int(positions_total - positions_odd), "positions_odd_long": int(positions_odd),
+    "bays_per_row": int(bays_per_row), "long_bays_per_row": int(long_bays_per_row), "positions_total": int(positions_total),
+    "positions_standard": int(positions_total - positions_odd - positions_long), "positions_odd": int(positions_odd),
+    "positions_long": int(positions_long), "positions_odd_long": int(positions_odd + positions_long),
+    "long_aisle_m": LONG_AISLE, "positions_12th_module": int(positions_per_module),
     "positions_target": 9500, "rack_type": "single-deep, back-to-back", "loose_zone_m2": int(LOOSE),
     "dd_area_m2": int(dd_area), "sel_area_m2": int(sel_area),
 })

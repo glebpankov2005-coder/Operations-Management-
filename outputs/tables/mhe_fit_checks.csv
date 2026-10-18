@@ -5,8 +5,8 @@ Clear height 12.2 m,Extended mast 11.7 m at max lift,OK - 0.5 m clearance
 Pallet weight p95 875 kg / p99 1344 kg,"1,600 kg @ 600 mm",OK for 99.4% of SKUs; >1 t pallets slotted on low levels
 "Actual load weight in stock (qty x unit weight): 10 loads > 1 t, 3 > 1.6 t","1,600 kg @ 600 mm","OK - the few loads > 1.6 t go to floor positions, moved with the ERE 225 (2.5 t)"
 Single-deep (back-to-back) racks,every pallet reachable from an aisle,"OK - standard forks; no telescopic attachment, no residual-capacity loss"
-"Long pallets: 163 loads 1.9-2.4 m (XLONG/CONS), 26 > 2.4 m",fit the rack and the 3.0 m aisle,"OK - 1.9-2.4 m pallets stored crosswise, 1 per 2.7 m bay in the odd/long modules (forks enter the long side); > 2.4 m on cantilever"
-"Tall loads: 940 loads 1.16-1.68 m, 42 > 1.68 m",1.41 m level pitch,"OK - top level (~1.7 m free under the roof clearance) has 1,188 positions; > 1.68 m on the floor"
+"Long pallets: 140 loads 1.3-2.05 m (+115 recorded longer = data errors, capped at 2.05 m)",aisle >= Ast 2976 mm with a 2.05 m load crosswise,"OK - long-goods module with 4.5 m bays (2 pallets each) behind a 3.2 m aisle; forks under the long side (load centre 400 mm, full 1.6 t)"
+"Tall loads: 940 loads 1.16-1.68 m, 42 > 1.68 m",1.41 m level pitch,"OK - top level (~1.7 m free under the roof clearance) has 1,120 positions; > 1.68 m on the floor"
 Large orders up to p90 671 kg,"EJE 120i 2,000 kg",OK - picked onto one pallet
 Small orders (median 7 L),"Trolley 6 totes, 250 kg",OK - ~31 lines per tour
 Charging,Li-ion opportunity charging,No battery room; chargers at P&D points

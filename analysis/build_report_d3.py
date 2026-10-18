@@ -100,6 +100,12 @@ LC = DM["load_checks"]
 PTL_COST = sum(r["Total EUR"] for r in PC["capex_table"] if r["Item"].startswith("Put-to-light"))
 
 # ================================================================ COVER
+SP = PK["small_parts"]; OA = DM["outbound_area"]; PA = DM["packing_area"]; HZ = M["design_evaluation"]["hazmat"]
+LG = LC["long"]; SO = {o["Option"]: o for o in PC["small_item_options"]}
+SO_SHELF = [o for o in PC["small_item_options"] if o["Option"].startswith("Bin")][0]
+SO_LIFT = [o for o in PC["small_item_options"] if o["Option"].startswith("Kardex")][0]
+SO_RACK = [o for o in PC["small_item_options"] if o["Option"].startswith("Keep")][0]
+RATE = PC["cost_register"]["labour_rate"]
 doc.add_paragraph().paragraph_format.space_before = Pt(55)
 para("PROJECT OTM", size=13, color=RED, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, sa=2)
 para("Performance Overview — KPIs, CAPEX & OPEX", size=22, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, sa=2)
@@ -107,9 +113,10 @@ para("Assa Abloy operation · DHL Supply Chain, Bemmel (NL_0032)", size=12, colo
 table(["Field", "Detail"], [
     ["Deliverable", "3 — Performance overview including financial analysis"],
     ["Due date", "21-10-2026"],
-    ["Concept", "Option B — single-deep racks, fast-pick area, zone + batch picking, wave release"],
+    ["Concept", "Option B — single-deep racks, fast-pick area, small-parts shelving, zone + batch picking, wave release"],
     ["Envelope", f"≤ 7,000 m² · ≤ 12.2 m (design uses {LAY['total_area_m2']:,} m²)"],
     ["Team", "Group 3 — Gleb, Rachel Selvarathnam, Arnau, Vidhi"],
+    ["Version", "v2 — includes the feedback of the last session (space checks, lengths, small parts, own KPIs, €20/h, hazmat)"],
     ["Supporting files", "Deliverable_3_Calculations.xlsx (all cost formulas) · Deliverables 1 and 2 (updated) · analysis/*.py"],
 ], widths=[4.5, 11], arr=9)
 para("Expected performance and cost of the Option B design. Volumes are measured in the Assa Abloy Q2-2025 data; "
@@ -134,60 +141,67 @@ table(["", "Result"], [
                         f"slowest 10% wait {LT['today_p90_h']:.0f} h → {LT['future_p90_h']:.0f} h"],
     ["Trailers at the doors", f"{DM['outbound_doors']['current_drop_trailer_concurrent_p90']:.0f} parked at once → max "
                               f"{DM['departure_plan']['plan_max_doors_busy']} of {DM['outbound_doors']['doors_recommended']} doors"],
-    ["Storage", f"{LAY['positions_total']:,} single-deep positions in {LAY['total_area_m2']:,} m² ({LAY['pct_of_7000']:.0f}% of 7,000 m²)"],
+    ["Storage", f"{LAY['positions_total']:,} pallet positions + {SP['shelf_bays']} small-parts shelving bays; racks "
+                f"{STO['rack_need_peak'] / LAY['positions_total']:.0%} full at the peak"],
     ["People and trucks", f"{STO['fte_avg']:.1f} FTE on an average day, {STO['fte_peak']:.1f} on the peak day; "
                           f"{Q['etv']} ETV 216i, {Q['eje']} EJE 120i, {Q['ere']} ERE 225, {Q['trolleys']} trolleys"],
-    ["One-off investment (CAPEX)", f"{eur(PC['capex_total'], True)} as all-new equipment; {eur(PC['capex_reuse_racking'], True)} if today's racking can be re-used"],
-    ["Running cost (OPEX)", f"{eur(PC['opex_total'], True)} a year ({PC['unit_cost']['labour_share_pct']:.0f}% of the yearly cost is labour); "
-                            f"{eur(PC['annual_cost'], True)} incl. depreciation"],
+    ["One-off investment (CAPEX)", f"{eur(PC['capex_total'], True)} all new; {eur(PC['capex_reuse_racking'], True)} if today's racking is re-used; "
+                                   f"of which {eur(PC['capex_process'], True)} for the process changes"],
+    ["Running cost (OPEX)", f"{eur(PC['opex_total'], True)} a year at €{RATE['value']:.0f}/h; {eur(PC['annual_cost'], True)} incl. depreciation"],
     ["Cost per unit", f"€{PC['unit_cost']['per_order_line']:.2f} per order line · €{PC['unit_cost']['per_order']:.2f} per order"],
-    ["Saving and payback", f"~{eur(PC['saving_year'], True)} a year in picking labour → payback {PC['payback_reuse_years']:.1f} years "
-                           f"(re-used racking) or {PC['payback_years']:.1f} years (all new)"],
+    ["Saving and payback", f"~{eur(PC['saving_year'], True)} a year in picking labour → the process changes pay back in "
+                           f"{PC['payback_process_years']:.1f} years"],
 ], widths=[4.4, 11.6], arr=9)
 bullets([
-    "**The biggest win is in picking and planning, not in steel.** Batching small orders, a fast-pick area for the best-sellers "
-    "and releasing work in waves cut the picking hours by about two thirds. The racking is the biggest cost but saves little labour on its own.",
-    f"**Watch the storage space.** Occupied locations grew {STO['growth_per_quarter_pct']:.0f}% a quarter between April and June. If that "
-    f"continues, the {LAY['positions_total']:,} positions are full in about {STO['months_headroom']:.0f} months. Clearing dead "
-    "stock (21% of loads have been in stock for more than a year, D1) and keeping room for a 12th rack module are part of the plan.",
-    f"**Machinery was checked again:** single-deep racks need no telescopic forks; with a full-service lease no spare trucks are "
-    f"needed, so the fleet goes from 3 to {Q['etv']} reach trucks and from 4 to {Q['eje']} pallet trucks (Section 4).",
-    f"**Loose containers get their own {LZ['area_planned_m2']} m² zone** at door R1. A DHL crew costs about "
-    f"€{PC['loose_cost_per_container']:,.0f} per container; a contractor is only worth it below that price.",
+    "**The labour gain comes from how we work, not from steel.** Batching, a fast-pick area and wave release need "
+    f"{eur(PC['capex_process'], True)} and save ~{eur(PC['saving_year'], True)} a year. Racks are needed to hold the stock, "
+    "so they are a capacity cost, not a saving.",
+    f"**Small parts are stored efficiently:** {SP['skus']:,} slow SKUs with a few litres of stock each move from pallet "
+    f"locations to bins next to the put-wall. That frees {SP['freed_rack_locations']:,} pallet locations. A Kardex lift was "
+    f"compared: denser, but ~{eur(SO_LIFT['Yearly cost EUR'] - SO_SHELF['Yearly cost EUR'], True)} a year more and busy only a few % of the day at our volume.",
+    f"**Space checks passed:** {LZ['share_fit_zone_pct']:.0f}% of containers fit the container zone, {LZ['share_fit_with_r2_pct']:.0f}% when door R2 "
+    f"is lent; outbound staging uses at most {OA['need_m2_max'] / OA['planned_m2']:.0%} of its area; packing needs {PA['need_m2']:.0f} of 450 m².",
+    f"**Watch the stock growth.** Occupied locations grew {STO['growth_per_quarter_pct']:.0f}% a quarter between April and June; at "
+    f"that rate the racks are full in ~{STO['months_headroom']:.0f} months. Clearing dead stock (21% of loads > 1 year) is the main lever.",
 ])
 doc.add_page_break()
 
 # ================================================================ 1 WHAT CHANGED
 doc.add_heading("1. What changed since Deliverable 2", level=1)
-para("Feedback and a final check of the design led to these changes. Deliverables 1 and 2 were regenerated so all three "
-     "documents use the same numbers.", sa=4)
-table(["Topic", "Before (D1 / D2)", "Now", "Why"], [
+para("Two feedback rounds and a final check of the design led to these changes. Deliverables 1 and 2 were regenerated so "
+     "all three documents use the same numbers.", sa=4)
+table(["Topic", "Before", "Now", "Why"], [
     ["Racking", "Double-deep, telescopic forks", f"Single-deep, back-to-back ({LAY['positions_total']:,} positions)",
-     "Team decision: no two-deep racks; every pallet now directly reachable"],
-    ["Loose containers", "Unpacked at door R1", f"Own {LZ['area_planned_m2']} m² zone behind R1",
-     "Feedback from the last meeting: a separate zone for loose containers"],
-    ["Reach trucks", "3 × ETV 216i", f"{Q['etv']} × ETV 216i", "2 cover the peak day; lease includes repair"],
-    ["Pallet trucks", "4 × EJE 120i", f"{Q['eje']} × EJE 120i", "3 cover the peak day"],
-    ["Floor area", "6,541 m² (93%)", f"{LAY['total_area_m2']:,} m² ({LAY['pct_of_7000']:.0f}%)", "+190 m² container zone"],
-    ["Lead time", "counted per order line (median 52 h)", f"counted per order (median {LT['today_median_h']:.0f} h)",
-     "an order is what the customer waits for"],
-], widths=[2.8, 3.8, 4.2, 5.2], arr=9)
-figure("layout_orderflow.png", "Fig 1. Updated floor plan with the loose-container zone (C) and the main order flow (1–6).", 16.5)
+     "Team decision: no two-deep racks; every pallet directly reachable"],
+    ["Long goods", "Cantilever for items up to 11 m", f"Long-goods module: {LAY['positions_long']} positions for pallets up to 2.05 m, 3.2 m aisle",
+     "Feedback: nothing longer than a door (~2 m); the 11 m item is a data error"],
+    ["Small parts", "One pallet location per SKU", f"Bin shelving for {SP['skus']:,} slow small SKUs next to the put-wall",
+     "Feedback: store small items efficiently (Kardex compared)"],
+    ["Loose containers", "Unpacked at door R1", f"Own {LZ['area_planned_m2']} m² zone; big containers borrow door R2",
+     "Feedback: is there enough space to unpack?"],
+    ["Reach / pallet trucks", "3 ETV 216i / 4 EJE 120i", f"{Q['etv']} ETV 216i / {Q['eje']} EJE 120i", "Peak need covered; lease includes repair"],
+    ["Labour cost", "€28 per hour", f"€{RATE['value']:.0f} per hour (€{RATE['high']:.0f} as high case)", "Feedback: €20/h for an operator"],
+    ["KPIs", "W3 list", "Our own design KPIs + the W3 ones", "Feedback: come up with our own KPIs"],
+    ["Hazardous goods", "Class unknown, PGS 15", "Recounted, classified by customs code → mostly PGS 37-2", "Feedback: recheck counts and classes"],
+], widths=[2.8, 3.6, 4.6, 5.0], arr=9)
+figure("layout_orderflow.png", "Fig 1. Updated floor plan: container zone (C) with R1, long-goods module next to the right "
+       "perimeter aisle, and the main order flow (1–6).", 16.5)
 
 # ================================================================ 2 KPIs
-doc.add_heading("2. KPIs — how we will measure the design", level=1)
-para("We chose KPIs that cover every part of the operation and that DHL can measure with its own WMS. They follow the "
-     "W3 lecture list (dock-to-stock, put-away time, pick rate, on-time shipment, S017) and add space, people, machinery, "
-     "cost and safety. Each KPI has a clear way to measure it, today's value where the data shows it, the value we expect "
-     "from the design, and a target.", sa=4)
+doc.add_heading("2. Our KPIs — expected performance of the design", level=1)
+para("We made our own KPIs: each one measures something our design promises to do (fill the racks well, keep pickers "
+     "in the fast-pick area, walk little, unpack containers inside their zone, ship within a day, …). The four W3 lecture "
+     "KPIs (dock-to-stock, put-away time, pick rate, on-time shipment, S017) are included too. For every KPI we give how "
+     "to calculate it, today's value where the data shows it, the value we expect from the design, and a target.", sa=4)
 for grp in ["Space", "Inbound", "Picking", "Service", "Docks", "People", "Machinery", "Cost", "Safety"]:
-    rows = [[k["KPI"], k["How it is measured"], k["Today (data)"], k["Future (design)"], k["Target / benchmark"]]
+    rows = [[k["KPI"] + (" ★" if k["Type"] == "own" else ""), k["How it is measured"], k["Today (data)"], k["Future (design)"], k["Target / benchmark"]]
             for k in PC["kpis"] if k["Group"] == grp]
     if not rows:
         continue
     para(f"**{grp}**", sa=2).paragraph_format.keep_with_next = True
-    table(["KPI", "How it is measured", "Today (data)", "Future (design)", "Target"], rows,
+    table(["KPI", "How we calculate it", "Today (data)", "Expected (design)", "Target"], rows,
           widths=[3.0, 3.6, 3.0, 3.8, 2.6], arr=9)
+para("★ = our own design KPI; the others are the W3 lecture KPIs.", size=9, color=GREY, italic=True)
 
 doc.add_heading("2.1 Order lead time", level=2)
 figure("d3_leadtime.png", "Fig 2. Share of orders shipped within X hours — today (measured) vs future (wave plan, modelled).", 15)
@@ -198,8 +212,9 @@ bullets([
     "afternoon's trailer of its carrier; a later order is picked in the first wave next morning and leaves on that day's "
     "first slot of its carrier. Weekends are skipped.",
     f"**Result:** {LT['future_within_24h_pct']:.0f}% within 24 hours and the slowest 10% at {LT['future_p90_h']:.0f} h. "
-    f"The median moves less ({LT['today_median_h']:.0f} → {LT['future_median_h']:.0f} h) because 55% of orders arrive "
-    "between 15:00 and 17:00 and still leave the next day — the gain is that no order waits for a second or third day.",
+    f"The median moves less ({LT['today_median_h']:.0f} → {LT['future_median_h']:.0f} h) because "
+    f"{DM['order_release']['orders_arrive_15_17_pct']:.0f}% of orders arrive between 15:00 and 17:00 and still leave the next day — "
+    "the gain is that no order waits for a second or third day.",
 ])
 doc.add_heading("2.2 Picking effort — where the saving comes from", level=2)
 figure("d3_levers.png", "Fig 3. Picker-hours per average day: today's way of working (modelled) vs the design.", 15)
@@ -212,43 +227,48 @@ para("Today is modelled with the same pick-time model and rates as the design (D
      f"SKUs), and all orders released in the evening so the morning starts at {DM['order_release']['pick_peak_over_mean_active_hour']}× "
      "the average workload. It is a model, not a measurement — DHL's real pick hours would confirm it (A006).", size=9.5, color=GREY)
 
-doc.add_heading("2.3 Storage space — the main risk", level=2)
+doc.add_heading("2.3 Storage space", level=2)
 bullets([
-    f"**Positions:** {LAY['positions_total']:,} against a peak of {STO['occupied_peak']:,} occupied locations "
-    f"({STO['occupied_peak'] / LAY['positions_total']:.0%} full at the peak, {STO['occupied_mean'] / LAY['positions_total']:.0%} on average).",
+    f"**Positions:** {LAY['positions_total']:,} (incl. {LAY['positions_long']} long-goods). Moving small parts to shelving frees "
+    f"{SP['freed_rack_locations']:,} locations, so the peak need is ~{STO['rack_need_peak']:,} "
+    f"({STO['rack_need_peak'] / LAY['positions_total']:.0%} full).",
     f"**Growth:** occupied locations rose from 7,715 (April) to 8,512 (June), +{STO['growth_per_quarter_pct']:.0f}% per quarter. "
-    f"At that speed the racks are full in ~{STO['months_headroom']:.0f} months. Three months of data cannot tell whether this is a "
-    "season or a trend, so DHL should track the KPI monthly.",
-    "**What we do about it:** (1) clear dead stock — 21% of loads are older than one year (D1 Fig 2b); (2) the core has room for a "
-    "12th rack module (+864 positions); (3) the remaining ~270 m² of the 7,000 m² envelope stays free.",
+    f"At that speed the racks are full in ~{STO['months_headroom']:.0f} months (~{STO['months_headroom_12']:.0f} with a 12th rack module, "
+    f"+{LAY['positions_12th_module']} positions, which fits in the core). Three months of data cannot tell whether this is a season "
+    "or a trend, so DHL should track the KPI monthly.",
+    "**What we do about it:** (1) clear dead stock — 21% of loads are older than one year (D1 Fig 2b); (2) keep the 12th "
+    "module as the first expansion; (3) the remaining ~270 m² of the 7,000 m² envelope stays free.",
 ])
 doc.add_heading("2.4 Stress test — 150%, 200% and 250% volume", level=2)
-para("Promised in D2 §3.1: what happens when volume grows? Workload scales with volume; the layout and doors are checked "
+para("Promised in D2 §3.1: what happens when volume grows? Workload scales with volume; trucks and doors are checked "
      "against the same rules as in D2.", sa=4)
 figure("d3_stress.png", "Fig 4. Direct FTE and trucks needed on the peak day at higher volumes.", 13.5)
+st_ = {s_["Volume"]: s_ for s_ in PC["stress"]}
 table(["Volume", "Direct FTE (peak day)", "ETV 216i", "EJE 120i", "ERE 225", "Outbound doors", "Pickers in busiest wave"],
       [[s["Volume"], f"{s['Direct FTE (peak day)']:.1f}", s["ETV 216i needed"], s["EJE 120i needed"], s["ERE 225 needed"],
         s["Outbound doors (busiest hour)"], s["Pickers in the busiest wave"]] for s in PC["stress"]],
       widths=[2.0, 2.8, 1.8, 1.8, 1.8, 2.4, 3.0])
 bullets([
-    f"**Up to 150%** the design runs as planned: one extra reach truck and pallet truck, and all 5 shipping doors in use.",
+    f"**Up to 150%** the design runs as planned: {st_['150%']['ETV 216i needed']} reach trucks, {st_['150%']['EJE 120i needed']} pallet trucks "
+    f"and {st_['150%']['Outbound doors (busiest hour)']} shipping doors in the busiest hour.",
     "**At 200% and more** the 5 shipping doors are not enough in the busiest hour; the departure plan would need more spread "
     "(more slots before 12:00) or a 6th door — and storage would need the 12th module and a dead-stock clean-up first.",
-    "**Pickers per zone stay low** (≤ 7 in the busiest wave at 250%), so congestion in the aisles is not the limit.",
+    f"**Pickers per wave stay low** (≤ {st_['250%']['Pickers in the busiest wave']} in the busiest wave at 250%), so aisle congestion is not the limit.",
 ])
 
-# ================================================================ 3 SORTING
-doc.add_heading("3. Sorting — what, how and when", level=1)
+# ================================================================ 3 SORTING + SMALL PARTS
+doc.add_heading("3. Sorting and small parts — what, how and when", level=1)
 para("Sorting means putting goods into the right group for the next step. In our design it happens in four places. "
      "Each one is simple, uses a scan to check the item, and happens at a fixed moment in the day.", sa=4)
 table(["Where", "What is sorted", "How", "When", "Equipment"], [
-    ["1. Loose-container zone (door R1)", "Cartons from a container → one pallet per SKU",
+    ["1. Container zone (door R1)", "Cartons from a container → one pallet per SKU",
      f"Cartons roll out on the conveyor; the worker scans each carton and puts it on the build spot of its SKU (a container has "
      f"{SORT['container_skus_median']:.0f} SKUs on average, so {SORT['build_spots']} build spots are enough). Full pallet → wrap, label, putaway.",
      "Morning, when the container arrives (~3 h)", "Roller conveyor, RF scanner, stretch wrapper"],
     ["2. Put-to-light wall (packing)", "Picked items → customer orders",
-     f"Pickers collect the items of many small orders in one trolley tour (~{SORT['lines_per_tour']:.0f} lines). At the wall the packer "
-     f"scans an item, a light shows the order's slot, the item goes in and the button is pressed. A full slot lights up → pack.",
+     f"Pickers collect the items of many small orders in one trolley tour (~{SORT['lines_per_tour']:.0f} lines); small parts come "
+     "straight from the shelving next to the wall. The packer scans an item, a light shows the order's slot, the item goes in and "
+     "the button is pressed. A full slot lights up → pack.",
      f"During each wave (3 a day, ~{SORT['small_orders_wave_avg']:.0f} small orders per wave)", f"Wall with {SORT['ptl_slots']} slots"],
     ["3. Carrier lanes (outbound)", "Packed parcels and pallets → trailer",
      f"The label says the carrier and departure slot. Parcels go into roll cages per carrier, pallets into the staging lane of "
@@ -266,11 +286,32 @@ bullets([
     f"machine to pay off; the wall costs about {eur(PTL_COST, True)} (Section 5).",
     "**Large orders are not sorted:** each one is picked straight onto its own pallet, so it goes directly to packing.",
 ])
+doc.add_heading("3.1 How are small items stored efficiently?", level=2)
+para(f"Today every SKU sits on a pallet location, even when its whole stock is a few litres. {SP['skus']:,} slow SKUs (C class "
+     f"or no demand in Q2) have ≤ 50 litres of stock, units ≤ 20 L, ≤ 15 kg and ≤ 60 cm — together only {SP['stock_m3']:.0f} m³, "
+     f"yet they fill {SP['freed_rack_locations']:,} pallet locations of about 1 m³ on their own (and share others). They need {SP['slots_needed']:,} half-bins "
+     f"(300 × 400 mm, ~20 L). We compared three ways to store them (A042):", sa=4)
+table(["Option", "Floor m²", "Pallet locations used", "One-off cost", "Pick rate", "Cost per year*"],
+      [[o["Option"], f"{o['Floor m²']:.0f}", f"{o['Pallet positions used']:,.0f}", eur(o["CAPEX EUR"]), f"{o['Pick rate lines/h']:.0f} lines/h",
+        eur(o["Yearly cost EUR"])] for o in PC["small_item_options"]], widths=[4.6, 1.8, 2.4, 2.4, 2.2, 2.6])
+para("* depreciation over 7 years + picking labour for the ~" + f"{SP['lines_day']:.0f} small-part lines a day.", size=8.5, color=GREY, italic=True)
+bullets([
+    f"**Chosen: bin shelving next to the put-wall.** {SP['shelf_bays']} bays, 2.5 m high, in the packing area's spare floor. It is the "
+    f"cheapest option, frees {SP['freed_rack_locations']:,} pallet locations, and the picked item goes straight into the wall — no "
+    "walk to the reserve aisles.",
+    f"**Kardex Shuttle XP 500 (S027):** {SO_LIFT['Notes'].split(';')[0]} would need only {SO_LIFT['Floor m²']:.0f} m² and picks faster with "
+    f"a light pointer, but costs ~{eur(SO_LIFT['Yearly cost EUR'] - SO_SHELF['Yearly cost EUR'], True)} a year more. With ~{SP['lines_day']:.0f} "
+    "lines a day the lifts would stand still most of the day. They become the better choice when floor space runs out or small-part "
+    "volume grows strongly — the shelving bins fit the lift trays, so the step is easy.",
+    f"**A/B small items stay in the fast-pick area** ({SP['skus_small_ab_in_fast_pick']} SKUs): they are picked too often for a lift or a "
+    "far-away shelf.",
+])
 
-# ================================================================ 4 MACHINERY
-doc.add_heading("4. Machinery — is everything fit and justified?", level=1)
-para("Each machine was checked against three questions: does it have a job every day, does it fit the loads and the "
-     "aisles, and is the number right?", sa=4)
+# ================================================================ 4 DESIGN CHECKS
+doc.add_heading("4. Design checks — machinery, long goods, space and hazardous goods", level=1)
+doc.add_heading("4.1 Machinery — is everything fit and justified?", level=2)
+para("Each machine was checked on three questions: does it have a job every day, does it fit the loads and the aisles, "
+     "and is the number right?", sa=4)
 mach = [
     ["ETV 216i reach truck", "Putaway, refill fast-pick area, full pallets", f"3 → {Q['etv']}",
      f"{fleet['ETV 216i']['Utilisation avg %']:.0f}%", "Yes: 10.7 m lift for the 10.0 m top beam; single-deep → standard forks",
@@ -278,36 +319,95 @@ mach = [
     ["EJE 120i pallet truck", "Large orders picked onto a pallet", f"4 → {Q['eje']}",
      f"{fleet['EJE 120i']['Utilisation avg %']:.0f}%", "Yes: 0.72 m wide, no U-turns needed", "Keep 3 (peak need)."],
     ["ERE 225 rider pallet truck", "Unload / load trailers, container-zone pallets", f"2 → {Q['ere']}",
-     f"{fleet['ERE 225']['Utilisation avg %']:.0f}%", "Yes: 2.5 t, carries the few heavy loads", "Keep 1 per dock side: docks are 96 m apart and both are busy 10:30–14:00. Low use — could drop to 1 if DHL accepts the walk."],
+     f"{fleet['ERE 225']['Utilisation avg %']:.0f}%", "Yes: 2.5 t, carries the few heavy loads",
+     "Keep 1 per dock side: docks are 96 m apart and both are busy 10:30–14:00. Low use — could drop to 1 if DHL accepts the walk."],
     ["Pick trolley + totes", "Small orders, batch picking", f"{Q['trolleys']}", "—", "Yes: 250 kg, 6 totes", "Keep (cheap, flexible)."],
     ["Put-to-light wall", "Sort batch picks into orders", f"{Q['ptl_slots']} slots", "—", f"Peak wave ~{SORT['small_orders_wave_peak']:.0f} small orders + 20%", "Keep."],
+    ["Small-parts bin shelving", "Store and pick small slow parts", f"{SP['shelf_bays']} bays", "—", "2.5 m high, 7 levels; within reach without a ladder", "Add (feedback 2)."],
     ["Roller conveyor + 2 stretch wrappers", "Unpack containers; wrap new and outgoing pallets", "new", "—",
-     "Yes: no heavy carrying out of the container", "Add (D3)."],
+     "Yes: no heavy carrying out of the container", "Add."],
     ["RF terminals", "Scan every move", f"{Q['rf_units']}", "—", "One per person at the peak + 20%", "Keep."],
     ["Telescopic forks", "(double-deep)", "dropped", "—", "Not needed with single-deep racks", "Removed."],
-    ["ECE 225 order picker", "(2-pallet picking)", "rejected (D2)", "—", "Too long for 3.0 m aisles; orders too small", "Rejected."],
-    ["EZS 130 tugger train", "(trolley transport)", "not planned (D2)", "—", f"Driver would be ~{PK['tugger']['driver_utilisation_pct']:.0f}% busy",
-     "Option if small orders triple."],
+    ["Cantilever racking", "(items > 2.4 m)", "dropped", "—", "No real item is longer than ~2 m", "Removed."],
+    ["Kardex lifts", "(small parts)", "compared", "—", "Fit, but little work at our volume", "Upgrade path (§3.1)."],
+    ["ECE 225 order picker / EZS 130 tugger", "(rejected in D2)", "—", "—", "Too long for 3.0 m aisles / driver idle", "Not used."],
 ]
 table(["Machine", "Job", "Units", "Use (avg day)", "Fits?", "Verdict"], mach, widths=[2.8, 2.8, 1.6, 1.4, 3.6, 3.8], arr=9)
-para("Do the loads fit the racks and the trucks? Checked on all 11,015 loads in stock (01-06-2025):", sa=4).paragraph_format.keep_with_next = True
+
+doc.add_heading("4.2 Long goods — lengths, turning, capacity and access", level=2)
+bullets([
+    f"**Real lengths:** nothing longer than a door (~2 m) can come in. The WMS shows {LG['loads_over_2_05m_data_error']} loads longer "
+    "than 2.05 m — up to an '11 m' item that weighs 0.5 kg and is 1 cm high — so these are data errors and are capped at 2.05 m, "
+    f"the length of an XLONG pallet. That gives {LG['loads_long_capped']} long loads (1.3–2.05 m).",
+    f"**Where they go:** the long-goods module has 4.5 m bays with two long pallets each: {LAY['positions_long']} positions for "
+    f"{LG['loads_long_capped']} loads today ({LG['loads_long_capped'] / LAY['positions_long']:.0%} full).",
+    f"**Turning clearance:** a reach truck stacking a 2.05 m pallet crosswise needs an aisle of {LG['ast_long_crosswise_mm']:,.0f} mm "
+    f"(VDI right-angle stacking formula with the ETV 216i data: Wa 1,665 mm, 200 mm safety, S006). A 3.0 m aisle leaves only "
+    f"{3000 - LG['ast_long_crosswise_mm']:.0f} mm, so the long-goods aisle is 3.2 m ({3200 - LG['ast_long_crosswise_mm']:.0f} mm spare). "
+    "The 3.2 m cross-aisles let the truck turn into it with the load.",
+    f"**Truck capacity:** the forks go under the long side, so the load centre is ~{LG['load_centre_long_mm']} mm — inside the "
+    f"600 mm rating, full 1.6 t. Forked on the short side the load centre would be ~1 m and the truck could carry only "
+    f"~{LG['capacity_if_forked_short_side_kg']:.0f} kg; the heaviest long load is {LG['long_load_kg_max']:,.0f} kg (95% below "
+    f"{LG['long_load_kg_p95']:.0f} kg), so loads over 1.6 t go to a floor position.",
+    "**Access:** the module is open from both ends (front, middle and rear cross-aisles) and its outer row faces the 3.2 m "
+    "perimeter aisle, so long goods never pass through the standard 3.0 m aisles.",
+])
+para("Loads checked against the racks and trucks (all 11,015 loads in stock, 01-06-2025):", sa=4)
 table(["Check", "Data", "Result"], [
     ["Weight", f"{LC['weight']['over_1000']} loads > 1 t, {LC['weight']['over_1600']} > 1.6 t (actual qty × unit weight)",
      "ETV 216i lifts 1.6 t → the few heavier loads go to floor positions, moved with the ERE 225 (2.5 t)"],
-    ["Length", f"{LC['long']['loads_over_1_9m']} loads 1.9–2.4 m (XLONG / CONS), {LC['long']['loads_over_2_4m']} longer than 2.4 m",
-     "1.9–2.4 m pallets lie crosswise in the odd/long modules (1 per bay, forks under the long side); > 2.4 m on cantilever"],
     ["Height", f"{LC['tall']['loads_1_16_to_1_68']} loads 1.16–1.68 m tall, {LC['tall']['loads_over_1_68']} taller; "
                f"{LC['tall']['height_missing']} have no height in the WMS",
      f"tall loads use the top level ({LC['tall']['top_level_positions']:,} positions with ~1.7 m free); the tallest stand on the floor"],
-    ["Aisles", "3.0 m storage aisles, 3.2 m cross-aisles", "ETV needs 2.63–2.79 m, EJE 1.79–1.94 m → OK"],
+    ["Aisles", "3.0 m storage, 3.2 m long-goods / cross / perimeter", "ETV needs 2.63–2.79 m (2.98 m with a long load), EJE 1.79–1.94 m → OK"],
 ], widths=[2.0, 6.2, 7.8], arr=9)
+
+doc.add_heading("4.3 Space for unpacking loose containers", level=2)
+bullets([
+    f"**What a container needs:** cartons are sorted on the floor into one build spot per SKU. Measured on {LZ['containers_sampled']} "
+    f"Asian receipts: the median container needs ~{LZ['need_m2_median']:.0f} m², the p90 ~{LZ['need_m2_p90']:.0f} m², the largest "
+    f"({LZ['skus_per_container_max']} SKUs) ~{LZ['need_m2_max']:.0f} m².",
+    f"**The zone ({LZ['area_planned_m2']} m²) fits {LZ['share_fit_zone_pct']:.0f}% of containers.**",
+    f"**Borrowing door R2 (feedback idea, A044):** receiving needs at most ~{LZ['recv_need_m2']:.0f} m² of its 262 m², because two "
+    f"reach trucks put pallets away while a trailer is unloaded (peak ~{LZ['recv_staged_pallets_peak']:.0f} pallets waiting). On "
+    f"a big-container day R2 is blocked and {LZ['r2_lend_m2']:.0f} m² of receiving joins the zone → {LZ['area_with_r2_m2']:.0f} m², "
+    f"enough for {LZ['share_fit_with_r2_pct']:.0f}% of containers. R1 + R3 still give the {LZ['doors_needed_base']} doors the base "
+    "and peak days need; R2 is only blocked when no second trailer is booked.",
+    "**The last few %** (more SKUs than build spots) are sorted in two passes.",
+])
+doc.add_heading("4.4 Outbound staging (216 m²) and packing (450 m²)", level=2)
+bullets([
+    f"**Outbound staging:** all afternoon trailers' goods wait at the same time after wave 3. Measured per day: median "
+    f"{OA['need_m2_median']:.0f} m², p90 {OA['need_m2_p90']:.0f} m², busiest day {OA['need_m2_max']:.0f} m² → every Q2 day fits, "
+    "with room for twice the volume.",
+    f"**Packing:** pack stations, put-wall, small-parts shelving, waiting pallets, wrapper and packaging stock need "
+    f"{PA['need_m2']:.0f} m² → fits in 450 m² with {PA['spare_m2']:.0f} m² spare (D2 §5.4).",
+])
+doc.add_heading("4.5 Hazardous goods — recount and classes", level=2)
+para(f"Counted per load (LODNUM) with the hazmat flag: {HZ['skus']} SKUs and {HZ['loads']:,} loads ({HZ['share_loads_pct']:.0f}% of "
+     f"loads), ~{HZ['kg_in_stock'] / 1000:.0f} t gross on 01-06-2025 (same method in April and May: "
+     f"{', '.join(str(x['loads']) for x in HZ['by_snapshot'][:2])} loads — the count grows with the stock). The customs code "
+     "tells what the products are:", sa=4)
+table(["Customs code", "What it is", "Likely hazard", "Dutch rule", "Loads", "Tonnes"],
+      [[c["HS"], c["What it is"], c["Likely hazard"], c["Dutch rule"], f"{c['Loads']:,}", f"{c['t']:.0f}"] for c in HZ["classes"]],
+      widths=[1.6, 3.8, 4.6, 2.0, 1.4, 1.4], arr=4)
+bullets([
+    f"**{HZ['pgs37_share_loads_pct']:.0f}% of hazardous loads are electronic security products** (safes, locks, alarms, cameras, readers) "
+    "— most likely with lithium cells inside (UN3481/UN3091, class 9). Storage then follows PGS 37-2 (from 333 kg; 1,000 kg for "
+    "small cells, S029), not PGS 15.",
+    "**Only a few loads are chemicals** (lubricants → PGS 15 if aerosols or flammable), and 33 loads of cardboard boxes look like a "
+    "wrong flag.",
+    "**To confirm with Assa Abloy:** the UN numbers on the safety data sheets. The hazmat section and its fire separation are sized "
+    "after that and are not in this budget.",
+])
 
 # ================================================================ 5 COSTS
 doc.add_heading("5. Costs — CAPEX and OPEX", level=1)
 para("The capacity plan (D2 §6) is turned into money in three steps: (1) count what the design needs (positions, bays, "
      "trucks, people), (2) multiply by a price from a public source or a labelled assumption (Section 7), (3) add it up per "
-     "year. Trucks are leased with full service (repairs included), so they are OPEX, not CAPEX. The building, dock "
-     "levellers, sprinklers and the hazmat compartment are outside the project scope and not included.", sa=6)
+     f"year. Labour is costed at €{RATE['value']:.0f} per hour for an operator (feedback; €{RATE['high']:.0f} tested as the high case). "
+     "Trucks are leased with full service (repairs included), so they are OPEX. The building, dock levellers, sprinklers and "
+     "the hazmat compartment are outside the project scope and not included.", sa=6)
 doc.add_heading("5.1 One-off investment (CAPEX)", level=2)
 figure("d3_capex.png", f"Fig 6. CAPEX by group — total {eur(PC['capex_total'], True)}.", 13.5)
 rows = [[r["Item"], f"{r['Qty']:,.0f} {r['Unit']}", eur(r["Unit price EUR"]) if r["Unit price EUR"] >= 10 else f"€{r['Unit price EUR']:.2f}",
@@ -316,7 +416,7 @@ rows.append(["Total CAPEX", "", "", eur(PC["capex_total"]), ""])
 table(["Item", "Quantity", "Unit price", "Total", "Source"], rows, widths=[6.0, 2.8, 2.0, 2.4, 2.8], arr=2, bold_last=True)
 bullets([
     f"**Racking is {PC['capex_by_group']['Storage'] / PC['capex_total']:.0%} of the investment.** If the racking already standing in "
-    f"Bemmel can be taken down and rebuilt in the new layout (about €25 per position), the investment drops to "
+    f"Bemmel can be rebuilt in the new layout (about €{PC['cost_register']['rack_reuse']['value']:.0f} per position), the investment drops to "
     f"{eur(PC['capex_reuse_racking'], True)}. DHL must confirm the type and condition of today's racks.",
     f"**Depreciation:** {eur(PC['depreciation_year'])} a year (racking 15 years, equipment 7, IT 5).",
 ])
@@ -342,24 +442,26 @@ table(["Per …", "Volume per year", "Cost"], [
 para("These are full costs (OPEX + depreciation) split over the volume — useful for DHL to compare with the price "
      "agreed with Assa Abloy.", size=9.5, color=GREY)
 doc.add_heading("5.4 Today vs future — saving and payback", level=2)
-table(["", "All-new equipment", "Re-use today's racking"], [
-    ["One-off investment", eur(PC["capex_total"]), eur(PC["capex_reuse_racking"])],
-    ["Labour saved per year (Section 2.2)", eur(PC["saving_year"]), eur(PC["saving_year"])],
-    ["Simple payback", f"{PC['payback_years']:.1f} years", f"{PC['payback_reuse_years']:.1f} years"],
-], widths=[6.0, 4.5, 4.5])
+table(["", "Process changes only", "Whole design, re-used racking", "Whole design, all new"], [
+    ["One-off investment", eur(PC["capex_process"]), eur(PC["capex_reuse_racking"]), eur(PC["capex_total"])],
+    ["Labour saved per year (Section 2.2)", eur(PC["saving_year"]), eur(PC["saving_year"]), eur(PC["saving_year"])],
+    ["Simple payback", f"{PC['payback_process_years']:.1f} years", f"{PC['payback_reuse_years']:.1f} years", f"{PC['payback_years']:.1f} years"],
+], widths=[5.0, 3.6, 3.8, 3.6])
 bullets([
-    "**Only labour savings are counted.** Shorter lead times, fewer parked trailers, fewer picking errors and a safer "
-    "layout have value too, but no reliable price.",
-    "**The saving is the part DHL can prove fastest:** wave release and batching need almost no investment (WMS set-up, "
-    "trolleys, the put-to-light wall). They can start before the racks are rebuilt.",
+    "**Process changes** = carton-flow fast-pick area, trolleys and totes, put-to-light wall, RF terminals and the WMS set-up of "
+    "waves and slotting. They create the whole labour saving and pay for themselves quickly — they can start before the racks are rebuilt.",
+    "**Racks, shelving and the container zone are capacity**: they are needed to store and receive the goods at all, so they are "
+    "judged on cost per position and space, not on labour saved.",
+    "**Only labour savings are counted.** Shorter lead times, fewer parked trailers, fewer picking errors and a safer layout have "
+    "value too, but no reliable price.",
 ])
 doc.add_heading("5.5 What if our cost assumptions are wrong?", level=2)
 figure("d3_tornado.png", "Fig 8. Yearly cost (OPEX + depreciation) when each assumption moves to the low or high end of its range.", 15)
 bullets([
-    "**Labour rate and productivity matter most** — labour is about two thirds of the yearly cost. DHL's real hourly cost "
-    "and time studies (A006, A025) are the most valuable inputs to get.",
+    f"**Labour rate and productivity matter most** — labour is ~{PC['unit_cost']['labour_share_pct']:.0f}% of the yearly cost. DHL's real "
+    "hourly cost and time studies (A006, A025) are the most valuable inputs to get.",
     "**Racking price is the biggest one-off uncertainty**, but spread over 15 years its effect on the yearly cost is smaller.",
-    "**The truck lease price hardly matters**: only 7 trucks are leased.",
+    f"**The truck lease price hardly matters**: only {Q['etv'] + Q['eje'] + Q['ere']} trucks are leased.",
     f"**Loose containers:** a DHL crew costs ~€{PC['loose_cost_per_container']:,.0f} per container "
     f"({Q['containers_year']:.0f} containers a year). If a contractor quotes less, use the contractor in the same zone.",
 ])
@@ -368,16 +470,17 @@ bullets([
 doc.add_heading("6. Supporting documents", level=1)
 table(["Document", "What it contains"], [
     ["Deliverable 1 — Analysis (updated)", "Data analysis, concept choice and decision matrix; now single-deep racks and per-order lead time"],
-    ["Deliverable 2 — Future state (v3)", "Processes, flowcharts, layout and 3D, docks, picking, machinery and capacity plan; now with the loose-container zone and the reviewed fleet"],
+    ["Deliverable 2 — Future state (v3)", "Processes, flowcharts, layout and 3D, docks, picking, machinery, capacity plan; now with the container "
+     "zone and R2 overflow, long-goods module, small-parts shelving, area checks and the hazmat classes"],
     ["Deliverable_3_Calculations.xlsx", "Every price, quantity and formula of this report; change an input and all totals update"],
-    ["data/assumptions.json", "All assumptions A001–A041, each with reason, source and impact"],
-    ["documentation/sources.md", "All sources S001–S025 with links and what they support"],
+    ["data/assumptions.json", "All assumptions A001–A045, each with reason, source and impact"],
+    ["documentation/sources.md", "All sources S001–S030 with links and what they support"],
     ["analysis/*.py", "Scripts that turn the raw data into every table and figure (run order in README.md)"],
 ], widths=[5.4, 10.6], arr=9)
 
 # ================================================================ 7 ASSUMPTIONS
 doc.add_heading("7. Cost assumptions and open points", level=1)
-para("New assumptions for Deliverable 3 (full register in data/assumptions.json):", sa=4)
+para("Assumptions added for Deliverable 3 (full register in data/assumptions.json):", sa=4)
 rows = [[a["id"], a["assumption"], a["value"], a["source"]] for a in ASSUM["assumptions"] if a["id"] >= "A030"]
 table(["ID", "Assumption", "Value", "Source"], rows, widths=[1.2, 3.6, 7.4, 3.8], arr=9)
 para("Sources for prices and benchmarks:", sa=4)
@@ -390,14 +493,20 @@ src = {
     "S023": "WERC DC Measures 2024/2025 — pick accuracy and dock-to-stock benchmarks",
     "S024": "Prestatie — loose-load container unloading (2–4 h, fixed price per container)",
     "S025": "Public equipment listings (trolley, tote, wrapper, conveyor, carton flow, put-to-light, RF terminal)",
+    "S026": "Teacher feedback session 2 — space checks, ~2 m max length, small parts vs Kardex, own KPIs, €20/h, hazmat",
+    "S027": "Relevator Group — Kardex Shuttle XP 500 specifications and prices",
+    "S028": "Cisco-Eagle / Kardex LogiMat / MMH Van Meter — picking rates at lifts and shelving",
+    "S029": "Evofenedex / Specialcargo / BOVAG — PGS 37-2 storage of lithium batteries",
+    "S030": "Manutan — steel shelving section prices",
 }
 table(["ID", "Source"], [[k, v] for k, v in src.items()], widths=[1.4, 14.6], arr=9)
 bullets([
     "**To get from DHL:** real hourly labour cost and pick/pack times (A006, A025, A030); type and condition of today's racking "
     "(re-use); container numbers per week (A019).",
-    "**To get from suppliers:** Jungheinrich lease quote for 2 ETV 216i, 3 EJE 120i, 2 ERE 225 (A038); racking quote for "
-    f"{LAY['positions_total']:,} single-deep positions (A033); contractor price per loose container (A026).",
-    "**To get from Assa Abloy:** the hazard class of the 138 flagged SKUs — it decides the hazmat section, which is not in this budget (A028).",
+    "**To get from suppliers:** Jungheinrich lease quote for the trucks (A038); racking quote incl. the long-goods module (A033); "
+    "contractor price per loose container (A026).",
+    "**To get from Assa Abloy:** UN numbers / safety data sheets of the hazardous SKUs (A028), and a clean-up of the item lengths "
+    "in the master data (A043).",
 ])
 
 footer()

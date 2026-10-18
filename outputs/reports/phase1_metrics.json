@@ -545,6 +545,10 @@
         "unit": "picker-h",
         "rate_per_h": null
       },
+      "Picking - small parts (bin shelving)": {
+        "unit": "picker-h",
+        "rate_per_h": null
+      },
       "Full-pallet picking (reach truck)": {
         "unit": "pallets",
         "rate_per_h": 22
@@ -560,8 +564,8 @@
     },
     "net_hours_per_fte": 7.5,
     "total_fte_avg": 4.7,
-    "total_fte_peak": 8.6,
-    "total_fte_ceil_peak": 13,
+    "total_fte_peak": 8.7,
+    "total_fte_ceil_peak": 14,
     "outsourced_destuff_h_avg": 6.0,
     "labour_table": [
       {
@@ -618,28 +622,41 @@
       },
       {
         "Process": "Picking - small orders (trolley, batch)",
-        "Driver/day (avg)": 3.6,
+        "Driver/day (avg)": 2.9,
         "Unit": "picker-h",
         "Rate/h": "-",
         "Peak factor": 1.83,
-        "Hours (avg)": 3.6,
-        "Hours (peak)": 6.5,
-        "FTE avg": 0.48,
-        "FTE peak": 0.87,
+        "Hours (avg)": 2.9,
+        "Hours (peak)": 5.3,
+        "FTE avg": 0.39,
+        "FTE peak": 0.71,
         "FTE (ceil peak)": 1,
         "DHL staff": true
       },
       {
         "Process": "Picking - large orders (EJE, to pallet)",
-        "Driver/day (avg)": 7.8,
+        "Driver/day (avg)": 6.9,
         "Unit": "picker-h",
         "Rate/h": "-",
         "Peak factor": 1.83,
-        "Hours (avg)": 7.8,
-        "Hours (peak)": 14.3,
-        "FTE avg": 1.04,
-        "FTE peak": 1.9,
+        "Hours (avg)": 6.9,
+        "Hours (peak)": 12.7,
+        "FTE avg": 0.92,
+        "FTE peak": 1.69,
         "FTE (ceil peak)": 2,
+        "DHL staff": true
+      },
+      {
+        "Process": "Picking - small parts (bin shelving)",
+        "Driver/day (avg)": 1.9,
+        "Unit": "picker-h",
+        "Rate/h": "-",
+        "Peak factor": 1.83,
+        "Hours (avg)": 1.9,
+        "Hours (peak)": 3.4,
+        "FTE avg": 0.25,
+        "FTE peak": 0.46,
+        "FTE (ceil peak)": 1,
         "DHL staff": true
       },
       {
@@ -764,7 +781,7 @@
         "% of building": "52%"
       },
       {
-        "Zone": "Selective + cantilever (odd / long items)",
+        "Zone": "Odd-item + long-goods modules",
         "Area m2": 728,
         "% of building": "11%"
       },
@@ -793,9 +810,14 @@
     "storage_aisles": 10,
     "levels": 8,
     "bays_per_row": 18,
-    "positions_total": 9504,
+    "long_bays_per_row": 10,
+    "positions_total": 8960,
     "positions_standard": 7776,
-    "positions_odd_long": 1728,
+    "positions_odd": 864,
+    "positions_long": 320,
+    "positions_odd_long": 1184,
+    "long_aisle_m": 3.2,
+    "positions_12th_module": 864,
     "positions_target": 9500,
     "rack_type": "single-deep, back-to-back",
     "loose_zone_m2": 190,
@@ -901,7 +923,7 @@
       {
         "Move": "Putaway (receiving -> reserve)",
         "Truck": "ETV 216i",
-        "Avg one-way m": 79.0,
+        "Avg one-way m": 78.0,
         "Cycle min": 2.38,
         "Moves/h": 25.2
       },
@@ -948,12 +970,12 @@
       {
         "Model": "Jungheinrich EJE 120i",
         "Task": "Large orders: pick-to-pallet (one order per pallet)",
-        "Equip-h/day avg": 7.8,
-        "Equip-h/day peak": 14.3,
+        "Equip-h/day avg": 6.9,
+        "Equip-h/day peak": 12.7,
         "Units required (avg)": 2,
         "Units required (peak)": 3,
         "Units recommended": 3,
-        "Utilisation avg %": 35.0
+        "Utilisation avg %": 31.0
       },
       {
         "Model": "Jungheinrich ERE 225",
@@ -968,8 +990,8 @@
       {
         "Model": "Pick trolley (3-tier, 6 totes) + totes",
         "Task": "Small orders: zone batch picking, sorted at the put-wall",
-        "Equip-h/day avg": 3.6,
-        "Equip-h/day peak": 6.5,
+        "Equip-h/day avg": 2.9,
+        "Equip-h/day peak": 5.3,
         "Units required (avg)": 1,
         "Units required (peak)": 1,
         "Units recommended": 6,
@@ -1008,14 +1030,14 @@
         "Result": "OK - standard forks; no telescopic attachment, no residual-capacity loss"
       },
       {
-        "Check": "Long pallets: 163 loads 1.9-2.4 m (XLONG/CONS), 26 > 2.4 m",
-        "Requirement": "fit the rack and the 3.0 m aisle",
-        "Result": "OK - 1.9-2.4 m pallets stored crosswise, 1 per 2.7 m bay in the odd/long modules (forks enter the long side); > 2.4 m on cantilever"
+        "Check": "Long pallets: 140 loads 1.3-2.05 m (+115 recorded longer = data errors, capped at 2.05 m)",
+        "Requirement": "aisle >= Ast 2976 mm with a 2.05 m load crosswise",
+        "Result": "OK - long-goods module with 4.5 m bays (2 pallets each) behind a 3.2 m aisle; forks under the long side (load centre 400 mm, full 1.6 t)"
       },
       {
         "Check": "Tall loads: 940 loads 1.16-1.68 m, 42 > 1.68 m",
         "Requirement": "1.41 m level pitch",
-        "Result": "OK - top level (~1.7 m free under the roof clearance) has 1,188 positions; > 1.68 m on the floor"
+        "Result": "OK - top level (~1.7 m free under the roof clearance) has 1,120 positions; > 1.68 m on the floor"
       },
       {
         "Check": "Large orders up to p90 671 kg",
@@ -1119,7 +1141,7 @@
         "Turning / aisle needed": "Wa 1,665 mm; aisle 2,631-2,785 mm",
         "Where it drives": "Perimeter + cross-aisles; storage aisles",
         "Narrowest aisle": "3.0 m",
-        "Result": "OK - turns 90\u00b0 in the 3.2 m cross-aisles; drives through or reverses out"
+        "Result": "OK - turns 90\u00b0 in the 3.2 m cross-aisles; with a 2.05 m long load it needs 2976 mm -> long goods only via 3.2 m aisles"
       },
       {
         "Machine": "EJE 120i pallet truck",
@@ -1174,7 +1196,7 @@
         "Machine": "EJE 120i pallet truck",
         "Process": "Large orders: pick-to-pallet",
         "Why (data)": "16% of orders (23/day) are pallet-sized: median 234 L, 140 kg (p90 671 kg) - too big/heavy for a trolley",
-        "How it is used": "One order per pallet; ~15 lines in ~20 min; drops the pallet at packing",
+        "How it is used": "One order per pallet; ~15 lines in ~18 min; drops the pallet at packing",
         "Units": 3
       },
       {
@@ -1350,7 +1372,44 @@
       "area_needed_m2": 185.0,
       "area_planned_m2": 190,
       "crew": 2,
-      "hours_per_container": 3.0
+      "hours_per_container": 3.0,
+      "skus_per_container_p90": 20.0,
+      "loads_per_container_p90": 52.30000000000001,
+      "need_m2_median": 134.0,
+      "need_m2_p90": 186.0,
+      "need_m2_max": 458.0,
+      "share_fit_zone_pct": 91.0,
+      "share_fit_with_r2_pct": 97.0,
+      "recv_staged_pallets_peak": 17.0,
+      "recv_need_m2": 80.0,
+      "r2_lend_m2": 131.0,
+      "area_with_r2_m2": 321.0,
+      "doors_left_when_r2_blocked": 2,
+      "doors_needed_base": 2,
+      "doors_needed_peak": 2
+    },
+    "outbound_area": {
+      "staged_pallets_p90": 18.0,
+      "staged_cages_p90": 14.0,
+      "need_m2_median": 34.0,
+      "need_m2_p90": 60.0,
+      "need_m2_max": 100.0,
+      "planned_m2": 216,
+      "share_days_fit_pct": 100.0
+    },
+    "packing_area": {
+      "parts_m2": {
+        "Pack stations (4 x 10 m2: bench, scale, printer, working space)": 40.0,
+        "Put-to-light wall (90 slots, both sides)": 22.0,
+        "Large orders waiting to be packed (peak wave 13 pallets x 1.9 m2)": 25.0,
+        "Stretch wrapper incl. safety zone": 12.0,
+        "Trolleys and empty totes": 10.0,
+        "Packaging material (one day of cartons, film, labels)": 40.0,
+        "Small-parts bin shelving (188 bays, incl. aisles)": 207.0
+      },
+      "need_m2": 401.0,
+      "planned_m2": 450,
+      "spare_m2": 49.0
     },
     "load_checks": {
       "weight": {
@@ -1359,18 +1418,51 @@
         "loads": 11015
       },
       "long": {
-        "loads_over_1_9m": 163,
-        "loads_over_2_4m": 26
+        "loads_long": 140,
+        "loads_over_2_05m_data_error": 115,
+        "max_len_cm": 205.0,
+        "loads_long_capped": 255,
+        "long_load_kg_max": 2035.0,
+        "long_load_kg_p95": 346.0,
+        "x_mm": 372.0,
+        "ast_eur_mm": 2785.0,
+        "ast_long_crosswise_mm": 2976.0,
+        "load_centre_long_mm": 400,
+        "long_aisle_mm": 3200,
+        "capacity_if_forked_short_side_kg": 937.0
       },
       "tall": {
         "loads_1_16_to_1_68": 940,
         "loads_over_1_68": 42,
         "height_missing": 493,
-        "top_level_positions": 1188
+        "top_level_positions": 1120
       }
     }
   },
   "picking": {
+    "small_parts": {
+      "skus": 2657,
+      "stock_m3": 31.7,
+      "slots_needed": 3424,
+      "shelf_bays": 188,
+      "slots_per_bay": 21,
+      "lift_units": 3,
+      "trays": 60,
+      "slots_per_tray": 24,
+      "freed_rack_locations": 1005,
+      "lines_day": 93.3,
+      "rate_lines_h": 50.0,
+      "picker_h_avg": 1.87,
+      "picker_h_peak": 3.42,
+      "criteria": {
+        "stock_l_max": 50.0,
+        "each_l_max": 20.0,
+        "each_kg_max": 15.0,
+        "each_cm_max": 60.0,
+        "abc": "C or no demand in Q2"
+      },
+      "skus_small_ab_in_fast_pick": 390
+    },
     "params": {
       "tote_l": 40.0,
       "tote_kg": 15.0,
@@ -1430,33 +1522,34 @@
       },
       {
         "Zone": "Reserve low levels (C)",
-        "Lines/day": 104.0,
-        "Lines per tour": 31.0,
+        "Lines/day": 50.0,
+        "Lines per tour": 16.0,
         "Tour limited by": "trolley volume",
-        "Walk per tour (m)": 624.0,
-        "Tour (min)": 30.2,
-        "Lines/h": 62.0,
-        "Tours/day": 3.3,
-        "Picker-h avg": 1.68,
-        "Picker-h peak": 3.07
+        "Walk per tour (m)": 471.0,
+        "Tour (min)": 19.8,
+        "Lines/h": 49.0,
+        "Tours/day": 3.1,
+        "Picker-h avg": 1.02,
+        "Picker-h peak": 1.87
       }
     ],
     "large_orders": {
       "orders_day": 23.0,
       "lines_per_order": 14.9,
+      "lines_vlm": 1.7,
       "lines_fast_pick": 11.5,
-      "lines_reserve": 3.4,
-      "walk_per_order_m": 337.0,
-      "min_per_order": 20.3,
+      "lines_reserve": 1.6,
+      "walk_per_order_m": 279.0,
+      "min_per_order": 18.0,
       "lines_per_h": 44.0,
-      "picker_h_avg": 7.8,
-      "picker_h_peak": 14.28,
+      "picker_h_avg": 6.92,
+      "picker_h_peak": 12.66,
       "kg_median": 140.0,
       "kg_p90": 671.0,
       "litres_median": 234.0
     },
-    "pick_fte_avg": 1.52,
-    "pick_fte_peak": 2.77,
+    "pick_fte_avg": 1.56,
+    "pick_fte_peak": 2.85,
     "equipment": [
       {
         "Item": "Pick trolley (3-tier, 6 totes)",
@@ -1494,20 +1587,20 @@
     "routing": [
       {
         "Tour": "Small-order trolley tour (reserve zone)",
-        "Lines in reserve": 31.0,
-        "S-shape": 660.0,
-        "Return": 895.0,
-        "Midpoint": 665.0,
-        "Largest gap": 624.0,
+        "Lines in reserve": 16.0,
+        "S-shape": 572.0,
+        "Return": 682.0,
+        "Midpoint": 488.0,
+        "Largest gap": 471.0,
         "Best": "Largest gap"
       },
       {
         "Tour": "Large-order pallet tour (reserve part)",
-        "Lines in reserve": 3.4,
-        "S-shape": 248.0,
-        "Return": 254.0,
-        "Midpoint": 221.0,
-        "Largest gap": 220.0,
+        "Lines in reserve": 1.6,
+        "S-shape": 168.0,
+        "Return": 171.0,
+        "Midpoint": 162.0,
+        "Largest gap": 162.0,
         "Best": "Largest gap"
       }
     ]
@@ -1526,8 +1619,8 @@
       },
       {
         "Question (W3)": "Longest SKU",
-        "Answer": "A000432677 \u2014 1095 cm",
-        "Note": "26 SKUs longer than 2.4 m -> cantilever racking"
+        "Answer": "A000132438 \u2014 205 cm (realistic maximum ~2 m, door size)",
+        "Note": "76 SKUs recorded longer than 2.05 m (up to 1095 cm for a 0.5 kg item) are data errors (A043)"
       },
       {
         "Question (W3)": "Most lines in one order",
@@ -1688,20 +1781,20 @@
     ],
     "concepts": {
       "Flow-through (receiving west, shipping east)": {
-        "putaway_one_way_m": 65.2,
+        "putaway_one_way_m": 65.1,
         "per_class_m": {
           "A": 64.7,
-          "B": 65.0,
-          "C": 65.5
+          "B": 64.9,
+          "C": 65.4
         },
         "putaway_km_day": 12.9
       },
       "U-shaped (receiving + shipping on the east wall)": {
         "putaway_one_way_m": 59.0,
         "per_class_m": {
-          "A": 45.1,
-          "B": 56.2,
-          "C": 70.4
+          "A": 45.2,
+          "B": 56.3,
+          "C": 70.5
         },
         "putaway_km_day": 11.7
       }
@@ -1710,7 +1803,7 @@
       {
         "Criterion": "Put-away travel (reach truck, per load, one way)",
         "Flow-through": "65 m",
-        "U-shaped": "59 m (-10%)"
+        "U-shaped": "59 m (-9%)"
       },
       {
         "Criterion": "Reach-truck time saved per day",
@@ -1738,7 +1831,7 @@
         "U-shaped": "Suits strong ABC (ours: 13% of SKUs = 80%)"
       }
     ],
-    "concept_verdict": "Keep flow-through. U-shaped saves only ~10% put-away travel (~11 reach-truck minutes/day) because slow C items still bring 46% of inbound loads and picking travel is identical; its door saving depends on all inbound arriving before noon, which sea containers cannot guarantee. Flow-through keeps inbound, returns and outbound apart and fits the side-wall dock lengths.",
+    "concept_verdict": "Keep flow-through. U-shaped saves only ~9% put-away travel (~11 reach-truck minutes/day) because slow C items still bring 46% of inbound loads and picking travel is identical; its door saving depends on all inbound arriving before noon, which sea containers cannot guarantee. Flow-through keeps inbound, returns and outbound apart and fits the side-wall dock lengths.",
     "inbound_share_by_class_pct": {
       "C": 46.0,
       "B": 20.0,
@@ -1794,13 +1887,138 @@
       "loads": 2197,
       "kg_in_stock": 384895.0,
       "pgs15_threshold_kg": 10000,
-      "above_threshold": true
+      "above_threshold": true,
+      "share_loads_pct": 19.9,
+      "count_method": "unique LODNUM with HAZMAT = 1 in the 01-06-2025 snapshot; weight = QTY x EA WGT (gross product weight)",
+      "by_snapshot": [
+        {
+          "snapshot": "01-04-2025",
+          "skus": 125,
+          "loads": 1727,
+          "t": 311.0
+        },
+        {
+          "snapshot": "01-05-2025",
+          "skus": 138,
+          "loads": 1895,
+          "t": 343.0
+        },
+        {
+          "snapshot": "01-06-2025",
+          "skus": 138,
+          "loads": 2197,
+          "t": 385.0
+        }
+      ],
+      "classes": [
+        {
+          "HS": "8303",
+          "What it is": "Safes and strong-boxes (electronic locks)",
+          "Likely hazard": "lithium cells in equipment (UN3481 / UN3091, class 9)",
+          "Dutch rule": "PGS 37-2",
+          "SKUs": 41,
+          "Loads": 1603,
+          "t": 314.7
+        },
+        {
+          "HS": "8471",
+          "What it is": "Readers / data units",
+          "Likely hazard": "lithium cells in equipment (UN3481, class 9)",
+          "Dutch rule": "PGS 37-2",
+          "SKUs": 2,
+          "Loads": 171,
+          "t": 9.9
+        },
+        {
+          "HS": "8301",
+          "What it is": "Locks and padlocks (electronic)",
+          "Likely hazard": "lithium cells in equipment (UN3481 / UN3091, class 9)",
+          "Dutch rule": "PGS 37-2",
+          "SKUs": 35,
+          "Loads": 148,
+          "t": 27.2
+        },
+        {
+          "HS": "8531",
+          "What it is": "Alarm and signalling devices",
+          "Likely hazard": "lithium cells in equipment (UN3481 / UN3091, class 9)",
+          "Dutch rule": "PGS 37-2",
+          "SKUs": 25,
+          "Loads": 141,
+          "t": 17.0
+        },
+        {
+          "HS": "8525",
+          "What it is": "Cameras",
+          "Likely hazard": "lithium cells in equipment (UN3481, class 9)",
+          "Dutch rule": "PGS 37-2",
+          "SKUs": 16,
+          "Loads": 88,
+          "t": 8.2
+        },
+        {
+          "HS": "4819",
+          "What it is": "Cardboard boxes",
+          "Likely hazard": "unclear - packaging should not be hazardous; check the flag",
+          "Dutch rule": "check flag",
+          "SKUs": 1,
+          "Loads": 33,
+          "t": 5.8
+        },
+        {
+          "HS": "8302",
+          "What it is": "other",
+          "Likely hazard": "unknown",
+          "Dutch rule": "check",
+          "SKUs": 8,
+          "Loads": 10,
+          "t": 0.5
+        },
+        {
+          "HS": "none",
+          "What it is": "other",
+          "Likely hazard": "unknown",
+          "Dutch rule": "check",
+          "SKUs": 2,
+          "Loads": 7,
+          "t": 0.6
+        },
+        {
+          "HS": "3403",
+          "What it is": "Lubricants",
+          "Likely hazard": "possibly aerosols or flammable liquids (class 2 / 3)",
+          "Dutch rule": "PGS 15",
+          "SKUs": 5,
+          "Loads": 6,
+          "t": 0.5
+        },
+        {
+          "HS": "8507",
+          "What it is": "Batteries (loose)",
+          "Likely hazard": "lithium batteries (UN3480 / UN3090, class 9)",
+          "Dutch rule": "PGS 37-2",
+          "SKUs": 1,
+          "Loads": 5,
+          "t": 0.5
+        },
+        {
+          "HS": "8479",
+          "What it is": "other",
+          "Likely hazard": "unknown",
+          "Dutch rule": "check",
+          "SKUs": 2,
+          "Loads": 2,
+          "t": 0.0
+        }
+      ],
+      "pgs37_share_loads_pct": 97.0,
+      "family_203_share_pct": 97.0
     },
     "kpis": [
       {
         "KPI (W3)": "Dock-to-stock time",
         "Expected": "~1.5 h per palletised trailer; ~3.8 h per loose container",
-        "Basis": "unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container de-stuffed by contractor"
+        "Basis": "unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container unpacked in its own zone at R1"
       },
       {
         "KPI (W3)": "Put-away cycle time",
@@ -1809,7 +2027,7 @@
       },
       {
         "KPI (W3)": "Pick rate",
-        "Expected": "~56 lines per picker-hour overall (fast-pick 99, reserve 62, large orders 44)",
+        "Expected": "~59 lines per picker-hour overall (fast-pick 99, reserve 49, large orders 44)",
         "Basis": "pick-time model, largest-gap routing, trolley batching"
       },
       {
@@ -1822,28 +2040,28 @@
   "performance_cost": {
     "cost_register": {
       "labour_rate": {
-        "value": 28.0,
-        "low": 24.0,
-        "high": 34.0,
+        "value": 20.0,
+        "low": 20.0,
+        "high": 28.0,
         "unit": "EUR per paid hour (operative)",
         "id": "A030",
-        "basis": "CAO Beroepsgoederenvervoer 2025 wage scales B-C EUR 14.40-18.28/h (S019) x 1.08 holiday pay x 1.33 employer premiums (CBS transport & storage: EUR 10.9 premiums on EUR 33.5 wages per worked hour, S018) x 1.19 paid-but-not-worked time; stays below the CBS sector average of EUR 44.4 (which includes drivers and managers)"
+        "basis": "teacher feedback (S026): EUR 20/h for a warehouse operator; high end EUR 28/h = CAO wage (S019) x employer premiums (S018) x holiday pay x paid-not-worked time"
       },
       "lead_rate": {
-        "value": 38.0,
-        "low": 32.0,
-        "high": 45.0,
+        "value": 27.0,
+        "low": 27.0,
+        "high": 38.0,
         "unit": "EUR per paid hour (team leader)",
         "id": "A030",
-        "basis": "CAO scale F-G EUR 23-25/h (S019) x same factors"
+        "basis": "operator rate x 1.35 (CAO scale F-G vs B-C, S019)"
       },
       "admin_rate": {
-        "value": 33.0,
-        "low": 28.0,
-        "high": 40.0,
+        "value": 24.0,
+        "low": 24.0,
+        "high": 33.0,
         "unit": "EUR per paid hour (inventory control / admin)",
         "id": "A030",
-        "basis": "between operative and team leader"
+        "basis": "operator rate x 1.2"
       },
       "paid_h_shift": {
         "value": 8.0,
@@ -1877,13 +2095,45 @@
         "id": "A033",
         "basis": "EU selective racking EUR 80-140/position equipment (S020) + 30-50% install; installed 75-150 (S020); 12 m frames -> upper half"
       },
-      "cantilever_pp": {
-        "value": 250.0,
-        "low": 150.0,
-        "high": 400.0,
-        "unit": "EUR per arm position",
+      "long_bay_pp": {
+        "value": 160.0,
+        "low": 100.0,
+        "high": 250.0,
+        "unit": "EUR per long-goods position (4.5 m beams)",
         "id": "A033",
-        "basis": "assumption: ~2x a pallet position (heavier column + arms)"
+        "basis": "assumption: ~1.25x a standard position (longer, heavier beams)"
+      },
+      "shelf_bay": {
+        "value": 200.0,
+        "low": 153.0,
+        "high": 245.0,
+        "unit": "EUR per bin-shelving bay (1.0 x 0.6 x 2.5 m)",
+        "id": "A042",
+        "basis": "Manutan shelving EUR 153-245 per section (S030)"
+      },
+      "vlm_unit": {
+        "value": 60000.0,
+        "low": 48000.0,
+        "high": 90000.0,
+        "unit": "EUR per Kardex Shuttle XP 500 incl. installation (compared option)",
+        "id": "A042",
+        "basis": "new Shuttle XP 500 (2,450 x 864 trays) EUR 48,000 (S027); 4,050 mm trays + installation -> EUR 60,000 assumed"
+      },
+      "vlm_slot": {
+        "value": 8.0,
+        "low": 6.0,
+        "high": 12.0,
+        "unit": "EUR per half-bin slot (bin + divider)",
+        "id": "A042",
+        "basis": "half of a 600x400 tote EUR 14.56-19.95 (S025)"
+      },
+      "vlm_integr": {
+        "value": 10000.0,
+        "low": 5000.0,
+        "high": 20000.0,
+        "unit": "EUR one-off",
+        "id": "A042",
+        "basis": "assumption: WMS link to the lift controller + light pointer"
       },
       "rack_reuse": {
         "value": 25.0,
@@ -2079,7 +2329,7 @@
       }
     },
     "quantities": {
-      "positions": 9504,
+      "positions": 8960,
       "flow_bays": 31,
       "flow_lanes": 930,
       "ptl_slots": 90,
@@ -2094,49 +2344,72 @@
       "containers_year": 244,
       "move_hours": 437.0
     },
-    "capex_total": 1627140.0,
+    "capex_total": 1617276.0,
     "capex_by_group": {
-      "Storage": 1307296.0,
+      "Storage": 1232640.0,
+      "Small-item storage": 69184.0,
       "Picking": 59262.0,
       "Sorting & packing": 45499.0,
       "Loose-container zone": 6349.0,
       "IT": 46000.0,
-      "One-off": 14813.0,
-      "Contingency": 147922.0
+      "One-off": 11317.0,
+      "Contingency": 147025.0
     },
     "capex_table": [
       {
         "Group": "Storage",
         "Item": "Single-deep pallet racking (incl. installation)",
-        "Qty": 9504,
+        "Qty": 8640,
         "Unit": "positions",
         "Unit price EUR": 130.0,
         "Source": "A033 / S020",
-        "Total EUR": 1235520.0,
+        "Total EUR": 1123200.0,
         "Life (yrs)": 15,
-        "Depreciation EUR/yr": 82368.0
+        "Depreciation EUR/yr": 74880.0
       },
       {
         "Group": "Storage",
-        "Item": "Cantilever racking for goods > 2.4 m",
-        "Qty": 40,
-        "Unit": "arm positions",
-        "Unit price EUR": 250.0,
+        "Item": "Long-goods racking, 4.5 m bays (2.05 m pallets)",
+        "Qty": 320,
+        "Unit": "positions",
+        "Unit price EUR": 160.0,
         "Source": "A033",
-        "Total EUR": 10000.0,
+        "Total EUR": 51200.0,
         "Life (yrs)": 15,
-        "Depreciation EUR/yr": 666.67
+        "Depreciation EUR/yr": 3413.33
       },
       {
         "Group": "Storage",
         "Item": "Rack protection, end guards, load signs",
         "Qty": 1,
         "Unit": "lot",
-        "Unit price EUR": 61776.0,
+        "Unit price EUR": 58240.0,
         "Source": "A033 / S015",
-        "Total EUR": 61776.0,
+        "Total EUR": 58240.0,
         "Life (yrs)": 15,
-        "Depreciation EUR/yr": 4118.4
+        "Depreciation EUR/yr": 3882.67
+      },
+      {
+        "Group": "Small-item storage",
+        "Item": "Bin shelving for small parts (next to the put-wall)",
+        "Qty": 188,
+        "Unit": "bays",
+        "Unit price EUR": 200.0,
+        "Source": "A042 / S030",
+        "Total EUR": 37600.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 5371.43
+      },
+      {
+        "Group": "Small-item storage",
+        "Item": "Half-bins and dividers",
+        "Qty": 3948,
+        "Unit": "slots",
+        "Unit price EUR": 8.0,
+        "Source": "A042 / S025",
+        "Total EUR": 31584.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 4512.0
       },
       {
         "Group": "Picking",
@@ -2275,58 +2548,58 @@
         "Item": "Move-in / re-slotting (each load moved once)",
         "Qty": 11015,
         "Unit": "loads",
-        "Unit price EUR": 1.34,
+        "Unit price EUR": 1.03,
         "Source": "ETV cycle model + A030",
-        "Total EUR": 14812.59,
+        "Total EUR": 11317.16,
         "Life (yrs)": 7,
-        "Depreciation EUR/yr": 2116.08
+        "Depreciation EUR/yr": 1616.74
       },
       {
         "Group": "Contingency",
         "Item": "Contingency 10%",
         "Qty": 1,
         "Unit": "lot",
-        "Unit price EUR": 147921.86,
+        "Unit price EUR": 147025.12,
         "Source": "A037",
-        "Total EUR": 147921.86,
+        "Total EUR": 147025.12,
         "Life (yrs)": 7,
-        "Depreciation EUR/yr": 21131.69
+        "Depreciation EUR/yr": 21003.59
       }
     ],
-    "depreciation_year": 135474.0,
-    "opex_total": 454794.0,
+    "depreciation_year": 139753.0,
+    "opex_total": 340873.0,
     "opex_by_group": {
-      "Labour": 404441.0,
-      "Machinery": 37127.0,
+      "Labour": 290588.0,
+      "Machinery": 37060.0,
       "Upkeep": 13225.0
     },
     "opex_table": [
       {
         "Group": "Labour",
         "Item": "Direct DHL labour (receiving, putaway, replenishment, picking, packing, loading)",
-        "Qty / yr": 9083.31,
+        "Qty / yr": 9161.39,
         "Unit": "paid h",
-        "Unit cost EUR": 28.0,
+        "Unit cost EUR": 20.0,
         "Source": "capacity plan (D2 \u00a76) x A030",
-        "Total EUR/yr": 254332.59
+        "Total EUR/yr": 183227.73
       },
       {
         "Group": "Labour",
         "Item": "Loose-container zone crew (2 people x 3 h per container)",
         "Qty / yr": 1561.6,
         "Unit": "paid h",
-        "Unit cost EUR": 28.0,
+        "Unit cost EUR": 20.0,
         "Source": "A019 x A030 (or contractor fee, see break-even)",
-        "Total EUR/yr": 43724.8
+        "Total EUR/yr": 31232.0
       },
       {
         "Group": "Labour",
         "Item": "Team leader + inventory control / admin",
         "Qty / yr": 2928.0,
         "Unit": "paid h",
-        "Unit cost EUR": 36.33,
+        "Unit cost EUR": 26.0,
         "Source": "A032 x A030",
-        "Total EUR/yr": 106384.0
+        "Total EUR/yr": 76128.0
       },
       {
         "Group": "Machinery",
@@ -2358,11 +2631,11 @@
       {
         "Group": "Machinery",
         "Item": "Electricity for trucks",
-        "Qty / yr": 8442.4,
+        "Qty / yr": 8113.0,
         "Unit": "kWh",
         "Unit cost EUR": 0.2,
         "Source": "A039 / S022",
-        "Total EUR/yr": 1727.32
+        "Total EUR/yr": 1659.92
       },
       {
         "Group": "Upkeep",
@@ -2383,43 +2656,77 @@
         "Total EUR/yr": 10725.0
       }
     ],
-    "annual_cost": 590267.0,
+    "annual_cost": 480625.0,
     "unit_cost": {
-      "per_order_line": 3.78,
-      "per_order": 16.8,
-      "per_inbound_pallet": 24.46,
-      "per_position_month": 5.18,
-      "labour_share_pct": 68.52
+      "per_order_line": 3.08,
+      "per_order": 13.68,
+      "per_inbound_pallet": 19.92,
+      "per_position_month": 4.47,
+      "labour_share_pct": 60.46
     },
     "volumes_year": {
       "lines": 156160.0,
       "orders": 35136.0,
       "inbound_pallets": 24132.0
     },
-    "loose_cost_per_container": 179.0,
+    "loose_cost_per_container": 128.0,
     "levers": [
       {
         "Lever": "Batch picking + demand-based slotting (fast-pick area)",
-        "Today h/day": 23.8,
-        "Future h/day": 11.4,
-        "Saved h/day": 12.4,
-        "Saved EUR/yr": 90364.58666666667
+        "Today h/day": 23.77,
+        "Future h/day": 11.7,
+        "Saved h/day": 12.07,
+        "Saved EUR/yr": 62846.34
       },
       {
         "Lever": "Wave release instead of one evening release (no 08:00 peak staffing)",
-        "Today h/day": 7.4,
+        "Today h/day": 7.37,
         "Future h/day": 0.0,
-        "Saved h/day": 7.4,
-        "Saved EUR/yr": 53927.253333333334
+        "Saved h/day": 7.37,
+        "Saved EUR/yr": 38362.11
       }
     ],
-    "saving_year": 144292.0,
-    "payback_years": 11.3,
-    "capex_reuse_racking": 461475.0,
-    "payback_reuse_years": 3.2,
-    "pick_today_h": 23.763,
-    "pick_today_staffed_h": 31.13,
-    "pick_future_h": 11.37,
+    "saving_year": 101208.0,
+    "payback_years": 16.0,
+    "capex_reuse_racking": 507772.0,
+    "payback_reuse_years": 5.0,
+    "capex_process": 143838.0,
+    "payback_process_years": 1.42,
+    "small_item_options": [
+      {
+        "Option": "Keep in pallet racks (today)",
+        "Floor m\u00b2": 393.0,
+        "Pallet positions used": 1005,
+        "CAPEX EUR": 130650.0,
+        "Pick rate lines/h": 49.0,
+        "Picking EUR/yr": 9911.0,
+        "Notes": "one 1 m\u00b3 pallet location for a few litres of stock; long walks in the reserve aisles",
+        "Yearly cost EUR": 28576.0
+      },
+      {
+        "Option": "Bin shelving next to the put-wall (chosen)",
+        "Floor m\u00b2": 207.0,
+        "Pallet positions used": 0,
+        "CAPEX EUR": 69184.0,
+        "Pick rate lines/h": 50.0,
+        "Picking EUR/yr": 9713.0,
+        "Notes": "188 bays, 2.5 m high; cheapest; fits in the packing area's spare floor; items go straight into the put-wall",
+        "Yearly cost EUR": 19597.0
+      },
+      {
+        "Option": "Kardex Shuttle XP 500 lifts",
+        "Floor m\u00b2": 66.0,
+        "Pallet positions used": 0,
+        "CAPEX EUR": 224560.0,
+        "Pick rate lines/h": 75.0,
+        "Picking EUR/yr": 6475.0,
+        "Notes": "3 lifts ~10 m high; 3x denser, light pointer; but busy only ~6% of the day",
+        "Yearly cost EUR": 38555.0
+      }
+    ],
+    "pick_today_h": 23.773,
+    "pick_today_staffed_h": 31.143,
+    "pick_future_h": 11.7,
     "leadtime": {
       "orders": 8774,
       "today_median_h": 24.7,
@@ -2436,39 +2743,71 @@
     "kpis": [
       {
         "Group": "Space",
-        "KPI": "Pallet positions vs peak need",
-        "How it is measured": "positions provided / peak occupied locations",
-        "Today (data)": "8,512 occupied (peak)",
-        "Future (design)": "9,504 positions (90% full at peak, 85% on average)",
-        "Target / benchmark": "\u2264 90% full at peak (A010)"
+        "KPI": "Rack fill at peak",
+        "Type": "own",
+        "How it is measured": "pallet locations used at the peak \u00f7 rack positions",
+        "Today (data)": "8,512 locations used",
+        "Future (design)": "84% (7,507 of 8,960; small parts moved to bin shelving)",
+        "Target / benchmark": "\u2264 90%"
+      },
+      {
+        "Group": "Space",
+        "KPI": "Storage headroom",
+        "Type": "own",
+        "How it is measured": "months until the racks are full at the Apr\u2013Jun growth rate",
+        "Today (data)": "+10% locations in 2 months",
+        "Future (design)": "~4 months (~5 with a 12th module)",
+        "Target / benchmark": "\u2265 12 months"
+      },
+      {
+        "Group": "Space",
+        "KPI": "Small-item density",
+        "Type": "own",
+        "How it is measured": "SKUs stored per m\u00b2 of floor",
+        "Today (data)": "~2.6 SKUs/m\u00b2 (one pallet location each)",
+        "Future (design)": "~13 SKUs/m\u00b2 in bin shelving",
+        "Target / benchmark": "\u2265 5\u00d7 better"
       },
       {
         "Group": "Space",
         "KPI": "Floor area used",
-        "How it is measured": "zones + aisles / 7,000 m\u00b2",
+        "Type": "own",
+        "How it is measured": "zones + aisles \u00f7 7,000 m\u00b2",
         "Today (data)": "\u2014",
         "Future (design)": "6,731 m\u00b2 (96%)",
         "Target / benchmark": "\u2264 7,000 m\u00b2"
       },
       {
-        "Group": "Space",
-        "KPI": "Storage headroom",
-        "How it is measured": "months until the racks are full if stock keeps growing as in Apr\u2013Jun",
-        "Today (data)": "+10% locations in 2 months",
-        "Future (design)": "~2 months",
-        "Target / benchmark": "\u2265 12 months \u2192 clear dead stock, add a 12th rack module"
+        "Group": "Inbound",
+        "KPI": "Dock-to-stock time",
+        "Type": "W3",
+        "How it is measured": "truck at the door \u2192 pallet in its location",
+        "Today (data)": "big China receipts take 1\u20133 days to book in",
+        "Future (design)": "~1.5 h per palletised trailer; ~3.8 h per loose container",
+        "Target / benchmark": "< 3.5 h (S023)"
       },
       {
         "Group": "Inbound",
-        "KPI": "Dock-to-stock time",
-        "How it is measured": "truck at the door \u2192 pallet in its location",
-        "Today (data)": "large China receipts take 1\u20133 days to book in",
-        "Future (design)": "~1.5 h per palletised trailer; ~3.8 h per loose container",
-        "Target / benchmark": "< 3.5 h best-in-class (S023)"
+        "KPI": "Containers unpacked inside their zone",
+        "Type": "own",
+        "How it is measured": "% of containers whose unpacking fits the 190 m\u00b2 zone",
+        "Today (data)": "\u2014",
+        "Future (design)": "91% (another 6% by lending door R2)",
+        "Target / benchmark": "\u2265 90%"
+      },
+      {
+        "Group": "Inbound",
+        "KPI": "Container door time",
+        "Type": "own",
+        "How it is measured": "dock-on + unpack + palletise per 40 ft container",
+        "Today (data)": "\u2014",
+        "Future (design)": "~3.3 h",
+        "Target / benchmark": "\u2264 4 h"
       },
       {
         "Group": "Inbound",
         "KPI": "Put-away cycle time",
+        "Type": "W3",
         "How it is measured": "minutes per pallet, reach truck",
         "Today (data)": "\u2014",
         "Future (design)": "2.4 min per pallet (~25 per truck-hour)",
@@ -2477,22 +2816,61 @@
       {
         "Group": "Picking",
         "KPI": "Pick rate",
+        "Type": "W3",
         "How it is measured": "order lines per picker-hour",
         "Today (data)": "\u2014",
-        "Future (design)": "~56 lines/h (fast-pick 99, reserve 62, large orders 44)",
+        "Future (design)": "~54 lines/h (fast-pick 99, reserve 49, large orders 44, small-parts shelving 50)",
         "Target / benchmark": "\u2265 50 lines/h"
       },
       {
         "Group": "Picking",
+        "KPI": "Fast-pick hit rate",
+        "Type": "own",
+        "How it is measured": "lines picked in the fast-pick area \u00f7 all picked lines",
+        "Today (data)": "\u2014",
+        "Future (design)": "71%",
+        "Target / benchmark": "\u2265 60%"
+      },
+      {
+        "Group": "Picking",
+        "KPI": "Walking per picked line",
+        "Type": "own",
+        "How it is measured": "metres walked in all tours \u00f7 picked lines",
+        "Today (data)": "\u2014",
+        "Future (design)": "~14 m",
+        "Target / benchmark": "\u2264 15 m"
+      },
+      {
+        "Group": "Picking",
+        "KPI": "Trolley fill",
+        "Type": "own",
+        "How it is measured": "volume or weight filled per trolley tour",
+        "Today (data)": "\u2014",
+        "Future (design)": "80% (batch closed at 80%)",
+        "Target / benchmark": "75\u201385%"
+      },
+      {
+        "Group": "Picking",
+        "KPI": "Small-parts picking time",
+        "Type": "own",
+        "How it is measured": "small-parts lines \u00f7 50 lines/h",
+        "Today (data)": "\u2014",
+        "Future (design)": "1.9 h/day for 93 lines",
+        "Target / benchmark": "\u2264 2 h/day"
+      },
+      {
+        "Group": "Picking",
         "KPI": "Picking hours per day",
+        "Type": "own",
         "How it is measured": "picker-hours, average day",
         "Today (data)": "~31 h (modelled: single-order picking, staffed for the 08:00 peak)",
-        "Future (design)": "11.4 h",
+        "Future (design)": "11.7 h",
         "Target / benchmark": "\u2014"
       },
       {
         "Group": "Picking",
         "KPI": "Pick accuracy",
+        "Type": "W3",
         "How it is measured": "% of orders without a picking error",
         "Today (data)": "not in the data",
         "Future (design)": "\u2265 99.7% (scan every pick + put-to-light check)",
@@ -2501,88 +2879,107 @@
       {
         "Group": "Service",
         "KPI": "Order lead time (per order)",
+        "Type": "own",
         "How it is measured": "order received \u2192 trailer leaves",
         "Today (data)": "median 25 h, p90 102 h",
         "Future (design)": "median 22 h, p90 70 h",
-        "Target / benchmark": "next day; same day if in before 12:00"
+        "Target / benchmark": "p90 \u2264 72 h"
       },
       {
         "Group": "Service",
-        "KPI": "Orders shipped the same day",
+        "KPI": "Orders out within 24 h",
+        "Type": "own",
         "How it is measured": "% of orders",
-        "Today (data)": "26%",
-        "Future (design)": "29%",
-        "Target / benchmark": "all orders in before 12:00"
+        "Today (data)": "37%",
+        "Future (design)": "65%",
+        "Target / benchmark": "\u2265 60%"
       },
       {
         "Group": "Service",
-        "KPI": "On-time staging",
+        "KPI": "On-time shipment",
+        "Type": "W3",
         "How it is measured": "% of lines staged before the planned departure",
         "Today (data)": "49.9% (50.1% 'LATE', A005)",
-        "Future (design)": "\u2265 98% (waves planned back from departures)",
+        "Future (design)": "\u2265 98% (every wave ends \u2265 45 min before its trailers leave)",
         "Target / benchmark": "\u2265 98%"
       },
       {
         "Group": "Docks",
         "KPI": "Trailers at the doors at once",
+        "Type": "own",
         "How it is measured": "busy day, p90",
         "Today (data)": "15 (parked all day)",
         "Future (design)": "max 4 of 5 doors (time slots)",
-        "Target / benchmark": "\u2264 5 doors"
+        "Target / benchmark": "\u2264 5"
+      },
+      {
+        "Group": "Docks",
+        "KPI": "Outbound staging fill",
+        "Type": "own",
+        "How it is measured": "staging m\u00b2 needed on the busiest afternoon \u00f7 216 m\u00b2",
+        "Today (data)": "\u2014",
+        "Future (design)": "46% (p90 day 28%)",
+        "Target / benchmark": "\u2264 80%"
       },
       {
         "Group": "People",
         "KPI": "Direct labour",
+        "Type": "own",
         "How it is measured": "FTE, average / peak day",
         "Today (data)": "not in the data",
-        "Future (design)": "4.7 / 8.6 FTE + 1.5 indirect",
+        "Future (design)": "4.7 / 8.7 FTE + 1.5 indirect",
         "Target / benchmark": "\u2014"
       },
       {
         "Group": "People",
         "KPI": "Labour productivity",
+        "Type": "own",
         "How it is measured": "order lines per direct labour hour",
         "Today (data)": "\u2014",
-        "Future (design)": "18.3 lines/h",
+        "Future (design)": "18.2 lines/h",
         "Target / benchmark": "\u2014"
       },
       {
         "Group": "Machinery",
         "KPI": "Truck utilisation (average day)",
-        "How it is measured": "operating h / (units \u00d7 7.5 h)",
+        "Type": "own",
+        "How it is measured": "operating h \u00f7 (units \u00d7 7.5 h)",
         "Today (data)": "\u2014",
-        "Future (design)": "ETV 33% \u00b7 EJE 35% \u00b7 ERE 14%",
+        "Future (design)": "ETV 33% \u00b7 EJE 31% \u00b7 ERE 14%",
         "Target / benchmark": "peak day \u2264 80%"
       },
       {
         "Group": "Cost",
         "KPI": "Cost per order line",
-        "How it is measured": "(OPEX + depreciation) / lines",
+        "Type": "own",
+        "How it is measured": "(OPEX + depreciation) \u00f7 lines",
         "Today (data)": "\u2014",
-        "Future (design)": "\u20ac3.78",
+        "Future (design)": "\u20ac3.08",
         "Target / benchmark": "\u2014"
       },
       {
         "Group": "Cost",
         "KPI": "Cost per order",
-        "How it is measured": "(OPEX + depreciation) / orders",
+        "Type": "own",
+        "How it is measured": "(OPEX + depreciation) \u00f7 orders",
         "Today (data)": "\u2014",
-        "Future (design)": "\u20ac16.80",
+        "Future (design)": "\u20ac13.68",
         "Target / benchmark": "\u2014"
       },
       {
         "Group": "Safety",
         "KPI": "Trucks and pickers separated",
-        "How it is measured": "pick zones without reach-truck traffic",
+        "Type": "own",
+        "How it is measured": "pick faces without reach-truck traffic",
         "Today (data)": "\u2014",
-        "Future (design)": "100% of pick faces (trucks refill from the rear / use perimeter + cross-aisles)",
+        "Future (design)": "100% (trucks refill from the rear and use the perimeter + cross-aisles)",
         "Target / benchmark": "0 lost-time incidents"
       }
     ],
     "stress": [
       {
         "Volume": "100%",
-        "Direct FTE (peak day)": 8.6,
+        "Direct FTE (peak day)": 8.7,
         "ETV 216i needed": 2,
         "EJE 120i needed": 3,
         "ERE 225 needed": 1,
@@ -2591,7 +2988,7 @@
       },
       {
         "Volume": "150%",
-        "Direct FTE (peak day)": 13.0,
+        "Direct FTE (peak day)": 13.1,
         "ETV 216i needed": 3,
         "EJE 120i needed": 4,
         "ERE 225 needed": 2,
@@ -2600,57 +2997,64 @@
       },
       {
         "Volume": "200%",
-        "Direct FTE (peak day)": 17.3,
+        "Direct FTE (peak day)": 17.5,
         "ETV 216i needed": 4,
         "EJE 120i needed": 5,
         "ERE 225 needed": 2,
         "Outbound doors (busiest hour)": 7,
-        "Pickers in the busiest wave": 6
+        "Pickers in the busiest wave": 5
       },
       {
         "Volume": "250%",
-        "Direct FTE (peak day)": 21.6,
+        "Direct FTE (peak day)": 21.8,
         "ETV 216i needed": 4,
         "EJE 120i needed": 6,
         "ERE 225 needed": 2,
         "Outbound doors (busiest hour)": 8,
-        "Pickers in the busiest wave": 7
+        "Pickers in the busiest wave": 6
       }
     ],
     "sensitivity": [
       {
         "Driver": "Reach-truck lease (\u20ac495\u20131,550/month)",
-        "Low EUR/yr": 580547.0,
-        "High EUR/yr": 605867.0,
+        "Low EUR/yr": 470905.0,
+        "High EUR/yr": 496225.0,
         "Swing EUR/yr": 25320.0
       },
       {
-        "Driver": "Racking price (\u20ac80\u2013200/position)",
-        "Low EUR/yr": 553677.0,
-        "High EUR/yr": 641494.0,
-        "Swing EUR/yr": 87817.0
-      },
-      {
         "Driver": "Productivity \u00b120% (labour hours)",
-        "Low EUR/yr": 539401.0,
-        "High EUR/yr": 641134.0,
-        "Swing EUR/yr": 101733.0
+        "Low EUR/yr": 443980.0,
+        "High EUR/yr": 517271.0,
+        "Swing EUR/yr": 73291.0
       },
       {
-        "Driver": "Labour rate (\u20ac24\u201334/h)",
-        "Low EUR/yr": 547688.0,
-        "High EUR/yr": 654137.0,
-        "Swing EUR/yr": 106449.0
+        "Driver": "Racking price (\u20ac80\u2013200/position)",
+        "Low EUR/yr": 446129.0,
+        "High EUR/yr": 528920.0,
+        "Swing EUR/yr": 82790.0
+      },
+      {
+        "Driver": "Labour rate (\u20ac20\u201328/h)",
+        "Low EUR/yr": 480625.0,
+        "High EUR/yr": 566409.0,
+        "Swing EUR/yr": 85784.0
       }
     ],
-    "sensitivity_base": 590267.0,
+    "sensitivity_base": 480625.0,
     "storage": {
       "occupied_peak": 8512,
       "occupied_mean": 8125.0,
       "growth_per_quarter_pct": 15.9,
-      "months_headroom": 2.2,
+      "months_headroom": 3.6,
+      "months_headroom_12": 5.5,
+      "rack_need_peak": 7507,
+      "fast_hit_pct": 71.0,
+      "walk_per_line_m": 13.6,
+      "small_parts_h_day": 1.87,
+      "sku_density_lift": 13.0,
+      "sku_density_rack": 2.6,
       "fte_avg": 4.7,
-      "fte_peak": 8.6
+      "fte_peak": 8.7
     },
     "sorting": {
       "small_orders_day": 120.0,

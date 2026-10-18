@@ -121,7 +121,7 @@
     {
       "id": "A013",
       "assumption": "Functional (non-storage) areas sized from actual order volume",
-      "value": "receiving 262, loose-container zone 190, outbound 216, packing 450, forward-pick 500, offices 250, returns 180, circulation 450 m2",
+      "value": "receiving 262, loose-container zone 190, outbound 216, packing 450 (incl. 207 m2 small-parts shelving), forward-pick 500, offices 250, returns 180, circulation 450 m2",
       "unit": "m2",
       "reason": "Sized from measured throughput: inbound ~99 loads/day received (peak 167), outbound 17.7 pallets + 225 cartons/day (73% of trailers carry no pallets - parcel-heavy). Detailed layout total = 6,731 m2 = 96% of 7,000 (incl. the 190 m2 loose-container zone added after teacher feedback).",
       "source": "Derived (capacity_plan.py) from measured throughput; factors are planning assumptions",
@@ -247,10 +247,10 @@
     {
       "id": "A028",
       "assumption": "Hazardous SKUs: hazard class unknown - PGS 15 (packaged hazardous substances) or PGS 37 (lithium batteries) to be confirmed",
-      "value": "138 SKUs, 2,197 loads (~20% of loads), gross product weight ~385 t",
+      "value": "138 SKUs, 2,197 loads (19.9% of loads), ~385 t gross product weight (01-06-2025; same method in every snapshot: 1,727 / 1,895 / 2,197 loads)",
       "unit": "SKUs / loads / kg",
-      "reason": "Data only flags HAZMAT 0/1. If these are packaged hazardous substances, storage is far above the 10,000 kg PGS 15 threshold, triggering a 60-min fire-resistant compartment, separation of incompatible classes and firefighting provisions (S016). Gross product weight overstates the hazardous content. A segregated hazmat section is reserved; size and construction depend on the confirmed classes.",
-      "source": "Measured (storage HAZMAT flag) + PGS 15 (S016); class to confirm with Assa Abloy / DHL",
+      "reason": "Recounted per unique load (LODNUM) with HAZMAT = 1; weight = qty x unit weight. By customs code 95% of hazardous loads are safes (8303), electronic locks (8301), readers (8471), alarms (8531) and cameras (8525) - most likely lithium cells built into the products (UN3481/UN3091, class 9), so PGS 37-2 (lithium energy carriers, from 333 kg, group 1 from 1,000 kg per fire compartment, S029) applies rather than PGS 15. A few loads are lubricants (3403, possibly PGS 15) and loose batteries (8507); 33 loads of cardboard boxes (4819) look like a wrong flag. Gross weight overstates the battery content. Classes to confirm with Assa Abloy (SDS / UN numbers).",
+      "source": "Measured (storage HAZMAT + COMPONENT CODE) + PGS 37-2 (S029) + PGS 15 (S016)",
       "impact": "high"
     },
     {
@@ -265,10 +265,10 @@
     {
       "id": "A030",
       "assumption": "Labour cost per paid hour",
-      "value": "operative EUR 28 (24-34); team leader EUR 38; admin EUR 33",
+      "value": "operative EUR 20 (high case EUR 28); team leader EUR 27; admin EUR 24",
       "unit": "EUR/h",
-      "reason": "CAO wage scale x holiday pay 1.08 x employer premiums 1.33 x paid-not-worked time 1.19",
-      "source": "S018, S019",
+      "reason": "Teacher feedback (S026): EUR 20 per hour for a warehouse operator; EUR 28 = CAO wage x employer factors kept as the high case",
+      "source": "S026 (teacher), S018, S019",
       "impact": "high"
     },
     {
@@ -292,7 +292,7 @@
     {
       "id": "A033",
       "assumption": "Racking prices",
-      "value": "EUR 130 per installed single-deep position (80-200); cantilever EUR 250 per arm; protection 5% of racking; re-use of existing racking EUR 25/position",
+      "value": "EUR 130 per installed single-deep position (80-200); long-goods position EUR 160; protection 5% of racking; re-use of existing racking EUR 25/position",
       "unit": "EUR",
       "reason": "EU selective racking EUR 80-140 per position + 30-50% installation",
       "source": "S020 + assumption",
@@ -369,6 +369,42 @@
       "reason": "Common accounting lives",
       "source": "Assumption",
       "impact": "low"
+    },
+    {
+      "id": "A042",
+      "assumption": "Small parts move from pallet racks to bin shelving",
+      "value": "2,657 slow SKUs (C or no demand) with stock <= 50 L, unit <= 20 L, <= 15 kg, <= 60 cm -> 3,424 half-bins on 188 shelving bays (207 m2) next to the put-wall; frees 1,005 rack locations; 50 lines/h",
+      "unit": "-",
+      "reason": "Feedback: store small items efficiently. Kardex Shuttle XP 500 compared: 3 lifts, 66 m2, 75 lines/h but ~EUR 19k/yr more and busy ~6% of the day at 93 lines/day -> upgrade path, not needed now",
+      "source": "S027, S028, S030 + measured",
+      "impact": "high"
+    },
+    {
+      "id": "A043",
+      "assumption": "Maximum real item / pallet length",
+      "value": "2.05 m (XLONG pallet); 115 loads recorded longer are data errors (e.g. a 10.95 m item of 0.5 kg)",
+      "unit": "m",
+      "reason": "Teacher: nothing larger than a door (~2 m) comes in. Long goods in a module with 4.5 m bays (2 pallets each) behind a 3.2 m aisle: a 2.05 m load crosswise needs Ast 2,976 mm (VDI formula on ETV 216i data, S006)",
+      "source": "S026 + S006",
+      "impact": "medium"
+    },
+    {
+      "id": "A044",
+      "assumption": "Big containers borrow door R2",
+      "value": "on container days with > ~12 SKUs the north half of receiving (131 m2) beside R2 is used for unpacking; 91% of containers fit the zone alone, 97% with R2",
+      "unit": "m2",
+      "reason": "Receiving staging peaks at ~17 pallets (~80 m2) because 2 ETVs put away while unloading; 2 doors (R1 + R3) still cover the base and peak scenarios",
+      "source": "S026 + dock model",
+      "impact": "medium"
+    },
+    {
+      "id": "A045",
+      "assumption": "Area check outbound staging and packing",
+      "value": "outbound staging need: p90 60 m2, max 100 m2 of 216; packing need 401 m2 of 450 incl. shelving",
+      "unit": "m2",
+      "reason": "Measured afternoon trailers (pallets x 1.9 m2 + roll cages x 1.0 m2, +30%); pack stations, put-wall, shelving, waiting pallets, wrapper, packaging stock",
+      "source": "Measured + planning assumption",
+      "impact": "medium"
     }
   ]
 }

@@ -45,12 +45,38 @@ m = st.groupby("PART").agg(l=("EA LEN", "median"), w=("EA WID", "median"), h=("E
 m["ea_l"] = (m.l * m.w * m.h / 1000).where(lambda s: s.between(0.001, 1000))      # litres per each
 abc = pd.read_csv(os.path.join(TABLES, "abc_by_sku.csv")).set_index("PRTNUM")["ABC_vol"]
 
+# ------------------------------------------------ small-parts storage (feedback 2: store small items efficiently)
+# Small, slow SKUs whose whole stock fits in one tote (<= 50 L) still take a full pallet location today.
+# They move to half-bins on static bin shelving next to the put-wall (zone "V"); a Kardex Shuttle XP 500 lift was
+# compared and is the upgrade path (D3 §3.2). A/B small items stay in the fast-pick carton flow.
+VLM_STOCK_L, VLM_EA_L, VLM_EA_KG, VLM_EA_CM = 50.0, 20.0, 15.0, 60.0
+VLM_RATE = 50.0                        # lines per hour from bin shelving (S028: 50 lines/h in shelving)
+SLOT_L, SHELF_SLOTS_BAY = 20.0, 21     # half-bin 300x400 (~20 L); bay 1.0 m x 0.6 m x 2.5 m, 7 levels x 3 half-bins
+VLM_TRAYS, VLM_SLOTS_TRAY = 60, 24     # for the Kardex comparison: 4,050 x 813 mm trays (S027), 24 half-bins per tray
+latest = all_storage()["ASSA STORAGE DETAILS (01-06-2025).xlsx"]
+def _n(c):
+    x = pd.to_numeric(latest[c], errors="coerce"); return x.where((x > 0) & (x < 9999))
+lt_ = latest.assign(ea_l=_n("EA LEN") * _n("EA WID") * _n("EA HGT") / 1000, q=pd.to_numeric(latest["QTY"], errors="coerce"),
+                    ew=_n("EA WGT"), el=_n("EA LEN"))
+lt_["cube"] = lt_["q"] * lt_["ea_l"]
+sk = lt_.groupby("PART").agg(cube=("cube", "sum"), ea_l=("ea_l", "median"), ew=("ew", "median"), el=("el", "max"))
+sk["abc"] = abc.reindex(sk.index).fillna("none")
+vlm_mask = (sk.cube <= VLM_STOCK_L) & (sk.ea_l <= VLM_EA_L) & (sk.ew <= VLM_EA_KG) & (sk.el <= VLM_EA_CM) & sk.abc.isin(["C", "none"])
+VLM_SKUS = set(sk.index[vlm_mask])
+rk = lt_[lt_["LOC TYPE"] == "RACK"]
+freed_locs = int(rk.groupby("LOCATION")["PART"].apply(lambda p_: p_.isin(VLM_SKUS).all()).sum())
+slots = int(np.ceil(sk.loc[vlm_mask, "cube"] / SLOT_L).clip(lower=1).sum())
+vlm_units = int(np.ceil(slots * 1.15 / (VLM_TRAYS * VLM_SLOTS_TRAY)))          # Kardex lifts if chosen (+15% free slots)
+shelf_bays = int(np.ceil(slots * 1.15 / SHELF_SLOTS_BAY))                       # bin-shelving bays (+15% free slots)
+save_table(sk[vlm_mask].round(2), "small_parts_skus.csv")
+
 L = ob[["ORDER NO", "PRTNUM", "PICKED QTY", "DATE"]].merge(m[["ea_l", "kg", "paq"]], left_on="PRTNUM",
                                                           right_index=True, how="left")
 L["litres"] = L["PICKED QTY"] * L["ea_l"]
 L["kgs"] = L["PICKED QTY"] * L["kg"]
 L["full_pallet"] = L["paq"].gt(0) & L["PICKED QTY"].ge(L["paq"])
-L["zone"] = np.where(L["PRTNUM"].map(abc).isin(["A", "B"]), "F", "C")   # F = fast-pick area, C = reserve low levels
+L["zone"] = np.where(L["PRTNUM"].isin(VLM_SKUS), "V",
+                     np.where(L["PRTNUM"].map(abc).isin(["A", "B"]), "F", "C"))   # V = small-parts shelving, F = fast-pick, C = reserve
 P = L[~L["full_pallet"]].copy()                                         # lines that are actually picked
 
 o = P.groupby("ORDER NO").agg(lines=("PRTNUM", "size"), litres=("litres", "sum"), kg=("kgs", "sum"),
@@ -141,11 +167,11 @@ small = pd.DataFrame(small_rows)
 # ------------------------------------------------ LARGE orders: pick-to-pallet with EJE 120i (one order per pallet)
 l_ord = o[o.segment == "large"]
 lz = P[P.segment == "large"]
-nF = (lz.zone == "F").sum() / len(l_ord); nC = (lz.zone == "C").sum() / len(l_ord)
+nF = (lz.zone == "F").sum() / len(l_ord); nC = (lz.zone == "C").sum() / len(l_ord); nV = (lz.zone == "V").sum() / len(l_ord)
 d_large = dist_F(nF) + dist_C(nC)
 t_order = (T_SETUP_LARGE + d_large / V_EJE + (nF + nC) * T_LINE_LARGE) * DELAY
 large_orders_day = len(l_ord) / n_days
-large = {"orders_day": round(large_orders_day, 1), "lines_per_order": round(float(nF + nC), 1),
+large = {"orders_day": round(large_orders_day, 1), "lines_per_order": round(float(nF + nC + nV), 1), "lines_vlm": round(float(nV), 1),
          "lines_fast_pick": round(float(nF), 1), "lines_reserve": round(float(nC), 1),
          "walk_per_order_m": round(d_large, 0), "min_per_order": round(t_order / 60, 1),
          "lines_per_h": round((nF + nC) / t_order * 3600, 0),
@@ -163,10 +189,21 @@ for label, n_ in [("Small-order trolley tour (reserve zone)", n_small_C), ("Larg
     routing.append({"Tour": label, "Lines in reserve": round(n_, 1), **{k: round(v, 0) for k, v in r_.items()}, "Best": best})
 save_table(pd.DataFrame(routing).set_index("Tour"), "picking_routing_policies.csv")
 
+# ------------------------------------------------ small-parts shelving picking (next to the put-wall, all orders)
+v_lines_day = float((P.zone == "V").sum() / n_days)
+vlm = {"skus": int(len(VLM_SKUS)), "stock_m3": round(float(sk.loc[vlm_mask, "cube"].sum() / 1000), 1),
+       "slots_needed": slots, "shelf_bays": shelf_bays, "slots_per_bay": SHELF_SLOTS_BAY,
+       "lift_units": vlm_units, "trays": VLM_TRAYS, "slots_per_tray": VLM_SLOTS_TRAY,
+       "freed_rack_locations": freed_locs, "lines_day": round(v_lines_day, 1), "rate_lines_h": VLM_RATE,
+       "picker_h_avg": round(v_lines_day / VLM_RATE, 2), "picker_h_peak": round(v_lines_day * LINES_PEAKF / VLM_RATE, 2),
+       "criteria": {"stock_l_max": VLM_STOCK_L, "each_l_max": VLM_EA_L, "each_kg_max": VLM_EA_KG, "each_cm_max": VLM_EA_CM,
+                    "abc": "C or no demand in Q2"},
+       "skus_small_ab_in_fast_pick": int(((sk.cube <= VLM_STOCK_L) & sk.abc.isin(["A", "B"])).sum())}
+
 # ------------------------------------------------ people and equipment
 small_h_avg, small_h_pk = small["Picker-h avg"].sum(), small["Picker-h peak"].sum()
-pick_fte_avg = (small_h_avg + large["picker_h_avg"]) / NET_H
-pick_fte_pk = (small_h_pk + large["picker_h_peak"]) / NET_H
+pick_fte_avg = (small_h_avg + large["picker_h_avg"] + vlm["picker_h_avg"]) / NET_H
+pick_fte_pk = (small_h_pk + large["picker_h_peak"] + vlm["picker_h_peak"]) / NET_H
 small_pickers_pk = int(np.ceil(small_h_pk / NET_H))
 trolleys = 2 * max(small_pickers_pk, 2) + 2                      # one picking + one at the put-wall per picker, +2 spare
 eje_need = max(1, int(np.ceil(large["picker_h_peak"] / (NET_H * MHE_UTIL))))
@@ -200,6 +237,7 @@ seg_out = seg[["orders_day", "lines_day", "pct_orders", "pct_lines", "pct_volume
 save_table(seg_out, "picking_segments.csv"); save_table(small.set_index("Zone"), "picking_small_orders.csv")
 save_table(pd.DataFrame(equipment).set_index("Item"), "picking_equipment.csv")
 update_metrics("picking", {
+    "small_parts": vlm,
     "params": {"tote_l": TOTE_L, "tote_kg": TOTE_KG, "trolley_totes": TROLLEY_TOTES, "small_max_l": SMALL_MAX_L,
                "small_max_kg": SMALL_MAX_KG, "v_walk": V_WALK, "v_eje": round(V_EJE, 2), "t_line_small": T_LINE_SMALL,
                "t_line_large": T_LINE_LARGE, "delay": DELAY},
@@ -232,4 +270,5 @@ print("LARGE", large)
 print(f"PICK FTE avg {pick_fte_avg:.2f} peak {pick_fte_pk:.2f}")
 print("EQUIP", [(e['Item'], e['Required'], e['Planned']) for e in equipment])
 print("TUGGER", tugger)
+print("SMALL PARTS", vlm)
 print("ROUTING"); [print(" ", r) for r in routing]

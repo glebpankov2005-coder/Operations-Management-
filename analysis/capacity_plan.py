@@ -104,6 +104,7 @@ PROD = {   # process: (unit, rate per person-hour, driver avg/day, peak factor)
     "Replenishment (reach truck)":           ("pallets", 18, replen_pallets_day, units_peakf),
     "Picking - small orders (trolley, batch)": ("picker-h", None, sm_avg, sm_pk / sm_avg),
     "Picking - large orders (EJE, to pallet)": ("picker-h", None, lg_avg, lg_pk / lg_avg),
+    "Picking - small parts (bin shelving)": ("picker-h", None, PK["small_parts"]["picker_h_avg"], PK["small_parts"]["picker_h_peak"] / PK["small_parts"]["picker_h_avg"]),
     "Full-pallet picking (reach truck)":     ("pallets", 22, lines_pallet, lines_peakf),
     "Packing / consolidation":               ("lines",   45, lines_each + lines_case, lines_peakf),
     "Shipping / loading":                    ("pallets", 30, outbound_pallets_day, units_peakf),

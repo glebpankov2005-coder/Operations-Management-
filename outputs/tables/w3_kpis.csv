@@ -1,5 +1,5 @@
 KPI (W3),Expected,Basis
-Dock-to-stock time,~1.5 h per palletised trailer; ~3.8 h per loose container,unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container de-stuffed by contractor
+Dock-to-stock time,~1.5 h per palletised trailer; ~3.8 h per loose container,unload ~1 min/pallet (ERE 225) while 2 reach trucks put away in parallel; container unpacked in its own zone at R1
 Put-away cycle time,2.4 min per pallet (~25 per truck-hour),ETV 216i cycle model on the Option B routes (S006)
-Pick rate,"~56 lines per picker-hour overall (fast-pick 99, reserve 62, large orders 44)","pick-time model, largest-gap routing, trolley batching"
+Pick rate,"~59 lines per picker-hour overall (fast-pick 99, reserve 49, large orders 44)","pick-time model, largest-gap routing, trolley batching"
 On-time shipment rate,target ≥ 98% staged before the booked departure,"waves end 45 min before each slot; today 50.1% of lines are staged 'LATE' (A005, definition to confirm)"

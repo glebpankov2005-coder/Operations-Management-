@@ -1,0 +1,4 @@
+Option,Floor m²,Pallet positions used,CAPEX EUR,Pick rate lines/h,Picking EUR/yr,Notes,Yearly cost EUR
+Keep in pallet racks (today),393.0,1005,130650.0,49.0,9911.379591836734,one 1 m³ pallet location for a few litres of stock; long walks in the reserve aisles,28575.66530612245
+Bin shelving next to the put-wall (chosen),207.0,0,69184.0,50.0,9713.152,"188 bays, 2.5 m high; cheapest; fits in the packing area's spare floor; items go straight into the put-wall",19596.58057142857
+Kardex Shuttle XP 500 lifts,66.0,0,224560.0,75.0,6475.434666666666,"3 lifts ~10 m high; 3x denser, light pointer; but busy only ~6% of the day",38555.43466666667

@@ -95,7 +95,7 @@ sl = pt["share_lines_pct"]; su = pt["share_units_pct"]
 POS_PEAK, POS_TARGET = 8512, 9500
 PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["departure_plan"]
 DE = M["design_evaluation"]
-LZ = dm["loose_zone"]
+LZ = dm["loose_zone"]; SP = PK["small_parts"]; LGC = dm["load_checks"]["long"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
 
 # COVER
@@ -129,8 +129,8 @@ doc.add_page_break()
 # 1 CONCEPT RECAP
 doc.add_heading("1. Recommended concept and what changed", level=1)
 para("Option B was selected in Deliverable 1. It combines single-deep pallet racking placed back-to-back (one pallet "
-     "each side, every pallet reachable from an aisle), selective + "
-     "cantilever racking for irregular and long goods, and a fast-pick area (carton-flow / shelving) for the "
+     "each side, every pallet reachable from an aisle), a module for odd items, a long-goods module with 4.5 m bays, "
+     "bin shelving for small slow parts, and a fast-pick area (carton-flow / shelving) for the "
      "best-sellers, run with demand-based slotting and zone + batch picking. This version builds in the points "
      "agreed with the teacher and DHL:")
 table(["Topic", "Before", "Now (this version)"], [
@@ -152,7 +152,8 @@ table(["Topic", "Before", "Now (this version)"], [
     ["Aisles", "Racks run to 1.5 m from the wall (dead ends)", "Front + rear cross-aisles: every aisle open at both ends — no U-turns"],
     ["Trailers", "Leave whenever loaded", f"Departure plan by carrier ({dep['trailers_planned']} slots); 3 pick waves planned backwards"],
     ["Loose containers", "Unpacked at the dock door", f"Own {LZ['area_planned_m2']} m² loose-container zone at door R1: unpack, sort per SKU, build pallets"],
-    ["Racking", "Double-deep (telescopic forks)", f"Single-deep back-to-back: {lay['positions_total']:,} positions, standard forks"],
+    ["Racking", "Double-deep (telescopic forks)", f"Single-deep back-to-back: {lay['positions_total']:,} positions incl. {lay['positions_long']} long-goods, standard forks"],
+    ["Small parts", "A pallet location each", f"{SP['skus']:,} slow small SKUs in half-bins on {SP['shelf_bays']} shelving bays next to the put-wall"],
     ["08:00 peak", "Treated as customer demand", "Caused by the order-release routine → release in waves"],
 ], widths=[3.0, 5.0, 8.0], arr=9)
 
@@ -186,7 +187,7 @@ bullets([
     f"labels, scan against the ASN → the pallet goes to normal putaway. About {cp['inbound_pattern']['destuff_h']:.0f} h "
     f"per 40 ft container (A019, A026, Section 4.6).",
     "**Policy applied:** demand-based directed putaway (A/B close to their fast-pick faces, C further away); "
-    "pallets over 1 t on low levels; cantilever for extra-long goods.",
+    "pallets over 1 t on low levels; long goods (up to 2.05 m) in the long-goods module via its 3.2 m aisle.",
     "**Truck route:** reach trucks use the left perimeter aisle and the cross-aisle, never the fast-pick area — "
     "Jungheinrich's 'clear traffic guidance' principle (S009).",
 ])
@@ -211,7 +212,9 @@ bullets([
     f"{segs['large']['pct_volume']:.0f}% of volume):** one order per pallet (median {PK['large_orders']['litres_median']:.0f} L, "
     f"{PK['large_orders']['kg_median']:.0f} kg), dropped at packing.",
     f"**Full-pallet lines ({sl.get('full pallet', 0):.0f}% of lines) → ETV 216i** straight from reserve to outbound.",
-    "**Where:** A/B items in the fast-pick area (zone 1); C items at the low levels of the reserve aisles (zones 2–3). "
+    f"**Small slow parts ({SP['skus']:,} SKUs, ~{SP['lines_day']:.0f} lines/day) → bin shelving next to the put-wall:** the item "
+    "is picked into the order's tote and goes straight into the put-wall — no walk into the reserve aisles.",
+    "**Where:** A/B items in the fast-pick area (zone 1); other C items at the low levels of the reserve aisles (zones 2–3). "
     "Aisles are open at both ends, so pickers and pallet trucks walk straight through — no U-turns.",
     "**Why not the ECE 225:** 3.7 m long with 2.4 m forks, it cannot turn in 3.0 m aisles, and its 2 pallets "
     f"(~2,300 L) would need ~{2300 / ov['median_l']:.0f} typical orders to fill one trip (Section 6.3).",
@@ -240,7 +243,8 @@ figure("flow_returns.png", "Fig 6. Returns / reverse-logistics flow.", 12)
 # 3 POLICIES
 doc.add_heading("3. Warehouse policies", level=1)
 table(["Policy", "Decision", "Why (data)"], [
-    ["Storage", "Random within velocity zones; fixed fast-pick faces + random reserve", "73% single-load tail; 48.6% ABC mismatch"],
+    ["Storage", "Random within velocity zones; fixed fast-pick faces + random reserve; small slow parts in bins, not on pallets",
+     f"73% single-load tail; 48.6% ABC mismatch; {SP['skus']:,} SKUs have ≤ 50 L of stock"],
     ["Slotting", "Demand-ABC; fast movers spread across zones, extreme SKUs duplicated; heavy low",
      "13% SKUs = 80% volume; A = 60% of picks (S003)"],
     ["Zoning", "Fast-pick (A/B) vs reserve; truck routes kept out of the pick zone",
@@ -394,6 +398,20 @@ table(["Part of the zone", "m²"], [[k, f"{v:.0f}"] for k, v in LZ["parts_m2"].i
 table(["Who does the work", "How", "DHL labour", "Pros", "Cons"],
       [[c_["Option"], c_["How"], c_["DHL labour"], c_["Pros"], c_["Cons"]] for c_ in dm["container_options"]],
       widths=[3.2, 3.8, 2.2, 3.6, 3.4], arr=9)
+para(f"**Is that enough for a big container?** Unpacking spreads cartons over the floor while they are sorted. "
+     f"A median container needs ~{LZ['need_m2_median']:.0f} m², the p90 container ~{LZ['need_m2_p90']:.0f} m² and the largest "
+     f"({LZ['loads_per_container_max']} pallets, {LZ['skus_per_container_max']} SKUs) ~{LZ['need_m2_max']:.0f} m². "
+     f"{LZ['share_fit_zone_pct']:.0f}% of containers fit the zone.", sa=4)
+bullets([
+    f"**Big containers borrow door R2 (A044):** receiving needs at most ~{LZ['recv_need_m2']:.0f} m² of its 262 m², because "
+    f"the two reach trucks put pallets away while the trailer is unloaded (peak ~{LZ['recv_staged_pallets_peak']:.0f} pallets waiting). "
+    f"On a big-container day R2 is blocked and the north half of receiving ({LZ['r2_lend_m2']:.0f} m²) becomes extra unpacking "
+    f"space: {LZ['area_with_r2_m2']:.0f} m² in total, enough for {LZ['share_fit_with_r2_pct']:.0f}% of containers.",
+    f"**Doors still fit:** with R2 blocked, R1 (container) and R3 (trailers) remain — the base and peak scenarios need "
+    f"{LZ['doors_needed_base']} doors. R2 is only blocked when the booked arrivals show no second trailer that day.",
+    "**The few largest containers** (more SKUs than build spots) are sorted in two passes: first the SKUs with the most "
+    "cartons, then the rest from mixed pallets.",
+])
 PC = M.get("performance_cost", {})
 para(f"**Decision rule:** the zone is the same in both cases. A DHL crew costs about €{PC.get('loose_cost_per_container', 0):,.0f} "
      "per container (Deliverable 3); an on-site contractor is chosen only if its fixed price per container is lower (S024). "
@@ -412,7 +430,10 @@ bullets([
     f"**Storage:** {lay['positions_total']:,} single-deep positions, counted on the drawing ({lay['rack_modules']} back-to-back rack "
     f"modules × 2 rows × {lay['bays_per_row']} bays × 3 pallets × {lay['levels']} levels) against a target of ~{POS_TARGET:,} "
     f"(peak {POS_PEAK:,} occupied locations ÷ 0.90). Top beam {geo['top_beam_m']:.1f} m, within the ETV 216i's 10.7 m lift; "
-    f"{lay['positions_odd_long']:,} positions sit in the two modules for odd and long items.",
+    f"one module ({lay['positions_odd']:,} positions) holds odd items and one long-goods module holds {lay['positions_long']} pallets "
+    f"of up to 2.05 m (4.5 m bays, two pallets each). Small slow parts leave the racks for bin shelving, which frees "
+    f"{SP['freed_rack_locations']:,} locations: the peak need drops to ~{POS_PEAK - SP['freed_rack_locations']:,} locations "
+    f"({(POS_PEAK - SP['freed_rack_locations']) / lay['positions_total']:.0%} of the racks).",
     f"**Working areas sized from measured volumes:** inbound ~{meas['inbound_loads_day']:.0f} loads/day (peak "
     f"{meas['inbound_max_day']:.0f}); outbound {meas['outbound_pallets_day']:.0f} pallets + "
     f"{meas['outbound_cartons_day']:.0f} cartons/day.",
@@ -421,8 +442,7 @@ bullets([
     "the side walls. This also separates inbound and outbound truck traffic.",
     "**Aisles open at both ends:** three 3.2 m cross-aisles (front, middle, rear) break up the racking, so no truck or "
     "picker ever needs a U-turn. Storage aisles are 3.0 m — wider than the ETV 216i needs (2.63–2.79 m, S006) and "
-    "far wider than the EJE 120i (1.79–1.94 m, S010). The extra aisles cost ~6% of rack length; capacity stays well above "
-    "the ~9,500-position target.",
+    f"far wider than the EJE 120i (1.79–1.94 m, S010); the aisle in front of the long goods is 3.2 m (Section 5.2).",
 ])
 figure("layout_floorplan.png", "Fig 10. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
 figure("layout_orderflow.png", "Fig 11. Main flow on the floor plan: in (R1) → put away → refill → pick → pack → "
@@ -442,14 +462,15 @@ para(f"**Verdict:** {DE['concept_verdict']}", sa=6)
 doc.add_heading("5.2 Rack and aisle configuration — the W3 design questions", level=2)
 dc = {c["Question (W3)"]: c for c in DE["w3_checks"]}
 table(["Question (W3)", "Our answer", "Why"], [
-    ["How many aisles?", "10 storage aisles between 11 rack modules", "storage area for ~9,500 positions with 3.0 m reach aisles"],
+    ["How many aisles?", "10 storage aisles between 11 rack modules", "9 standard modules + 1 odd-items + 1 long-goods module"],
     ["How long is each aisle?", "~56 m, split into two runs of ~26.5 m", "middle cross-aisle halves the walk to any face"],
     ["Cross-aisles — where, how many?", "3: front, middle, rear (3.2 m)", "aisles open at both ends → largest-gap routing, no U-turns; costs ~6% rack length"],
-    ["How do pallets go into the racking?", "EUR 800×1200 with the 800 mm side to the aisle, 3 per 2.7 m bay; one pallet deep per side, racks back-to-back", "standard forks on the ETV 216i; 1.9–2.4 m pallets crosswise (1 per bay); > 2.4 m on cantilever"],
-    ["How wide is the aisle?", "3.0 m storage, 3.2 m cross/perimeter", "ETV 216i needs 2.63–2.79 m; EJE 120i 1.79–1.94 m"],
+    ["How do pallets go into the racking?", "EUR 800×1200 with the 800 mm side to the aisle, 3 per 2.7 m bay; one pallet deep per side, racks back-to-back; long pallets (≤ 2.05 m) 2 per 4.5 m bay", "standard forks on the ETV 216i; long pallets forked on the long side (load centre 400 mm → full 1.6 t)"],
+    ["How wide is the aisle?", "3.0 m storage, 3.2 m for long goods and cross/perimeter", f"ETV 216i needs 2.63–2.79 m; with a 2.05 m load crosswise {LGC['ast_long_crosswise_mm']:.0f} mm (VDI formula on S006 data)"],
     ["1-way or 2-way traffic?", "storage aisles: one truck at a time; main aisles: trucks one-way (west up with put-aways, east down to packing)", "pickers stay in their zones; fewer crossings"],
     ["How high is each level? All the same?", "1.41 m pitch → 8 levels; taller loads on the top level", "p90 load height 1.16 m + 0.25 m beam/clearance; top load ~1 m under the roof"],
-    ["Product characteristics?", f"heaviest item {dc['Heaviest SKU (single item)']['Answer'].split('— ')[-1]}; pallets > 1 t low", "mechanical handling only for heavy items; 1,600 kg truck rating"],
+    ["Product characteristics?", f"heaviest item {dc['Heaviest SKU (single item)']['Answer'].split('— ')[-1]}; pallets > 1 t low; longest real item ~2 m",
+     f"mechanical handling only for heavy items; {LGC['loads_over_2_05m_data_error']} loads recorded longer than 2.05 m (up to an '11 m' item of 0.5 kg) are data errors"],
 ], widths=[3.6, 6.2, 6.2], arr=9)
 hzd = DE["hazmat"]
 doc.add_heading("5.3 Legal aspects of pallet storage", level=2)
@@ -458,12 +479,26 @@ bullets([
     "week and a competent expert at least every 12 months; damage is classed green/amber/red and every bay shows a load sign.",
     "**Fire safety:** the top of the highest load stays ~1 m below the 12.2 m roof (sprinkler clearance assumed ≥ 0.5 m, A011 — "
     "to confirm against the sprinkler design).",
-    f"**Hazardous goods (PGS 15, S016):** {hzd['skus']} SKUs are flagged hazardous ({hzd['loads']:,} loads, ~20% of loads). If these "
-    "are packaged hazardous substances, the stored quantity is far above PGS 15's 10,000 kg threshold, so a segregated, 60-minute "
-    "fire-resistant hazmat section, separation of incompatible classes and only day stock on the work floor are required. The data "
-    "only flags 0/1 — the hazard class (e.g. lithium batteries → PGS 37) must be confirmed before sizing the section (A028).",
+    f"**Hazardous goods (rechecked, A028):** {hzd['skus']} SKUs, {hzd['loads']:,} loads ({hzd['share_loads_pct']:.0f}% of loads), "
+    f"~{hzd['kg_in_stock'] / 1000:.0f} t gross — counted per load, the same way in all three snapshots "
+    f"({', '.join(f'{x['loads']:,}' for x in hzd['by_snapshot'])} loads). The customs codes show what they are (table below): "
+    f"{hzd['pgs37_share_loads_pct']:.0f}% are electronic safes, locks, alarms, cameras and readers — most likely lithium cells built "
+    "into the product (UN3481/UN3091, class 9). Those fall under PGS 37-2 (lithium energy carriers, from 333 kg; 1,000 kg for "
+    "small cells, S029), not PGS 15. Only the lubricants (possibly aerosols) fall under PGS 15 (S016). A separate hazmat "
+    "section is reserved; its fire separation follows PGS 37-2 once Assa Abloy confirms the UN numbers.",
     "**Manual handling:** totes are limited to 15 kg (A024); items up to 90 kg each are only moved with pallet trucks or lift aids.",
 ])
+table(["Customs code", "What it is", "Likely hazard", "Dutch rule", "SKUs", "Loads", "Tonnes"],
+      [[c["HS"], c["What it is"], c["Likely hazard"], c["Dutch rule"], c["SKUs"], f"{c['Loads']:,}", f"{c['t']:.0f}"] for c in hzd["classes"]],
+      widths=[1.6, 3.6, 4.2, 1.8, 1.2, 1.4, 1.4], arr=4)
+OA, PA = dm["outbound_area"], dm["packing_area"]
+doc.add_heading("5.4 Are the outbound staging and packing areas big enough?", level=2)
+para(f"**Outbound staging (216 m²):** the goods of all afternoon trailers wait at the same time after wave 3. Measured per day "
+     f"(pallets × 1.9 m² + roll cages × 1.0 m², +30% lanes): median {OA['need_m2_median']:.0f} m², p90 {OA['need_m2_p90']:.0f} m², "
+     f"busiest day {OA['need_m2_max']:.0f} m². 216 m² holds every day of Q2 with room for 2× the volume (stress test, D3).", sa=4)
+para(f"**Packing (450 m²)** — what has to fit:", sa=4)
+table(["Part", "m²"], [[k, f"{v:.0f}"] for k, v in PA["parts_m2"].items()] +
+      [["Total incl. 30% walkways (shelving already incl. aisles)", f"{PA['need_m2']:.0f}"], ["Planned", "450"]], widths=[12.0, 2.0])
 
 # 6 CAPACITY PLAN
 doc.add_heading("6. Capacity plan — labour & equipment", level=1)

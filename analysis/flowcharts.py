@@ -63,7 +63,7 @@ draw_flow("Receiving & Putaway", [
     {"kind": "decision", "text": "Qty / quality OK?", "note": "discrepancy -> hold & report"},
     {"kind": "process", "text": "Register stock in WMS (LODNUM)"},
     {"kind": "process", "text": "System-directed putaway location", "note": "velocity-based: A/B->reserve near their pick faces; C->further away / upper"},
-    {"kind": "process", "text": "Reach truck moves pallet to slot", "note": "cantilever for XLONG goods (>240cm)"},
+    {"kind": "process", "text": "Reach truck moves pallet to slot", "note": "long goods (up to 2.05 m) in 4.5 m bays via the 3.2 m aisle"},
     {"kind": "end", "text": "Pallet stored & confirmed"},
 ], "flow_receiving_putaway.png")
 

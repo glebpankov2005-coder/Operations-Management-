@@ -47,7 +47,7 @@ lines = [
     ("Volumes are measured in the Assa Abloy Q2-2025 data (analysis/*.py). Prices are public benchmarks or labelled", False),
     ("assumptions (data/assumptions.json A030-A041, sources S018-S025 in documentation/sources.md) — not quotes.", False),
     ("", False),
-    ("Sheets: Inputs · Volumes · CAPEX · OPEX · Summary · Labour · KPIs · Stress test · Sensitivity", False),
+    ("Sheets: Summary · Inputs · Volumes · CAPEX · OPEX · Labour · KPIs · Small parts · Stress test · Sensitivity", False),
 ]
 for r, (t, b) in enumerate(lines, 1):
     ws.cell(row=r, column=1, value=t).font = Font(bold=b, size=13 if b else 11)
@@ -78,7 +78,8 @@ vol = [
     ("lines_day", M["peak"]["lines"]["mean"], "order lines per working day", "measured"),
     ("orders_day", M["peak"]["orders"]["mean"], "orders per working day", "measured"),
     ("inb_day", CP["measured"]["inbound_loads_day"], "inbound pallets per working day", "measured"),
-    ("positions", LAY["positions_total"], "pallet positions (single-deep)", "floor plan"),
+    ("positions", LAY["positions_total"], "pallet positions (single-deep, incl. long goods)", "floor plan"),
+    ("positions_long", LAY["positions_long"], "long-goods positions (4.5 m bays)", "floor plan"),
     ("n_etv", Q["etv"], "ETV 216i reach trucks", "fleet review (D3 §4)"),
     ("n_eje", Q["eje"], "EJE 120i pallet trucks", "fleet review"),
     ("n_ere", Q["ere"], "ERE 225 rider pallet trucks", "fleet review"),
@@ -100,7 +101,8 @@ widths(wv, [16, 12, 60, 28])
 wc = wb.create_sheet("CAPEX")
 header(wc, 1, ["Group", "Item", "Qty", "Unit", "Unit price", "Total", "Life (yrs)", "Depreciation / yr", "Source"])
 price_formula = {   # item prefix -> unit-price formula (named inputs)
-    "Single-deep pallet racking": "=rack_pp", "Cantilever": "=cantilever_pp", "Rack protection": "=rack_protect*positions*rack_pp",
+    "Single-deep pallet racking": "=rack_pp", "Long-goods racking": "=long_bay_pp", "Rack protection": "=rack_protect*positions*rack_pp",
+    "Bin shelving": "=shelf_bay", "Half-bins": "=vlm_slot",
     "Carton-flow": "=flow_bay", "Pick trolleys": "=trolley", "Totes": "=tote", "Put-to-light wall": "=ptl_slot",
     "Put-to-light installation": "=ptl_integr", "Pack stations": "=pack_station", "Stretch wrapper": "=wrapper",
     "Roll cages": "=roll_cage", "Extendable roller": "=conveyor", "RF terminals": "=rf_unit", "WMS set-up": "=wms_config",
@@ -112,7 +114,8 @@ r0 = 2
 for i, it in enumerate(rows):
     r = r0 + i
     wc.cell(row=r, column=1, value=it["Group"]); wc.cell(row=r, column=2, value=it["Item"])
-    q = wc.cell(row=r, column=3, value="=positions" if it["Item"].startswith("Single-deep") else it["Qty"]); q.number_format = NUM
+    q = wc.cell(row=r, column=3, value="=positions-positions_long" if it["Item"].startswith("Single-deep")
+                else ("=positions_long" if it["Item"].startswith("Long-goods") else it["Qty"])); q.number_format = NUM
     wc.cell(row=r, column=4, value=it["Unit"])
     f = next((v for k, v in price_formula.items() if it["Item"].startswith(k)), it["Unit price EUR"])
     wc.cell(row=r, column=5, value=f).number_format = EUR2
@@ -134,12 +137,18 @@ wc.cell(row=rt, column=6, value=f"=SUM(F{r0}:F{rc})").number_format = EUR
 wc.cell(row=rt, column=8, value=f"=SUM(H{r0}:H{rc})").number_format = EUR
 for c in range(1, 10): wc.cell(row=rt, column=c).fill = TOT
 name(wc, f"$F${rt}", "capex_total"); name(wc, f"$H${rt}", "depreciation")
-rack_rows = [r0 + i for i, it in enumerate(rows) if it["Item"].startswith(("Single-deep", "Rack protection"))]
+rack_rows = [r0 + i for i, it in enumerate(rows) if it["Item"].startswith(("Single-deep", "Long-goods", "Rack protection"))]
+proc_rows = [r0 + i for i, it in enumerate(rows) if it["Item"].startswith(("Carton-flow", "Pick trolleys", "Totes", "Put-to-light", "WMS set-up", "RF terminals"))]
 rr = rt + 2
 wc.cell(row=rr, column=2, value="CAPEX if today's racking is re-used (dismantle + rebuild at rack_reuse per position)").font = BOLD
 wc.cell(row=rr, column=6, value=f"=(SUM(F{r0}:F{rl})-{'-'.join('F' + str(x) for x in rack_rows)}+positions*rack_reuse)*(1+contingency)").number_format = EUR
 for c in range(1, 10): wc.cell(row=rr, column=c).fill = TOT
 name(wc, f"$F${rr}", "capex_reuse")
+rp = rr + 1
+wc.cell(row=rp, column=2, value="CAPEX of the process changes only (fast-pick, trolleys, totes, put-wall, RF, WMS set-up)").font = BOLD
+wc.cell(row=rp, column=6, value=f"=({'+'.join('F' + str(x) for x in proc_rows)})*(1+contingency)").number_format = EUR
+for c in range(1, 10): wc.cell(row=rp, column=c).fill = TOT
+name(wc, f"$F${rp}", "capex_process")
 widths(wc, [18, 52, 9, 12, 13, 14, 9, 15, 22])
 wc.freeze_panes = "A2"
 
@@ -188,6 +197,7 @@ summ = [
     ("Picking labour saved per year", "=(pick_today_h-pick_future_h)/7.5*paid_h_shift*days_year*labour_rate", EUR, "saved picker-h → paid h × rate"),
     ("Payback, all new (years)", "=capex_total/B12", '0.0', "CAPEX ÷ saving"),
     ("Payback, re-used racking (years)", "=capex_reuse/B12", '0.0', "CAPEX ÷ saving"),
+    ("Payback, process changes only (years)", "=capex_process/B12", '0.0', "process CAPEX ÷ saving"),
     ("Loose container: in-house cost per container", "=loose_cost_year/(cont_day*days_year)", EUR, "break-even price for a contractor"),
 ]
 for r, (t, f, fmt, txt) in enumerate(summ, 2):
@@ -206,7 +216,9 @@ def value_sheet(title, records, cols, w):
 
 value_sheet("Labour", CP["labour_table"], ["Process", "Driver/day (avg)", "Unit", "Rate/h", "Peak factor", "Hours (avg)", "Hours (peak)",
                                            "FTE avg", "FTE peak", "DHL staff"], [44, 14, 10, 8, 10, 11, 11, 9, 9, 9])
-value_sheet("KPIs", PC["kpis"], ["Group", "KPI", "How it is measured", "Today (data)", "Future (design)", "Target / benchmark"], [11, 30, 40, 36, 48, 30])
+value_sheet("KPIs", PC["kpis"], ["Group", "KPI", "Type", "How it is measured", "Today (data)", "Future (design)", "Target / benchmark"], [11, 30, 7, 40, 36, 48, 30])
+value_sheet("Small parts", PC["small_item_options"], ["Option", "Floor m²", "Pallet positions used", "CAPEX EUR", "Pick rate lines/h",
+                                                      "Picking EUR/yr", "Yearly cost EUR", "Notes"], [40, 10, 12, 12, 12, 13, 13, 80])
 value_sheet("Stress test", PC["stress"], list(PC["stress"][0].keys()), [10, 20, 14, 14, 14, 26, 24])
 value_sheet("Sensitivity", PC["sensitivity"], ["Driver", "Low EUR/yr", "High EUR/yr", "Swing EUR/yr"], [40, 14, 14, 14])
 
