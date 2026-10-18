@@ -19,6 +19,4 @@ Thumbs.db
 
 # ---- Large / generated binaries ----
 outputs/blender/*.blend
-outputs/figures/*.png
-# keep the main Option B layout figure tracked
-!outputs/figures/layout_main.png
+# figures are tracked so the team can reuse charts and renders in slides (~8 MB)
