@@ -99,7 +99,7 @@ sm_avg = sum(r["Picker-h avg"] for r in PK["small_orders"]); sm_pk = sum(r["Pick
 lg_avg, lg_pk = PK["large_orders"]["picker_h_avg"], PK["large_orders"]["picker_h_peak"]
 PROD = {   # process: (unit, rate per person-hour, driver avg/day, peak factor)
     "Receiving - palletised (unload+check)": ("pallets", 25, inbound_loads_day * (1 - loose_loads_share), inbound_peakf),
-    "Container de-stuffing (outsourced)":    ("person-h", None, CONTAINERS_AVG * DESTUFF_CREW * DESTUFF_H, CONTAINERS_PEAK / CONTAINERS_AVG),
+    "Loose-container unpacking (own zone, A026)":    ("person-h", None, CONTAINERS_AVG * DESTUFF_CREW * DESTUFF_H, CONTAINERS_PEAK / CONTAINERS_AVG),
     "Putaway (reach truck)":                 ("pallets", 20, inbound_loads_day, inbound_peakf),
     "Replenishment (reach truck)":           ("pallets", 18, replen_pallets_day, units_peakf),
     "Picking - small orders (trolley, batch)": ("picker-h", None, sm_avg, sm_pk / sm_avg),
@@ -108,7 +108,7 @@ PROD = {   # process: (unit, rate per person-hour, driver avg/day, peak factor)
     "Packing / consolidation":               ("lines",   45, lines_each + lines_case, lines_peakf),
     "Shipping / loading":                    ("pallets", 30, outbound_pallets_day, units_peakf),
 }
-OUTSOURCED = {"Container de-stuffing (outsourced)"}   # contractor hours - not DHL staff (A026)
+OUTSOURCED = {"Loose-container unpacking (own zone, A026)"}   # crew or contractor - shown separately, costed in D3
 NET_H = 7.5   # productive hours per FTE per shift (A015)
 
 rows = []
@@ -217,4 +217,4 @@ print(f"PICK TYPE (order-derived, % lines): {share_lines} | % units: {share_unit
 print(f"INBOUND {inbound_loads_day:.1f} loads/day (max {inbound_max_day:.0f}, x{inbound_peakf:.2f}), Asia-origin {asia_pct:.0f}%")
 print(f"OUTBOUND {outbound_pallets_day:.1f} pallets/day + {outbound_cartons_day:.0f} cartons/day | replen {replen_pallets_day:.1f} pallets/day")
 print(plan[["Driver/day (avg)", "Rate/h", "Hours (peak)", "FTE avg", "FTE peak"]].to_string())
-print(f"DHL FTE avg {plan.loc[plan['DHL staff'],'FTE avg'].sum():.1f}  peak {plan.loc[plan['DHL staff'],'FTE peak'].sum():.1f} (de-stuffing outsourced)")
+print(f"DHL FTE avg {plan.loc[plan['DHL staff'],'FTE avg'].sum():.1f}  peak {plan.loc[plan['DHL staff'],'FTE peak'].sum():.1f} (loose-container crew shown separately)")

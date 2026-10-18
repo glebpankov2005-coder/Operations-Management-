@@ -121,9 +121,9 @@
     {
       "id": "A013",
       "assumption": "Functional (non-storage) areas sized from actual order volume",
-      "value": "receiving 262, outbound 216, packing 450, forward-pick 500, offices 250, returns 180, circulation 450 m2",
+      "value": "receiving 262, loose-container zone 190, outbound 216, packing 450, forward-pick 500, offices 250, returns 180, circulation 450 m2",
       "unit": "m2",
-      "reason": "Sized from measured throughput: inbound ~99 loads/day received (peak 167), outbound 17.7 pallets + 225 cartons/day (73% of trailers carry no pallets - parcel-heavy). Detailed layout total = 6,541 m2 = 93% of 7,000.",
+      "reason": "Sized from measured throughput: inbound ~99 loads/day received (peak 167), outbound 17.7 pallets + 225 cartons/day (73% of trailers carry no pallets - parcel-heavy). Detailed layout total = 6,731 m2 = 96% of 7,000 (incl. the 190 m2 loose-container zone added after teacher feedback).",
       "source": "Derived (capacity_plan.py) from measured throughput; factors are planning assumptions",
       "impact": "high"
     },
@@ -168,7 +168,7 @@
       "assumption": "Part of inbound arrives LOOSE (floor-loaded sea containers) and is de-stuffed and palletised by hand",
       "value": "~41% of loads Asian-origin -> 1 container/day avg, 2 at peak; 2-person crew, 3 h per container (2-4 h sensitivity)",
       "unit": "containers/day; h",
-      "reason": "Teacher: shipments come in pallets and loose. Asian-origin share (CN/TW/KR/VN) used as the container proxy; largest receipts (70-100 loads, all CN) take 1-3 days to book in, consistent with de-stuffing. Unload-only benchmark 1-2 h for 2 people (S005); +palletising per SKU, heavy cartons -> 3 h. De-stuffing is recommended to be OUTSOURCED to an on-site contractor (A026).",
+      "reason": "Teacher: shipments come in pallets and loose. Asian-origin share (CN/TW/KR/VN) used as the container proxy; largest receipts (70-100 loads, all CN) take 1-3 days to book in, consistent with de-stuffing. Unload-only benchmark 1-2 h for 2 people (S005); +palletising per SKU, heavy cartons -> 3 h. Containers are unpacked in a dedicated 190 m2 loose-container zone at door R1 (teacher feedback); sized from 568 Asian receipts: median 20 loads / 7 SKUs, p75 34 loads / 11 SKUs. Loose-load unloading 2-4 h with a 2-3 person crew (S024).",
       "source": "Teacher (S004) + measured ORGCOD + S005",
       "impact": "high"
     },
@@ -184,9 +184,9 @@
     {
       "id": "A021",
       "assumption": "MHE cycle-time model parameters",
-      "value": "ETV 216i travel 11 km/h + 4.6 s accel per leg; fixed handling 45 s; double-deep +12 s on 50% of moves; mean fork height 5.1 m; ERE 225 at 50% of 14 km/h on dock legs; MHE utilisation 80%",
+      "value": "ETV 216i travel 11 km/h + 4.6 s accel per leg; fixed handling 45 s; mean fork height 5.1 m; ERE 225 at 50% of 14 km/h on dock legs; MHE utilisation 80%; single-deep racks (no telescopic forks)",
       "unit": "km/h / s / %",
-      "reason": "Speeds, lift/lower/reach rates and acceleration from Jungheinrich data (S006-S008); handling allowances are assumptions. Gives putaway 2.5 min (24/h) - consistent with the 20/h benchmark (A014). Telescopic-fork residual capacity at height to confirm with Jungheinrich. ECE 225 dropped (too long for 3 m aisles, 2-pallet capacity >> order sizes).",
+      "reason": "Speeds, lift/lower/reach rates and acceleration from Jungheinrich data (S006-S008); handling allowances are assumptions. Racks are single-deep back-to-back, so standard forks are used (the earlier telescopic-fork time and residual-capacity question no longer apply). Fleet rule (D3): no spare once a type has 2+ units; ERE 225 one per dock side. ECE 225 dropped (too long for 3 m aisles).",
       "source": "Jungheinrich technical data (S006-S008) + planning assumption",
       "impact": "medium"
     },
@@ -228,11 +228,11 @@
     },
     {
       "id": "A026",
-      "assumption": "Loose-container de-stuffing is outsourced to an on-site specialist contractor",
-      "value": "~6 contractor person-h/day (1 container); not counted as DHL staff",
+      "assumption": "Loose containers are unpacked in a dedicated zone at door R1 - by a DHL crew or an on-site contractor, whichever is cheaper",
+      "value": "in-house ~EUR 179 per container (2 people x 3 h x EUR 28 + paid breaks); contractor only if its fixed fee per container is lower",
       "unit": "person-h/day",
-      "reason": "Teacher suggestion (S013). Removes heavy manual handling and peak staffing from DHL; door R1 still used ~3.3 h/day. Alternative: devanning at a port CFS so containers arrive palletised. Per-container fee to be costed in Deliverable 3.",
-      "source": "Teacher (S013) + S005",
+      "reason": "Teacher feedback: separate zone for loose containers. Contractors quote a fixed price per container based on weight, number of cartons and stacking pattern (S024); no public price, so the in-house cost is the break-even for a quote.",
+      "source": "Teacher (S013) + S024 + D3 cost model",
       "impact": "medium"
     },
     {
@@ -261,6 +261,114 @@
       "reason": "Huertas et al. (2007) favour U-shaped for strong-ABC sites; our picking travel is identical in both (packing east) and C items bring 46% of inbound loads, so the gain is small; flow-through separates inbound, returns and outbound.",
       "source": "design_evaluation.py travel model + S017",
       "impact": "medium"
+    },
+    {
+      "id": "A030",
+      "assumption": "Labour cost per paid hour",
+      "value": "operative EUR 28 (24-34); team leader EUR 38; admin EUR 33",
+      "unit": "EUR/h",
+      "reason": "CAO wage scale x holiday pay 1.08 x employer premiums 1.33 x paid-not-worked time 1.19",
+      "source": "S018, S019",
+      "impact": "high"
+    },
+    {
+      "id": "A031",
+      "assumption": "Working days per year",
+      "value": "244",
+      "unit": "days",
+      "reason": "61 operating days measured in Q2 2025 x 4",
+      "source": "Measured (S002)",
+      "impact": "medium"
+    },
+    {
+      "id": "A032",
+      "assumption": "Indirect staff",
+      "value": "1.5 FTE (1 team leader + 0.5 inventory control / WMS admin)",
+      "unit": "FTE",
+      "reason": "Span of control ~1:9 at the peak; not in the data",
+      "source": "Planning assumption",
+      "impact": "medium"
+    },
+    {
+      "id": "A033",
+      "assumption": "Racking prices",
+      "value": "EUR 130 per installed single-deep position (80-200); cantilever EUR 250 per arm; protection 5% of racking; re-use of existing racking EUR 25/position",
+      "unit": "EUR",
+      "reason": "EU selective racking EUR 80-140 per position + 30-50% installation",
+      "source": "S020 + assumption",
+      "impact": "high"
+    },
+    {
+      "id": "A034",
+      "assumption": "Carton-flow bay price",
+      "value": "EUR 1,800 per 2 m bay (1,100-2,300)",
+      "unit": "EUR",
+      "reason": "New USD 1,200-2,500 per bay at ~0.9 EUR/USD; used EUR 650",
+      "source": "S025",
+      "impact": "low"
+    },
+    {
+      "id": "A035",
+      "assumption": "Put-to-light wall",
+      "value": "EUR 150 per slot + EUR 12,000 installation and WMS link",
+      "unit": "EUR",
+      "reason": "USD 60-200 per station; integration USD 3,000-18,000",
+      "source": "S025",
+      "impact": "low"
+    },
+    {
+      "id": "A036",
+      "assumption": "Small equipment prices",
+      "value": "RF terminal EUR 1,500; trolley EUR 433; tote EUR 16; wrapper EUR 3,849; roller conveyor EUR 1,250; pack station EUR 2,500; roll cage EUR 150",
+      "unit": "EUR",
+      "reason": "Public listings; pack station and roll cage are assumptions",
+      "source": "S025 + assumption",
+      "impact": "low"
+    },
+    {
+      "id": "A037",
+      "assumption": "WMS set-up and contingency",
+      "value": "WMS set-up EUR 25,000; contingency 10% of CAPEX",
+      "unit": "EUR / %",
+      "reason": "~25 consultant days for waves, put-wall, slotting and putaway rules",
+      "source": "Assumption",
+      "impact": "medium"
+    },
+    {
+      "id": "A038",
+      "assumption": "Truck full-service lease per month",
+      "value": "ETV 216i EUR 900 (495-1,550); EJE 120i EUR 150; ERE 225 EUR 350",
+      "unit": "EUR/month",
+      "reason": "Dutch reach-truck lease and rental offers; Jungheinrich has no public price list - quote needed",
+      "source": "S021 + assumption",
+      "impact": "medium"
+    },
+    {
+      "id": "A039",
+      "assumption": "Truck energy",
+      "value": "ETV 4 kWh per operating hour, pallet trucks 1.5 kWh/h; EUR 0.2046 per kWh",
+      "unit": "kWh / EUR",
+      "reason": "NL non-household electricity price H1 2025",
+      "source": "S022 + assumption",
+      "impact": "low"
+    },
+    {
+      "id": "A040",
+      "assumption": "Upkeep",
+      "value": "rack inspection + repairs EUR 2,500/yr; IT support 15% of IT CAPEX/yr",
+      "unit": "EUR/yr",
+      "reason": "EN 15635 yearly expert inspection; no public price",
+      "source": "S015 + assumption",
+      "impact": "low"
+    },
+    {
+      "id": "A041",
+      "assumption": "Depreciation",
+      "value": "racking 15 yrs, equipment 7 yrs, IT 5 yrs, straight-line",
+      "unit": "years",
+      "reason": "Common accounting lives",
+      "source": "Assumption",
+      "impact": "low"
     }
   ]
 }

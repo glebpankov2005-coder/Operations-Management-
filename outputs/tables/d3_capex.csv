@@ -1,0 +1,18 @@
+Item,Group,Qty,Unit,Unit price EUR,Source,Total EUR,Life (yrs),Depreciation EUR/yr
+Single-deep pallet racking (incl. installation),Storage,9504,positions,130.0,A033 / S020,1235520.0,15,82368.0
+Cantilever racking for goods > 2.4 m,Storage,40,arm positions,250.0,A033,10000.0,15,666.6666666666666
+"Rack protection, end guards, load signs",Storage,1,lot,61776.00000000001,A033 / S015,61776.00000000001,15,4118.400000000001
+"Carton-flow bays, fast-pick area",Picking,31,bays,1800.0,A034 / S025,55800.0,7,7971.428571428572
+"Pick trolleys (3-tier, 6 totes)",Picking,6,trolleys,433.0,S011 / S025,2598.0,7,371.14285714285717
+Totes 600 x 400,Picking,54,totes,16.0,S025,864.0,7,123.42857142857143
+Put-to-light wall (slots),Sorting & packing,90,slots,150.0,A035 / S025,13500.0,7,1928.5714285714287
+Put-to-light installation + WMS link,Sorting & packing,1,lot,12000.0,A035 / S025,12000.0,7,1714.2857142857142
+"Pack stations (bench, scale, label printer)",Sorting & packing,4,stations,2500.0,A036,10000.0,7,1428.5714285714287
+Stretch wrapper (packing),Sorting & packing,1,units,3849.0,S025,3849.0,7,549.8571428571429
+Roll cages for parcels,Sorting & packing,41,cages,150.0,A036,6150.0,7,878.5714285714286
+Extendable roller conveyor (into the container),Loose-container zone,2,units,1250.0,S025,2500.0,7,357.14285714285717
+Stretch wrapper (newly built pallets),Loose-container zone,1,units,3849.0,S025,3849.0,7,549.8571428571429
+RF terminals with cradles,IT,14,units,1500.0,A036 / S025,21000.0,5,4200.0
+"WMS set-up: waves, put-wall, slotting, putaway rules",IT,1,lot,25000.0,A037,25000.0,5,5000.0
+Move-in / re-slotting (each load moved once),One-off,11015,loads,1.344765027322404,ETV cycle model + A030,14812.58677595628,7,2116.0838251366117
+Contingency 10%,Contingency,1,lot,147921.85867759562,A037,147921.85867759562,7,21131.694096799376

@@ -176,7 +176,8 @@ equipment = [
     {"Item": "Totes 600x400 (~40 L)", "Use": "One per small order (more if >40 L / >15 kg)",
      "Required": trolleys * TROLLEY_TOTES, "Planned": int(trolleys * TROLLEY_TOTES * 1.5), "Why this number": "trolleys x 6 + 50% in circulation at packing"},
     {"Item": "Jungheinrich EJE 120i walkie pallet truck", "Use": "Large orders - pick-to-pallet",
-     "Required": eje_need, "Planned": eje_need + 1, "Why this number": "peak hours / (7.5 h x 80%) + 1 spare"},
+     "Required": eje_need, "Planned": eje_need + 1 if eje_need == 1 else eje_need,
+     "Why this number": "peak hours / (7.5 h x 80%); no spare once 2+ trucks (one breakdown still covers an average day)"},
 ]
 
 # ------------------------------------------------ tugger-train evaluation (Jungheinrich EZS 130)

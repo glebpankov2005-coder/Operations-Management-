@@ -13,7 +13,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 
 DEPTH = 70.0
-left_w, right_w, aisle, core_w = 9.9, 9.5, 3.2, 67.6
+left_w, right_w, aisle, core_w = (250 + 180 + 190 + 262) / 70.0, 9.5, 3.2, 67.6   # + 190 m2 loose-container zone
 L = left_w + aisle + core_w + aisle + right_w
 cx0 = left_w + aisle; cx1 = cx0 + core_w; cmid = (cx0 + cx1) / 2; rax = cx1 + aisle
 FWD_H = 7.4
@@ -24,7 +24,7 @@ ry0, ry1 = FWD_H + 3.2, DEPTH - 3.2   # 3.2 m front + rear cross-aisles (aisles 
 ymid = (ry0 + ry1) / 2
 runs = [(ry0, ymid - 1.6), (ymid + 1.6, ry1)]
 sel_from = n_mod - 2
-RES_H, SEL_H, LEVELS = 11.5, 10.5, 6
+RES_H, SEL_H, LEVELS = 11.5, 10.5, 8
 
 def mat(name, rgba, rough=0.6, metal=0.0):
     m = bpy.data.materials.new(name); m.use_nodes = True
@@ -45,7 +45,7 @@ M_BEAM = mat("beam", (0.16, 0.22, 0.45, 1), 0.4, 0.4); M_PAL = mat("pal", (0.80,
 M_FWD = mat("fwd", (0.35, 0.74, 0.52, 1), 0.6); M_OFF = mat("off", (0.78, 0.80, 0.86, 1), 0.6)
 M_PACK = mat("pack", (0.94, 0.62, 0.62, 1), 0.7); M_RECV = mat("recv", (0.95, 0.78, 0.45, 1), 0.7)
 M_WALL = mat("wall", (0.93, 0.94, 0.97, 1), 0.85); M_DOCK = mat("dock", (0.22, 0.26, 0.34, 1), 0.5)
-M_BODY = mat("body", (0.12, 0.14, 0.20, 1), 0.6)
+M_BODY = mat("body", (0.12, 0.14, 0.20, 1), 0.6); M_LOOSE = mat("loose", (0.93, 0.45, 0.18, 1), 0.7)
 
 def box(x, y, z0, sx, sy, sz, m, name="b"):
     bpy.ops.mesh.primitive_cube_add(size=1, location=(x+sx/2, y+sy/2, z0+sz/2))
@@ -60,14 +60,14 @@ box(0, 0, -0.2, L, DEPTH, 0.2, M_FLOOR, "floor")
 oh, rh, vh = 250/left_w, 180/left_w, 262/left_w
 plane(0.3, DEPTH-oh, left_w-0.6, oh-0.6, 0.02, M_OFF); plane(0.3, DEPTH-oh-rh, left_w-0.6, rh-0.4, 0.02, M_PACK)
 plane(0.3, 0.3, left_w-0.6, vh-0.6, 0.02, M_RECV)
+lzh = 190/left_w; plane(0.3, vh+0.2, left_w-0.6, lzh-0.4, 0.02, M_LOOSE)       # loose-container zone
 ph, uh = 450/right_w, 216/right_w
 plane(rax+0.3, DEPTH-ph, right_w-0.6, ph-0.6, 0.02, M_PACK); plane(rax+0.3, 0.3, right_w-0.6, uh-0.4, 0.02, M_RECV)
 box(0.5, DEPTH-oh+0.5, 0, left_w-1, oh-1, 6, M_OFF, "office")
 for wx, wy, wsx, wsy, wsz in [(0,0,L,0.3,2),(0,DEPTH-0.3,L,0.3,8),(0,0,0.3,DEPTH,8),(L-0.3,0,0.3,DEPTH,8)]:
     box(wx, wy, 0, wsx, wsy, wsz, M_WALL, "wall")
 # dock doors (dock_mhe_plan.py): 3 receiving on the WEST wall, 5 shipping on the EAST wall, 4.3 m pitch
-for i in range(3):
-    yc = vh/2 + (i - 1) * 4.3
+for yc in (vh + 3.2, 4.2, 8.5):                                              # R1 container dock at the loose zone; R2-R3 trailers
     box(-0.9, yc - 1.4, 0, 0.9, 2.8, 3, M_DOCK); plane(0.35, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK)
 for k in range(5):
     yc = uh/2 + (k - 2) * 4.3
@@ -134,7 +134,7 @@ route(serp_aisles(right_ais[::2][:3], ry0+2, ry1-2), CYAN)
 # Reach truck putaway: receiving -> left perimeter aisle -> cross-aisle -> up a storage aisle
 # (trucks keep to perimeter + cross-aisle; same route as the 2-D plan and the cycle-time model)
 la_x = cx0 - aisle/2
-route([(5, 10), (la_x, 10), (la_x, ymid), (aisle_xs[1], ymid), (aisle_xs[1], ry1-4)], GREEN)
+route([(5, 6), (la_x, 6), (la_x, ymid), (aisle_xs[1], ymid), (aisle_xs[1], ry1-4)], GREEN)
 # replenishment: two aisles, reserve -> forward
 for xr in (aisle_xs[2], aisle_xs[len(aisle_xs)//2]):
     strip((xr, ry0+3), (xr, FWD_H-1), GREEN, w=0.7)
@@ -160,8 +160,12 @@ tgt = bpy.data.objects.new("T", None); scene.collection.objects.link(tgt); tgt.l
 cc = cam.constraints.new('TRACK_TO'); cc.target = tgt; cc.track_axis = 'TRACK_NEGATIVE_Z'; cc.up_axis = 'UP_Y'
 scene.camera = cam
 
-try: scene.render.engine = 'BLENDER_EEVEE_NEXT'
-except Exception: scene.render.engine = 'BLENDER_EEVEE'
+if os.environ.get("BLENDER_ENGINE", "").upper() == "CYCLES":      # headless machines without a GPU / EGL
+    scene.render.engine = 'CYCLES'; scene.cycles.device = 'CPU'; scene.cycles.samples = 48
+    scene.cycles.use_denoising = True
+else:
+    try: scene.render.engine = 'BLENDER_EEVEE_NEXT'
+    except Exception: scene.render.engine = 'BLENDER_EEVEE'
 scene.render.resolution_x = 1700; scene.render.resolution_y = 1150
 scene.view_settings.view_transform = 'Standard'
 scene.render.filepath = OUT

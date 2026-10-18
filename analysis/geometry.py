@@ -1,15 +1,16 @@
 """
 Option B layout geometry (metres) - single source for the travel / cycle-time models.
-Mirrors warehouse_floorplan.py: zones sized from areas, double-deep rack modules with 3.0 m
-reach aisles, and THREE cross-aisles (front, middle, rear) so every storage aisle is open at
+Mirrors warehouse_floorplan.py: zones sized from areas, SINGLE-DEEP back-to-back rack modules (one pallet
+each side of the rack, 2 x 1.2 m rows = 2.6 m block) with 3.0 m reach aisles, and THREE cross-aisles (front, middle, rear) so every storage aisle is open at
 both ends - trucks and pickers drive through instead of making U-turns.
 """
 import numpy as np
 
 DEPTH = 70.0
 RECV, OFF, RET, PACK, OUTB, FWD = 262, 250, 180, 450, 216, 500
+LOOSE = 190                                 # loose-container zone next to door R1 (teacher feedback); sized in dock_mhe_plan.py
 dd_area, sel_area, CIRC = 3505, 728, 450
-left_w = (OFF + RET + RECV) / DEPTH
+left_w = (OFF + RET + LOOSE + RECV) / DEPTH
 right_w = (PACK + OUTB) / DEPTH
 core_w = (dd_area + sel_area + FWD) / DEPTH
 aisle = CIRC / (2 * DEPTH)                  # perimeter aisle width (~3.2 m)
@@ -26,6 +27,7 @@ start = cx0 + (core_w - (n_mod * pitch - AISLEW)) / 2
 aisle_x = np.array([start + m * pitch + BLOCK + AISLEW / 2 for m in range(n_mod - 1)])   # storage aisle centres
 la, ra = left_w + aisle / 2, cx1 + aisle / 2                                            # perimeter aisles
 rvh, uh = RECV / left_w, OUTB / right_w
+lzh = LOOSE / left_w                        # loose-container zone depth (sits directly north of receiving)
 storage_aisle_len = rack_y1 - rack_y0                                                   # one aisle, both runs
 LEVELS, PITCH_M, BASE_M = 8, 1.41, 0.15
 lvl_h = BASE_M + PITCH_M * np.arange(LEVELS)

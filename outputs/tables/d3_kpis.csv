@@ -1,0 +1,19 @@
+KPI,Group,How it is measured,Today (data),Future (design),Target / benchmark
+Pallet positions vs peak need,Space,positions provided / peak occupied locations,"8,512 occupied (peak)","9,504 positions (90% full at peak, 85% on average)",≤ 90% full at peak (A010)
+Floor area used,Space,"zones + aisles / 7,000 m²",—,"6,731 m² (96%)","≤ 7,000 m²"
+Storage headroom,Space,months until the racks are full if stock keeps growing as in Apr–Jun,+10% locations in 2 months,~2 months,"≥ 12 months → clear dead stock, add a 12th rack module"
+Dock-to-stock time,Inbound,truck at the door → pallet in its location,large China receipts take 1–3 days to book in,~1.5 h per palletised trailer; ~3.8 h per loose container,< 3.5 h best-in-class (S023)
+Put-away cycle time,Inbound,"minutes per pallet, reach truck",—,2.4 min per pallet (~25 per truck-hour),≤ 3 min
+Pick rate,Picking,order lines per picker-hour,—,"~56 lines/h (fast-pick 99, reserve 62, large orders 44)",≥ 50 lines/h
+Picking hours per day,Picking,"picker-hours, average day","~31 h (modelled: single-order picking, staffed for the 08:00 peak)",11.4 h,—
+Pick accuracy,Picking,% of orders without a picking error,not in the data,≥ 99.7% (scan every pick + put-to-light check),"median 99.3%, best 99.68% (S023)"
+Order lead time (per order),Service,order received → trailer leaves,"median 25 h, p90 102 h","median 22 h, p90 70 h",next day; same day if in before 12:00
+Orders shipped the same day,Service,% of orders,26%,29%,all orders in before 12:00
+On-time staging,Service,% of lines staged before the planned departure,"49.9% (50.1% 'LATE', A005)",≥ 98% (waves planned back from departures),≥ 98%
+Trailers at the doors at once,Docks,"busy day, p90",15 (parked all day),max 4 of 5 doors (time slots),≤ 5 doors
+Direct labour,People,"FTE, average / peak day",not in the data,4.7 / 8.6 FTE + 1.5 indirect,—
+Labour productivity,People,order lines per direct labour hour,—,18.3 lines/h,—
+Truck utilisation (average day),Machinery,operating h / (units × 7.5 h),—,ETV 33% · EJE 35% · ERE 14%,peak day ≤ 80%
+Cost per order line,Cost,(OPEX + depreciation) / lines,—,€3.78,—
+Cost per order,Cost,(OPEX + depreciation) / orders,—,€16.80,—
+Trucks and pickers separated,Safety,pick zones without reach-truck traffic,—,100% of pick faces (trucks refill from the rear / use perimeter + cross-aisles),0 lost-time incidents

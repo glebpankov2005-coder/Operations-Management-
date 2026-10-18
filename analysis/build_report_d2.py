@@ -59,7 +59,10 @@ def table(headers, rows, widths=None, arr=1):
             cells[i].text = ""; p = cells[i].paragraphs[0]; r = p.add_run(str(v)); r.font.size = Pt(9.5)
             if i >= arr: p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     if widths:
+        t.autofit = False
+        grid = t._tbl.tblGrid
         for i, w in enumerate(widths):
+            grid.gridCol_lst[i].w = Cm(w)                      # grid widths: honoured by Word and LibreOffice
             for row in t.rows: row.cells[i].width = Cm(w)
     # keep small tables on one page: rows can't split, each row keeps with the next
     for ri, row in enumerate(t.rows):
@@ -92,6 +95,7 @@ sl = pt["share_lines_pct"]; su = pt["share_units_pct"]
 POS_PEAK, POS_TARGET = 8512, 9500
 PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["departure_plan"]
 DE = M["design_evaluation"]
+LZ = dm["loose_zone"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
 
 # COVER
@@ -105,7 +109,7 @@ table(["Field", "Detail"], [
     ["Concept", "Option B — Hybrid density + velocity slotting + zone/batch picking"],
     ["Envelope", "≤ 7,000 m² · ≤ 12.2 m"],
     ["Team", "Group 3 — Gleb, Rachel Selvarathnam, Arnau, Vidhi"],
-    ["Version", "v2 — adds inbound (loose containers), dock-door calculation, Jungheinrich MHE, order release"],
+    ["Version", "v3 (with Deliverable 3) — single-deep back-to-back racks, loose-container zone, machinery review"],
 ], widths=[4.5, 11], arr=9)
 para("Future-state design for the recommended Option B (Deliverable 1). Workload drivers are measured "
      "from the Assa Abloy Q2-2025 data; equipment data come from Jungheinrich; productivities and handling "
@@ -124,7 +128,8 @@ doc.add_page_break()
 
 # 1 CONCEPT RECAP
 doc.add_heading("1. Recommended concept and what changed", level=1)
-para("Option B was selected in Deliverable 1. It combines two-deep (double-deep) reserve racking, selective + "
+para("Option B was selected in Deliverable 1. It combines single-deep pallet racking placed back-to-back (one pallet "
+     "each side, every pallet reachable from an aisle), selective + "
      "cantilever racking for irregular and long goods, and a fast-pick area (carton-flow / shelving) for the "
      "best-sellers, run with demand-based slotting and zone + batch picking. This version builds in the points "
      "agreed with the teacher and DHL:")
@@ -146,7 +151,8 @@ table(["Topic", "Before", "Now (this version)"], [
      f"(batch), {segs['large']['pct_orders']:.0f}% large orders picked onto a pallet"],
     ["Aisles", "Racks run to 1.5 m from the wall (dead ends)", "Front + rear cross-aisles: every aisle open at both ends — no U-turns"],
     ["Trailers", "Leave whenever loaded", f"Departure plan by carrier ({dep['trailers_planned']} slots); 3 pick waves planned backwards"],
-    ["Loose containers", "De-stuffed by DHL staff", "Outsourced to an on-site contractor (DHL keeps the dock slot)"],
+    ["Loose containers", "Unpacked at the dock door", f"Own {LZ['area_planned_m2']} m² loose-container zone at door R1: unpack, sort per SKU, build pallets"],
+    ["Racking", "Double-deep (telescopic forks)", f"Single-deep back-to-back: {lay['positions_total']:,} positions, standard forks"],
     ["08:00 peak", "Treated as customer demand", "Caused by the order-release routine → release in waves"],
 ], widths=[3.0, 5.0, 8.0], arr=9)
 
@@ -175,9 +181,10 @@ bullets([
     f"loose — cartons stacked on the container floor.",
     "**Palletised trailer (doors R2–R3):** dock → unload with ERE 225 pallet truck → RF-scan against the ASN → "
     "quantity/quality check → register the load (LPN) → system-directed putaway with an ETV 216i reach truck → confirm.",
-    f"**Loose container (door R1, container dock):** dock → an on-site contractor crew de-stuffs the cartons, sorts "
-    f"them by SKU and builds pallets → DHL prints LPN labels, scans against the ASN and puts away. About "
-    f"{cp['inbound_pattern']['destuff_h']:.0f} h per 40 ft container (A019, A026, Section 4.6).",
+    f"**Loose container (door R1, next to the loose-container zone):** dock → a 2-person crew rolls the cartons out on "
+    f"an extendable roller conveyor, sorts them by SKU and builds pallets on the build spots → stretch-wrap, print LPN "
+    f"labels, scan against the ASN → the pallet goes to normal putaway. About {cp['inbound_pattern']['destuff_h']:.0f} h "
+    f"per 40 ft container (A019, A026, Section 4.6).",
     "**Policy applied:** demand-based directed putaway (A/B close to their fast-pick faces, C further away); "
     "pallets over 1 t on low levels; cantilever for extra-long goods.",
     "**Truck route:** reach trucks use the left perimeter aisle and the cross-aisle, never the fast-pick area — "
@@ -312,7 +319,8 @@ bullets([
     f"{rel['allocated_16_18_pct']:.0f}% are released (allocated) between 16:00 and 18:00.",
     f"**Picking starts at 06:00 and peaks at 08:00** at {rel['pick_peak_over_mean_active_hour']}× the average "
     "working hour: the whole afternoon backlog lands on the floor at the start of the shift (A023).",
-    f"**Future state:** release work in waves (e.g. 06:00, 09:30, 12:00 plus a same-day wave for early orders). "
+    "**Future state:** release work in 3 waves — " + ", ".join(f"{w_['wave']} at {w_['start']}" for w_ in dep["waves"]) +
+    " (W3 is the same-day wave for orders received before 12:00, Section 4.5). "
     f"Levelling the load frees ~{rel['picker_capacity_saving_if_levelled_pct']:.0f}% of peak-hour picker "
     "capacity without any change in customer service.",
 ])
@@ -360,8 +368,8 @@ bullets([
 ])
 doc.add_heading("4.5 When trailers leave — departure plan", level=2)
 para("Trailers get fixed departure slots, set close to each carrier's current median departure time (measured), and "
-     "the picking waves are planned backwards from them: every wave finishes about 45 minutes before its trailers' "
-     "dock slots, leaving time to pack and stage.")
+     "the picking waves are planned backwards from them: every wave finishes at least 45 minutes before the departure "
+     "time of the trailers it feeds, leaving time to pack and stage.")
 figure("departure_plan.png", f"Fig 9. Departure slots on the {N_OUT} shipping doors and the 3 pick waves that feed them "
        f"(max {dep['plan_max_doors_busy']} doors busy at once).", 17)
 table(["Departure", "Carrier", "Trailers", "Fed by wave"],
@@ -374,14 +382,22 @@ bullets([
     f"**Doors:** at most {dep['plan_max_doors_busy']} of the {N_OUT} doors are in use at once (25-minute slots), leaving one free "
     "for ex-works pickups that arrive late or early.",
 ])
-doc.add_heading("4.6 Loose containers — in-house or outsourced?", level=2)
-table(["Option", "How", "DHL labour", "Pros", "Cons"],
+doc.add_heading("4.6 Loose containers — their own zone", level=2)
+para(f"After the last feedback meeting, loose containers get their own {LZ['area_planned_m2']} m² zone directly behind door R1, "
+     "between receiving and returns, so unpacking cartons does not share space with pallet receiving. The zone is sized from "
+     f"{LZ['containers_sampled']} Asian receipts in the stock data: a container brings a median of "
+     f"{LZ['loads_per_container_median']:.0f} pallets of {LZ['skus_per_container_median']:.0f} SKUs (p75: "
+     f"{LZ['loads_per_container_p75']:.0f} pallets, {LZ['skus_per_container_p75']:.0f} SKUs).", sa=4)
+table(["Part of the zone", "m²"], [[k, f"{v:.0f}"] for k, v in LZ["parts_m2"].items()] +
+      [["+30% walkways → needed", f"{LZ['area_needed_m2']:.0f}"], ["Planned in the layout", f"{LZ['area_planned_m2']}"]],
+      widths=[11.0, 3.0])
+table(["Who does the work", "How", "DHL labour", "Pros", "Cons"],
       [[c_["Option"], c_["How"], c_["DHL labour"], c_["Pros"], c_["Cons"]] for c_ in dm["container_options"]],
       widths=[3.2, 3.8, 2.2, 3.6, 3.4], arr=9)
-para(f"**Recommendation: outsource de-stuffing to an on-site specialist contractor** (A026). It removes the heaviest "
-     f"manual job and the peak staffing from DHL ({cp['outsourced_destuff_h_avg']:.0f} person-hours on an average day), "
-     "while the container still docks at R1. Port devanning is the fall-back if its quote is cheaper. The "
-     "per-container fee goes into the Deliverable 3 cost model.", sa=6)
+PC = M.get("performance_cost", {})
+para(f"**Decision rule:** the zone is the same in both cases. A DHL crew costs about €{PC.get('loose_cost_per_container', 0):,.0f} "
+     "per container (Deliverable 3); an on-site contractor is chosen only if its fixed price per container is lower (S024). "
+     "Port devanning stays the fall-back if containers ever need to arrive palletised.", sa=6)
 
 # 5 LAYOUT & ZONING (3D)
 doc.add_heading("5. Layout & zoning (3-dimensional)", level=1)
@@ -393,13 +409,14 @@ para(f"**Total floor area {lay['total_area_m2']:,} m² = {lay['pct_of_7000']:.0f
      bold=True, sa=4)
 geo = dm["geometry"]
 bullets([
-    f"**Storage:** target ~{POS_TARGET:,} positions (peak {POS_PEAK:,} occupied locations ÷ 0.90). Rack frames take up "
-    f"to 8 beam levels under 12.2 m (top beam {geo['top_beam_m']:.1f} m, within the ETV 216i's 10.7 m lift); beams are "
-    "installed for the target and extra levels absorb growth without more floor space.",
+    f"**Storage:** {lay['positions_total']:,} single-deep positions, counted on the drawing ({lay['rack_modules']} back-to-back rack "
+    f"modules × 2 rows × {lay['bays_per_row']} bays × 3 pallets × {lay['levels']} levels) against a target of ~{POS_TARGET:,} "
+    f"(peak {POS_PEAK:,} occupied locations ÷ 0.90). Top beam {geo['top_beam_m']:.1f} m, within the ETV 216i's 10.7 m lift; "
+    f"{lay['positions_odd_long']:,} positions sit in the two modules for odd and long items.",
     f"**Working areas sized from measured volumes:** inbound ~{meas['inbound_loads_day']:.0f} loads/day (peak "
     f"{meas['inbound_max_day']:.0f}); outbound {meas['outbound_pallets_day']:.0f} pallets + "
     f"{meas['outbound_cartons_day']:.0f} cartons/day.",
-    f"**Docks:** {N_IN} receiving (west, R1 = container dock) and {N_OUT} shipping (east). A trailer door needs ~4.3 m "
+    f"**Docks:** {N_IN} receiving (west: R1 = container dock beside the loose-container zone, R2–R3 for trailers) and {N_OUT} shipping (east). A trailer door needs ~4.3 m "
     "of wall — the 9.9 m receiving and 9.5 m outbound columns are too narrow on the south wall, so the doors sit on "
     "the side walls. This also separates inbound and outbound truck traffic.",
     "**Aisles open at both ends:** three 3.2 m cross-aisles (front, middle, rear) break up the racking, so no truck or "
@@ -428,7 +445,7 @@ table(["Question (W3)", "Our answer", "Why"], [
     ["How many aisles?", "10 storage aisles between 11 rack modules", "storage area for ~9,500 positions with 3.0 m reach aisles"],
     ["How long is each aisle?", "~56 m, split into two runs of ~26.5 m", "middle cross-aisle halves the walk to any face"],
     ["Cross-aisles — where, how many?", "3: front, middle, rear (3.2 m)", "aisles open at both ends → largest-gap routing, no U-turns; costs ~6% rack length"],
-    ["How do pallets go into the racking?", "EUR 800×1200 lengthwise, 3 per 2.7 m section; two deep per side", "telescopic forks on the ETV 216i; 26 SKUs > 2.4 m on cantilever"],
+    ["How do pallets go into the racking?", "EUR 800×1200 with the 800 mm side to the aisle, 3 per 2.7 m bay; one pallet deep per side, racks back-to-back", "standard forks on the ETV 216i; 1.9–2.4 m pallets crosswise (1 per bay); > 2.4 m on cantilever"],
     ["How wide is the aisle?", "3.0 m storage, 3.2 m cross/perimeter", "ETV 216i needs 2.63–2.79 m; EJE 120i 1.79–1.94 m"],
     ["1-way or 2-way traffic?", "storage aisles: one truck at a time; main aisles: trucks one-way (west up with put-aways, east down to packing)", "pickers stay in their zones; fewer crossings"],
     ["How high is each level? All the same?", "1.41 m pitch → 8 levels; taller loads on the top level", "p90 load height 1.16 m + 0.25 m beam/clearance; top load ~1 m under the roof"],
@@ -455,20 +472,21 @@ para(f"Workload drivers are measured: inbound ~{meas['inbound_loads_day']:.0f} l
      f"{meas['outbound_pallets_day']:.0f} pallets + {meas['outbound_cartons_day']:.0f} cartons/day, "
      f"{meas['lines_each_day']:.0f} each lines and {meas['lines_case_day']:.0f} case lines/day, replenishment "
      f"~{meas['replen_pallets_day']:.0f} pallets/day. Picking hours come from the pick-time model in Section 6.2; other "
-     "rates are benchmarks (A014). Container de-stuffing is outsourced and not counted as DHL staff (A026).")
+     "rates are benchmarks (A014). Unpacking loose containers is shown on its own line and not counted in the DHL FTE "
+     "below, because it can be done by a DHL crew or a contractor (A026, costed in Deliverable 3).")
 table(["Process", "Rate / h", "Peak ×", "FTE avg", "FTE peak"],
       [[r["Process"], r["Rate/h"], r["Peak factor"], f"{r['FTE avg']:.2f}", f"{r['FTE peak']:.2f}"]
        for r in cp["labour_table"]], widths=[7.0, 2.0, 2.0, 2.4, 2.4])
 para(f"**Direct DHL labour ≈ {cp['total_fte_avg']:.1f} FTE on an average day and {cp['total_fte_peak']:.1f} FTE on the "
-     f"peak day** (single shift, 7.5 productive hours; contractor de-stuffing excluded). Cross-training covers the peak; supervision and admin "
+     f"peak day** (single shift, 7.5 productive hours; loose-container unpacking excluded). Cross-training covers the peak; supervision and admin "
      "come on top.", bold=True, sa=4)
 figure("capacity_plan_fte.png", "Fig 14. Labour requirement by process (average vs peak day).", 14)
 
 doc.add_heading("6.2 Picking — how many people, how efficient", level=2)
 para("The picking method is matched to the demand profile — small, light orders with a few lines, plus a minority of "
      "pallet-sized orders — using the standard order-picking choices: picker-to-parts, low-level picking, batching and "
-     "zoning (S014). Pick times are modelled on the Option B layout: walking (return route in the fast-pick area, S-shape "
-     "through the reserve aisles) + picking + setup, with a 10% delay allowance (A025).")
+     "zoning (S014). Pick times are modelled on the Option B layout: walking (return route in the fast-pick area; in the reserve "
+     "aisles the best of the four W3 routing policies, which is largest gap) + picking + setup, with a 10% delay allowance (A025).")
 figure("picking_order_volume.png", "Fig 15. Share of orders that fit each carrier: one tote, four totes, one pallet, two pallets (240×80).", 14)
 table(["Segment", "Orders / day", "Lines / day", "% orders", "% lines", "% volume"],
       [[r["segment"].title(), f"{r['orders_day']:.0f}", f"{r['lines_day']:.0f}", f"{r['pct_orders']:.0f}%",
@@ -521,9 +539,9 @@ table(["Model", "Task", "Equip-h/day avg", "Equip-h/day peak", "Needed", "Planne
       widths=[2.2, 6.6, 2.0, 2.0, 1.6, 1.6], arr=2)
 bullets([
     "**ETV 216i reach truck (S006):** 1,600 kg, lift 10.7 m, working aisle 2.63–2.79 m, Li-ion. "
-    f"{fleet['ETV 216i']['Units required (peak)']} cover the peak; a 3rd keeps putaway and replenishment running "
-    "during service. Double-deep storage uses a telescopic-fork attachment (the truck has auxiliary hydraulics, "
-    "150 bar / 20 l/min); residual capacity at height to be confirmed with Jungheinrich.",
+    f"{fleet['ETV 216i']['Units required (peak)']} cover the peak day and one is enough on an average day, so a breakdown "
+    "never stops putaway (no spare needed; the lease includes repair). The racks are single-deep, so the truck uses "
+    "standard forks — no telescopic attachment and no loss of capacity at height.",
     "**EJE 120i walkie pallet truck (S010):** 2,000 kg, only 1.58 m long and 0.72 m wide — picks large orders onto a "
     "pallet and moves through the aisles without turning problems.",
     "**Pick trolleys (S011):** 3-tier, 1,000 × 600 mm, 250 kg, 6 totes — for the small orders.",
@@ -561,7 +579,7 @@ table(["ID", "Assumption / open question", "Impact"], rows, widths=[1.5, 11.5, 2
 bullets([
     "**To confirm with DHL:** labour productivity and pick-time standards (A006/A014/A025); the 7,000 m² scope (A008); "
     "container share and contractor quotes (A019/A026); whether carriers accept the departure slots (A020/A027).",
-    "**To confirm with Jungheinrich:** telescopic-fork residual capacity at 10 m (A021).",
+    "**To confirm with Jungheinrich:** a lease quote for 2 ETV 216i, 3 EJE 120i and 2 ERE 225 (A038).",
     "**To confirm with Assa Abloy:** the hazard class of the 138 flagged SKUs, which decides the hazmat section (A028).",
 ])
 

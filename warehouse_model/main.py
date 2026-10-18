@@ -1,7 +1,7 @@
 """
 Parametric Blender model of the Option B warehouse (run headless):
   blender --background --python warehouse_model/main.py
-Builds floor + zones + double-deep rack rows (with shelf levels & pallets) +
+Builds floor + zones + single-deep back-to-back rack rows (with shelf levels & pallets) +
 forward-pick + offices + dock doors, lights it, and renders a 3/4 view to
 outputs/figures/warehouse_blender.png.  Geometry mirrors the 2D floor plan.
 """
@@ -18,7 +18,7 @@ scene = bpy.context.scene
 
 # ---------------- parameters (from the layout) ----------------
 DEPTH = 70.0
-left_w, right_w, aisle, core_w = 9.9, 9.5, 3.2, 67.6
+left_w, right_w, aisle, core_w = (250 + 180 + 190 + 262) / 70.0, 9.5, 3.2, 67.6   # + 190 m2 loose-container zone
 L = left_w + aisle + core_w + aisle + right_w
 cx0 = left_w + aisle
 cx1 = cx0 + core_w
@@ -33,7 +33,7 @@ ymid = (ry0 + ry1) / 2
 runs = [(ry0, ymid - 1.6), (ymid + 1.6, ry1)]
 sel_from = n_mod - 2
 RES_H, SEL_H = 11.5, 10.5
-LEVELS = 6
+LEVELS = 8
 
 # ---------------- helpers ----------------
 def mat(name, rgba, rough=0.6, metal=0.0, emit=0.0):
@@ -59,6 +59,8 @@ M_RET   = mat("ret", (0.88, 0.72, 0.84, 1), 0.7)
 M_PACK  = mat("pack", (0.94, 0.62, 0.62, 1), 0.7)
 M_WALL  = mat("wall", (0.92, 0.93, 0.96, 1), 0.8)
 M_DOCK  = mat("dock", (0.22, 0.26, 0.34, 1), 0.5)
+M_LOOSE = mat("loose", (0.93, 0.45, 0.18, 1), 0.7)
+M_CTN   = mat("carton", (0.72, 0.52, 0.30, 1), 0.85)
 
 def box(x, y, z0, sx, sy, sz, m, name="box"):
     bpy.ops.mesh.primitive_cube_add(size=1, location=(x + sx/2, y + sy/2, z0 + sz/2))
@@ -74,12 +76,16 @@ def plane(x, y, sx, sy, z, m, name="zone"):
 
 # ---------------- floor + zone decals ----------------
 box(0, 0, -0.2, L, DEPTH, 0.2, M_FLOOR, "floor")
-plane(0.3, 0.3, left_w-0.6, (250/left_w)-0.6, 0.02, M_OFF, "z_off")             # offices (back-left)
 # left column zones by area (offices top, returns mid, receiving bottom)
 oh, rh, vh = 250/left_w, 180/left_w, 262/left_w
 plane(0.3, DEPTH-oh, left_w-0.6, oh-0.6, 0.02, M_OFF, "z_off")
 plane(0.3, DEPTH-oh-rh, left_w-0.6, rh-0.4, 0.02, M_RET, "z_ret")
 plane(0.3, 0.3, left_w-0.6, vh-0.6, 0.02, M_RECV, "z_recv")
+lzh = 190/left_w                                                              # loose-container zone above receiving
+plane(0.3, vh+0.2, left_w-0.6, lzh-0.4, 0.02, M_LOOSE, "z_loose")
+for k in range(10):                                                           # carton stacks being built into pallets
+    box(1.2 + (k % 5) * 2.1, vh + 2.0 + (k // 5) * 5.5, 0, 1.2, 1.0, 0.5 + 0.12 * (k % 3), M_CTN, "carton_stack")
+box(0.35, vh + 2.2, 0, 7.5, 0.6, 0.75, M_DOCK, "roller_conveyor")
 ph, uh = 450/right_w, 216/right_w
 plane(rax+0.3, DEPTH-ph, right_w-0.6, ph-0.6, 0.02, M_PACK, "z_pack")
 plane(rax+0.3, 0.3, right_w-0.6, uh-0.4, 0.02, M_RECV, "z_out")
@@ -95,7 +101,7 @@ for mnum in range(n_mod):
     H = SEL_H if is_sel else RES_H
     for (y0, y1) in runs:
         ln = y1 - y0
-        # two upright panels (double-deep) - thin
+        # two upright frames (back-to-back single-deep rows) - thin
         for dxp in (0.0, BLOCK-0.18):
             box(bx+dxp, y0, 0, 0.18, ln, H, M_BEAM, "upright")
         # shelf/beam levels spanning the block
@@ -111,7 +117,7 @@ for mnum in range(n_mod):
 
 # staged pallets in receiving & outbound
 for _ in range(14):
-    box(random.uniform(1, left_w-2.2), random.uniform(1, 18), 0, 1.2, 1.0, 0.9, M_PAL, "spal")
+    box(random.uniform(1, left_w-2.2), random.uniform(1, vh-3), 0, 1.2, 1.0, 0.9, M_PAL, "spal")
 for _ in range(10):
     box(random.uniform(rax+1, L-2.2), random.uniform(1, 16), 0, 1.2, 1.0, 0.9, M_PAL, "spal")
 
@@ -123,8 +129,7 @@ box(0, DEPTH-WT, 0, L, WT, 8.0, M_WALL, "wall_back")
 box(0, 0, 0, WT, DEPTH, 8.0, M_WALL, "wall_left")
 box(L-WT, 0, 0, WT, DEPTH, 8.0, M_WALL, "wall_right")
 # dock doors (dock_mhe_plan.py): 3 receiving on the WEST wall, 5 shipping on the EAST wall, 4.3 m pitch
-for i in range(3):
-    yc = vh/2 + (i - 1) * 4.3
+for yc in (vh + 3.2, 4.2, 8.5):                                              # R1 container dock at the loose zone; R2-R3 trailers
     box(-0.45, yc - 1.4, 0, 0.5, 2.8, 3.4, M_DOCK, "recv_dock")          # door slab (outer face, seen by camera)
     plane(0.35, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK, "recv_leveller")        # dock leveller plate inside
 for k in range(5):
@@ -153,10 +158,12 @@ c = cam.constraints.new('TRACK_TO'); c.target = tgt; c.track_axis = 'TRACK_NEGAT
 scene.camera = cam
 
 # ---------------- render ----------------
-try:
-    scene.render.engine = 'BLENDER_EEVEE_NEXT'
-except Exception:
-    scene.render.engine = 'BLENDER_EEVEE'
+if os.environ.get("BLENDER_ENGINE", "").upper() == "CYCLES":      # headless machines without a GPU / EGL
+    scene.render.engine = 'CYCLES'; scene.cycles.device = 'CPU'; scene.cycles.samples = 48
+    scene.cycles.use_denoising = True
+else:
+    try: scene.render.engine = 'BLENDER_EEVEE_NEXT'
+    except Exception: scene.render.engine = 'BLENDER_EEVEE'
 scene.render.resolution_x = 1700
 scene.render.resolution_y = 1050
 scene.render.film_transparent = False

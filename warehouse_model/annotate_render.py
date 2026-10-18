@@ -22,14 +22,15 @@ fig, ax = plt.subplots(figsize=(fig_w, fig_w * h / w + 1.4))
 ax.imshow(img); ax.axis("off")
 ax.set_title("Option B — Warehouse 3D (Blender render)", fontsize=16, weight="bold", color="#1f2937", pad=12)
 handles = [
-    Patch(fc=(0.30, 0.42, 0.85), label="Double-deep reserve (A/B)"),
+    Patch(fc=(0.30, 0.42, 0.85), label="Single-deep pallet racks (back-to-back)"),
     Patch(fc=(0.55, 0.66, 0.95), label="Selective + cantilever"),
     Patch(fc=(0.35, 0.74, 0.52), label="Forward-pick module"),
     Patch(fc=(0.95, 0.78, 0.45), label="Receiving / Outbound (staging)"),
+    Patch(fc=(0.93, 0.62, 0.42), label="Loose-container zone (door R1)"),
     Patch(fc=(0.94, 0.62, 0.62), label="Packing & consolidation"),
     Patch(fc=(0.78, 0.80, 0.86), label="Offices & amenities"),
 ]
-ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.09), ncol=3,
+ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.09), ncol=4,
           fontsize=9.5, frameon=False)
 fig.savefig(os.path.join(FIGS, "layout_3d_render.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
@@ -48,6 +49,7 @@ wh = [
     Patch(fc=(0.03, 0.57, 0.70), label="Picker + trolley · Zone 3 (reserve low levels, right)"),
     Patch(fc=(0.10, 0.60, 0.30), label="Reach truck ETV 216i · putaway & replenishment"),
     Patch(fc=(0.86, 0.15, 0.15), label="Pallet truck ERE 225 · pack → east shipping docks"),
+    Patch(fc=(0.93, 0.62, 0.42), label="Loose-container zone (door R1)"),
 ]
 ax.legend(handles=wh, loc="lower center", bbox_to_anchor=(0.5, -0.09), ncol=3, fontsize=9.5, frameon=False)
 fig.savefig(os.path.join(FIGS, "layout_worker_render.png"), dpi=140, bbox_inches="tight")

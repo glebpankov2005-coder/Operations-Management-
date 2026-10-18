@@ -22,19 +22,10 @@ INK, SUB, STEEL = "#1f2937", "#6b7280", "#33415a"
 M = json.load(open(os.path.join(REPORTS, "phase1_metrics.json"), encoding="utf-8"))
 POS = M["capacity"]["design_positions_target"]
 
-# ---- footprint / columns (content-derived widths; from volume-based areas) ----
-DEPTH = 70.0
-RECV, OFF, RET, PACK, OUTB, FWD = 262, 250, 180, 450, 216, 500
-dd_area, sel_area = 3505, 728
-CIRC = 450
-left_w = (OFF + RET + RECV) / DEPTH
-right_w = (PACK + OUTB) / DEPTH
-core_w = (dd_area + sel_area + FWD) / DEPTH
-aisle = CIRC / (2 * DEPTH)
-L = left_w + aisle + core_w + aisle + right_w
-cx0 = left_w + aisle
-cx1 = cx0 + core_w
-rax = cx1 + aisle                      # right block x0
+# ---- footprint / columns: single source = geometry.py (content-derived widths from volume-based areas) ----
+from geometry import (DEPTH, RECV, OFF, RET, PACK, OUTB, FWD, LOOSE, dd_area, sel_area, CIRC,
+                      left_w, right_w, core_w, aisle, L, cx0, cx1, rax, LEVELS)
+TOTAL_AREA = RECV + OFF + RET + LOOSE + PACK + OUTB + FWD + dd_area + sel_area + CIRC
 
 fig, ax = plt.subplots(figsize=(15.5, 9))
 ax.set_facecolor("#f7f9fc")
@@ -57,10 +48,11 @@ def soft_zone(x0, y0, w, h, color, name, sub=None):
     if sub:
         ax.text(x0 + w/2, y0 + h/2 - 1.8, sub, ha="center", va="center", fontsize=6.8, color=SUB, zorder=3)
 
-# ---- left support column: offices (top), returns, receiving (bottom, dock side) ----
-oh, rh, rvh = OFF/left_w, RET/left_w, RECV/left_w
+# ---- left support column: offices (top), returns, loose-container zone, receiving (bottom, dock side) ----
+oh, rh, rvh, lzh = OFF/left_w, RET/left_w, RECV/left_w, LOOSE/left_w
 soft_zone(0.4, DEPTH-oh, left_w-0.8, oh-0.4, "#cfd6e2", "Offices & amenities", f"{OFF} m²")
 soft_zone(0.4, DEPTH-oh-rh, left_w-0.8, rh-0.2, "#e6bcd8", "Returns", f"{RET} m²")
+soft_zone(0.4, rvh+0.2, left_w-0.8, lzh-0.4, "#f6dfb6", "Container & unpack zone", f"{LOOSE} m²")
 soft_zone(0.4, 0.4, left_w-0.8, rvh-0.4, "#f4c98c", "Receiving & staging", f"{RECV} m²")
 # ---- right column: packing (top), outbound (bottom, dock side) ----
 ph, uh = PACK/right_w, OUTB/right_w
@@ -77,17 +69,22 @@ ax.text(cx0 + core_w/2, fwd_h/2, "FAST-PICK AREA  (best-sellers)  ·  500 m²",
         ha="center", va="center", fontsize=8, weight="bold", color="#2f855a", zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 
-# reserve racks: vertical double-deep blocks + aisles, with a central cross-aisle
+# reserve racks: single-deep back-to-back blocks (one pallet each side) + aisles, with a central cross-aisle
 END_AISLE = 3.2                        # front + rear cross-aisles: every storage aisle open at BOTH ends (no U-turns)
 rack_y0, rack_y1 = fwd_h + END_AISLE, DEPTH - END_AISLE
 cross_y0, cross_y1 = (rack_y0+rack_y1)/2 - 1.6, (rack_y0+rack_y1)/2 + 1.6
 runs = [(rack_y0, cross_y0), (cross_y1, rack_y1)]
-BLOCK, AISLEW = 2.6, 3.0            # double-deep block (2 rows) + reach aisle
+BLOCK, AISLEW = 2.6, 3.0            # back-to-back block (2 single-deep rows of 1.2 m + flue) + reach aisle
 pitch = BLOCK + AISLEW
 n_mod = int((core_w - AISLEW) // pitch)
 start = cx0 + (core_w - (n_mod*pitch - AISLEW)) / 2
 sel_from = n_mod - 2                 # last 2 modules = selective + cantilever
 aisle_no = 1
+BAY, PAL_PER_BAY = 2.7, 3            # 2.7 m bay holds 3 EUR pallets (800 mm side to the aisle)
+bays_per_row = sum(int((y1 - y0) // BAY) for (y0, y1) in runs)
+positions_per_module = 2 * bays_per_row * PAL_PER_BAY * LEVELS
+positions_total = n_mod * positions_per_module
+positions_odd = 2 * positions_per_module
 for m in range(n_mod):
     bx = start + m*pitch
     is_sel = m >= sel_from
@@ -95,7 +92,7 @@ for m in range(n_mod):
     edge = "#6d8bfa"
     for (y0, y1) in runs:
         ax.add_patch(Rectangle((bx, y0), BLOCK, y1-y0, facecolor=fill, edgecolor=edge, lw=1.0, zorder=2))
-        ax.plot([bx+BLOCK/2, bx+BLOCK/2], [y0, y1], color="white", lw=0.8, zorder=2.1)  # double-deep split
+        ax.plot([bx+BLOCK/2, bx+BLOCK/2], [y0, y1], color="white", lw=0.8, zorder=2.1)  # back-to-back split
         for by in np.arange(y0+2.7, y1, 2.7):                                            # bay divisions
             ax.plot([bx, bx+BLOCK], [by, by], color="white", lw=0.5, alpha=0.8, zorder=2.1)
     # aisle number at top
@@ -110,7 +107,7 @@ for yy_, lab in [((fwd_h + rack_y0) / 2, "front cross-aisle (3.2 m)"), (DEPTH - 
     ax.text(cx0 + core_w * 0.72, yy_, lab, ha="center", va="center", fontsize=6.5, style="italic", color=SUB,
             zorder=3, bbox=dict(boxstyle="round,pad=0.12", fc="white", ec="none", alpha=0.8))
 # zone captions over racks
-ax.text(cx0 + (sel_from*pitch)/2, rack_y1 - 3, "TWO-DEEP PALLET RACKS (main storage)  ·  3,505 m²",
+ax.text(cx0 + (sel_from*pitch)/2, rack_y1 - 3, "SINGLE-DEEP PALLET RACKS, BACK-TO-BACK (main storage)  ·  3,505 m²",
         ha="center", fontsize=8.5, weight="bold", color="#3b5bdb", zorder=3,
         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
 ax.text(start + (sel_from+0.9)*pitch, rack_y0 + 8, "RACKS FOR\nODD / LONG\nITEMS · 728 m²", ha="center",
@@ -130,9 +127,14 @@ def docks_side(x_wall, y_centre, n, prefix, outside):
         ax.text(x0 + 0.85, dy, f"{prefix}{i}", ha="center", va="center", fontsize=5.6, color="white",
                 weight="bold", zorder=13, rotation=90)
     return ys_
-in_doors = docks_side(0, rvh / 2, 3, "R", "left")
+# R1 = container dock beside the loose-container zone; R2-R3 = palletised trailers beside receiving
+in_doors = np.concatenate([docks_side(0, rvh + 3.2, 1, "R", "left"), np.array([4.2, 4.2 + DOOR_PITCH])])
+for i, dy in enumerate(in_doors[1:], 2):
+    ax.add_patch(FancyBboxPatch((-2.3, dy - 1.5), 1.7, 3.0, boxstyle="round,pad=0,rounding_size=0.3",
+                 facecolor=STEEL, edgecolor="white", lw=0.8, zorder=12))
+    ax.text(-1.45, dy, f"R{i}", ha="center", va="center", fontsize=5.6, color="white", weight="bold", zorder=13, rotation=90)
 out_doors = docks_side(L, uh / 2, 5, "S", "right")
-ax.text(-4.9, rvh / 2, "RECEIVING docks  (R1 = container)", ha="center", va="center", rotation=90,
+ax.text(-4.9, (rvh + lzh) / 2, "RECEIVING docks  (R1 = container)", ha="center", va="center", rotation=90,
         fontsize=7.2, color=STEEL, weight="bold")
 ax.text(L + 5.4, out_doors[3], "SHIPPING docks", ha="center", va="center", rotation=90,
         fontsize=7.6, color=STEEL, weight="bold")
@@ -167,10 +169,10 @@ ax.add_patch(Rectangle((tb_x, tb_y+tb_h-1.6), tb_w, 1.6, facecolor="#eef1f7", ed
 ax.text(tb_x+tb_w/2, tb_y+tb_h-0.8, "Project OTM — Assa Abloy @ DHL Bemmel", ha="center", va="center",
         fontsize=7.6, weight="bold", color=INK, zorder=7)
 rows = [("DRAWING", "Option B — warehouse floor plan (rack-level)"),
-        ("POSITIONS", "~9,500 target (peak 8,512 ÷ 0.90) + headroom"),
+        ("POSITIONS", f"{positions_total:,} single-deep  ·  target ~9,500"),
         ("DOCKS / MHE", "3 in (W) · 5 out (E) · ETV 216i, EJE 120i, ERE 225"),
-        ("SCALE / SIZE", f"~1:400  ·  {L:.0f} × {DEPTH:.0f} m = 6,541 m²  (93%)"),
-        ("DATE / REV", "2026  ·  Draft A")]
+        ("SCALE / SIZE", f"~1:400  ·  {L:.0f} × {DEPTH:.0f} m = {TOTAL_AREA:,} m²  ({TOTAL_AREA / 7000:.0%})"),
+        ("DATE / REV", "2026  ·  Rev B (loose-container zone)")]
 for i, (k, v) in enumerate(rows):
     yy = tb_y + tb_h - 2.6 - i*1.25
     ax.text(tb_x+1.2, yy, k, fontsize=6.3, weight="bold", color=SUB, va="center", zorder=7)
@@ -180,7 +182,7 @@ title_txt = ax.text(L/2, DEPTH + 8, "Option B — Warehouse Floor Plan (rack-lev
                     ha="center", fontsize=15, weight="bold", color=INK)
 
 fig.savefig(os.path.join(FIGS, "layout_floorplan.png"), dpi=130, bbox_inches="tight")
-print(f"Saved layout_floorplan.png  ({n_mod} rack modules, building {L:.0f}x{DEPTH:.0f} m)")
+print(f"Saved layout_floorplan.png  ({n_mod} rack modules, {positions_total:,} positions, building {L:.0f}x{DEPTH:.0f} m)")
 
 # =================== Fig 8: SAME floor plan + order/returns/cross-dock flow overlay ===================
 from matplotlib.lines import Line2D
@@ -211,14 +213,17 @@ def badge(x, y, n, color):
 cd_y = (cross_y0 + cross_y1) / 2
 aisle_c = [start + k * pitch + BLOCK + AISLEW / 2 for k in range(n_mod - 1)]
 x_ref = aisle_c[3]                                     # storage aisle A4 (open channel) for the refill run
-pk_y = pack_cy + 4                                     # entry height into packing (clear of its label)
+pk_y = DEPTH - 5.5                                     # entry height into packing (above its label)
 x5 = pack_cx + 1.2
 
 # ---- main flow 1-6 : In -> put away -> refill -> pick -> pack -> out ----
-route([(-1.45, in_doors[0]), (left_w * 0.62, in_doors[0])], BLUE)                      # 1 in through R1
-badge(left_w * 0.18, in_doors[0], 1, BLUE)
+route([(-1.45, in_doors[1]), (left_w * 0.62, in_doors[1])], BLUE)                      # 1 in through R2 (pallets)
+badge(left_w * 0.18, in_doors[1], 1, BLUE)
+ORANGE = "#d97706"                                                                     # loose container: R1 -> zone -> receiving
+route([(-1.45, in_doors[0]), (left_w * 0.55, in_doors[0]), (left_w * 0.55, rvh - 3.0)], ORANGE)
+badge(left_w * 0.18, in_doors[0], "C", ORANGE)
 route([(left_w - 0.8, 20.0), (la, 20.0), (la, cd_y), (start + 7.0, cd_y)], BLUE)         # 2 up left aisle, into cross-aisle
-badge(la, (20.0 + cd_y) / 2, 2, BLUE)
+badge(la, cd_y - 4.0, 2, BLUE)
 route([(x_ref, cd_y + 10), (x_ref, fwd_h + 1.4)], GREEN)                               # 3 reserve -> fast-pick rear
 badge(x_ref, cd_y - 8, 3, GREEN)
 route([(cx1 - 11, fwd_h * 0.5), (ra, fwd_h * 0.5), (ra, pk_y), (rax + 2.6, pk_y)], REDD)  # 4 pick -> right aisle -> packing
@@ -230,13 +235,32 @@ badge(out_cx, out_doors[1], 6, REDD)
 
 # flow legend (boxed, below the plan)
 ax.set_ylim(-21, DEPTH + 10)
-handles = [Line2D([0], [0], color=BLUE, lw=5, label="1–2  In & put away"),
+handles = [Line2D([0], [0], color=ORANGE, lw=5, label="C  Loose container: unpack, build pallets"),
+           Line2D([0], [0], color=BLUE, lw=5, label="1–2  In & put away"),
            Line2D([0], [0], color=GREEN, lw=5, label="3  Refill the fast-pick area"),
            Line2D([0], [0], color=REDD, lw=5, label="4–6  Pick → pack → out")]
-leg = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=3, fontsize=10,
+leg = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=4, fontsize=10,
                 frameon=True, fancybox=True, borderpad=0.9, columnspacing=3.2, handlelength=3.2)
 leg.get_frame().set_edgecolor("#9db4fb"); leg.get_frame().set_linewidth(1.2)
 title_txt.set_text("Option B — Layout, Zoning & Order Flow (on the floor plan)")
 fig.savefig(os.path.join(FIGS, "layout_orderflow.png"), dpi=130, bbox_inches="tight")
 plt.close(fig)
 print("Saved layout_orderflow.png")
+
+# ---- layout metrics (single source for the reports) ----
+from _util import update_metrics
+zones = [("Receiving & inbound staging", RECV), ("Loose-container zone (unpack & palletise)", LOOSE),
+         ("Offices & amenities", OFF), ("Returns / VAS", RET),
+         ("Single-deep pallet racks (A/B/C reserve)", dd_area), ("Selective + cantilever (odd / long items)", sel_area),
+         ("Fast-pick area (carton-flow / shelving)", FWD), ("Packing & consolidation", PACK),
+         ("Outbound staging & shipping", OUTB), ("Circulation / aisles", CIRC)]
+update_metrics("layout", {
+    "building_L_m": round(L, 1), "building_depth_m": DEPTH, "total_area_m2": int(TOTAL_AREA),
+    "pct_of_7000": round(TOTAL_AREA / 7000 * 100, 0), "fits_7000": bool(TOTAL_AREA <= 7000),
+    "zones": [{"Zone": z, "Area m2": int(a), "% of building": f"{a / TOTAL_AREA:.0%}"} for z, a in zones],
+    "rack_modules": int(n_mod), "storage_aisles": int(n_mod - 1), "levels": int(LEVELS),
+    "bays_per_row": int(bays_per_row), "positions_total": int(positions_total),
+    "positions_standard": int(positions_total - positions_odd), "positions_odd_long": int(positions_odd),
+    "positions_target": 9500, "rack_type": "single-deep, back-to-back", "loose_zone_m2": int(LOOSE),
+    "dd_area_m2": int(dd_area), "sel_area_m2": int(sel_area),
+})

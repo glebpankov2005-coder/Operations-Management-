@@ -26,7 +26,7 @@ RED, YEL, INK, GREY = "#D40511", "#FFCC00", "#262626", "#9aa7bd"
 
 # ====================================================== Jungheinrich data (S006-S008)
 JH = {
-    "ETV 216i": {"role": "Reach truck - putaway, replenishment, full-pallet picks (double-deep via telescopic forks)",
+    "ETV 216i": {"role": "Reach truck - putaway, replenishment, full-pallet picks (single-deep racks: standard forks)",
                  "capacity_kg": 1600, "load_centre_mm": 600, "max_lift_mm": 10700, "ext_mast_mm": 11700,
                  "ast_mm": "2,631-2,785", "width_mm": 1270, "v_travel_kmh": 11, "v_travel_max_kmh": 14,
                  "v_lift_laden": 0.59, "v_lift_empty": 0.81, "v_lower": 0.56, "v_reach": 0.24, "reach_mm": 616,
@@ -60,15 +60,14 @@ pd_out = (ra, uh / 2)
 d_fp = np.abs(gy - cross_y) + np.abs(gx - pd_out[0]) + np.abs(cross_y - pd_out[1])
 
 def etv_cycle(d_oneway):
-    """Reach-truck cycle (s): fixed handling + travel round trip + lift/lower + reach + double-deep."""
+    """Reach-truck cycle (s): fixed handling + travel round trip + lift/lower + reach (single-deep: no telescopic fork time)."""
     e = JH["ETV 216i"]
     v = e["v_travel_kmh"] / 3.6
     t_travel = 2 * d_oneway / v + 4 * e["accel_s"]        # 2 legs each way, accel/decel penalty per leg
     t_lift = mean_h / e["v_lift_laden"] + mean_h / e["v_lower"]
     t_reach = 2 * 2 * (e["reach_mm"] / 1000) / e["v_reach"]  # reach out + in, at pick-up and at deposit
-    t_dd = 0.5 * 12.0                                       # 50% rear positions: telescopic fork +12 s (A021)
     t_fixed = 45.0                                          # scan, fork entry, fine positioning, confirm (A021)
-    return t_fixed + t_travel + t_lift + t_reach + t_dd
+    return t_fixed + t_travel + t_lift + t_reach
 
 t_put = etv_cycle(float(d_put.mean())) / 60
 t_rep = etv_cycle(float(d_rep.mean())) / 60
@@ -183,19 +182,26 @@ ERE_h_avg = (pal_avg * t_unload + MEAS["inbound_loads_day"] * loose * t_unload
              + MEAS["outbound_pallets_day"] * t_load + np.ceil(MEAS["outbound_cartons_day"] / 20) * t_cage) / 60
 avail = NET_H * MHE_UTIL
 fleet = []
-for model, h_avg, h_pk, task, spare in [
-    ("ETV 216i", ETV_h_avg, ETV_h, "Putaway + replenishment + full-pallet picks", 1),
-    ("EJE 120i", EJE_h_avg, EJE_h, "Large orders: pick-to-pallet (one order per pallet)", 1),
-    ("ERE 225", ERE_h_avg, ERE_h, "Unload trailers/containers, load outbound, dock moves", 1)]:   # +1: one per dock side
+# Spare rule (D3 machinery review): a spare is added only where one breakdown would stop a process.
+# With >= 2 units of a type, one breakdown still leaves enough for an average day; full-service lease
+# contracts include repair (S021). ERE 225: one per dock side (west receiving + container zone, east shipping).
+for model, h_avg, h_pk, task in [
+    ("ETV 216i", ETV_h_avg, ETV_h, "Putaway + replenishment + full-pallet picks"),
+    ("EJE 120i", EJE_h_avg, EJE_h, "Large orders: pick-to-pallet (one order per pallet)"),
+    ("ERE 225", ERE_h_avg, ERE_h, "Unload trailers/containers, load outbound, dock moves")]:
     need = max(1, int(np.ceil(h_pk / avail)))
+    need_avg = max(1, int(np.ceil(h_avg / avail)))
+    planned = 2 if model == "ERE 225" else (need + 1 if need == 1 else need)
     fleet.append({"Model": f"Jungheinrich {model}", "Task": task,
                   "Equip-h/day avg": round(h_avg, 1), "Equip-h/day peak": round(h_pk, 1),
-                  "Units required (peak)": need, "Units recommended": need + spare})
+                  "Units required (avg)": need_avg, "Units required (peak)": need, "Units recommended": planned,
+                  "Utilisation avg %": round(h_avg / (planned * NET_H) * 100, 0)})
 tro = [e for e in PK["equipment"] if e["Item"].startswith("Pick trolley")][0]
 fleet.append({"Model": "Pick trolley (3-tier, 6 totes) + totes", "Task": "Small orders: zone batch picking, sorted at the put-wall",
               "Equip-h/day avg": round(sum(r["Picker-h avg"] for r in PK["small_orders"]), 1),
               "Equip-h/day peak": round(sum(r["Picker-h peak"] for r in PK["small_orders"]), 1),
-              "Units required (peak)": tro["Required"], "Units recommended": tro["Planned"]})
+              "Units required (avg)": tro["Required"], "Units required (peak)": tro["Required"], "Units recommended": tro["Planned"],
+              "Utilisation avg %": None})
 fleet = pd.DataFrame(fleet)
 save_table(fleet.set_index("Model"), "mhe_fleet.csv")
 
@@ -209,13 +215,34 @@ cycle = pd.DataFrame([
 save_table(cycle.set_index("Move"), "mhe_cycle_times.csv")
 
 # ====================================================== fit checks (layout vs truck data)
-st = all_storage()["ASSA STORAGE DETAILS (01-06-2025).xlsx"].drop_duplicates("PART")
+st_all = all_storage()
+snap = st_all["ASSA STORAGE DETAILS (01-06-2025).xlsx"]
+st = snap.drop_duplicates("PART")
 w = pd.to_numeric(st["PA WGT"], errors="coerce"); w = w[(w > 0) & (w < 9999)]
+# actual load weight = sum(qty x unit weight) per load (the SKU's PA WGT is a full-pallet master value)
+act = (pd.to_numeric(snap["QTY"], errors="coerce") * pd.to_numeric(snap["EA WGT"], errors="coerce")).groupby(snap["LODNUM"]).sum()
+LW = {"over_1000": int((act > 1000).sum()), "over_1600": int((act > 1600).sum()), "loads": int(act.size)}
+ld = snap.drop_duplicates("LODNUM")
+def _num(c):
+    x = pd.to_numeric(ld[c], errors="coerce"); return x.where((x > 0) & (x < 9999))     # 9999 = missing in the WMS
+plen, phgt = _num("PA LEN"), _num("PA HGT")
+LG = {"loads_over_1_9m": int(((plen > 190) & (plen <= 240)).sum()), "loads_over_2_4m": int((plen > 240).sum())}
+from geometry import LEVELS as _LV
+_pos = json.load(open(os.path.join(os.path.dirname(__file__), "..", "outputs", "reports", "phase1_metrics.json"), encoding="utf-8"))["layout"]["positions_total"]
+TL = {"loads_1_16_to_1_68": int(((phgt > 116) & (phgt <= 168)).sum()), "loads_over_1_68": int((phgt > 168).sum()),
+      "height_missing": int(phgt.isna().sum()), "top_level_positions": int(_pos / _LV)}
 fit = pd.DataFrame([
     {"Check": "Working aisle (reach aisle 3.0 m)", "Requirement": "ETV 216i Ast 2,631-2,785 mm", "Result": "OK - 0.2-0.4 m margin"},
     {"Check": f"Top beam {top_beam:.2f} m (8 levels x {PITCH_M} m)", "Requirement": "Max lift 10.7 m", "Result": f"OK - {10.7 - top_beam:.2f} m spare"},
     {"Check": "Clear height 12.2 m", "Requirement": "Extended mast 11.7 m at max lift", "Result": "OK - 0.5 m clearance"},
     {"Check": f"Pallet weight p95 {w.quantile(.95):.0f} kg / p99 {w.quantile(.99):.0f} kg", "Requirement": "1,600 kg @ 600 mm", "Result": f"OK for {100 * (w <= 1600).mean():.1f}% of SKUs; >1 t pallets slotted on low levels"},
+    {"Check": f"Actual load weight in stock (qty x unit weight): {LW['over_1000']} loads > 1 t, {LW['over_1600']} > 1.6 t", "Requirement": "1,600 kg @ 600 mm",
+     "Result": "OK - the few loads > 1.6 t go to floor positions, moved with the ERE 225 (2.5 t)"},
+    {"Check": "Single-deep (back-to-back) racks", "Requirement": "every pallet reachable from an aisle", "Result": "OK - standard forks; no telescopic attachment, no residual-capacity loss"},
+    {"Check": f"Long pallets: {LG['loads_over_1_9m']} loads 1.9-2.4 m (XLONG/CONS), {LG['loads_over_2_4m']} > 2.4 m", "Requirement": "fit the rack and the 3.0 m aisle",
+     "Result": "OK - 1.9-2.4 m pallets stored crosswise, 1 per 2.7 m bay in the odd/long modules (forks enter the long side); > 2.4 m on cantilever"},
+    {"Check": f"Tall loads: {TL['loads_1_16_to_1_68']} loads 1.16-1.68 m, {TL['loads_over_1_68']} > 1.68 m", "Requirement": "1.41 m level pitch",
+     "Result": f"OK - top level (~1.7 m free under the roof clearance) has {TL['top_level_positions']:,} positions; > 1.68 m on the floor"},
     {"Check": f"Large orders up to p90 {PK['large_orders']['kg_p90']:.0f} kg", "Requirement": "EJE 120i 2,000 kg", "Result": "OK - picked onto one pallet"},
     {"Check": "Small orders (median 7 L)", "Requirement": "Trolley 6 totes, 250 kg", "Result": f"OK - ~{PK['small_orders'][0]['Lines per tour']:.0f} lines per tour"},
     {"Check": "Charging", "Requirement": "Li-ion opportunity charging", "Result": "No battery room; chargers at P&D points"},
@@ -262,7 +289,7 @@ def units(key):
     return int(fleet.loc[fleet.Model.str.contains(key), "Units recommended"].iloc[0])
 just = pd.DataFrame([
     {"Machine": "ETV 216i reach truck", "Process": "Putaway, replenishment, full-pallet picks",
-     "Why (data)": f"Pallets stored up to the 8th level (top beam {top_beam:.1f} m) and two deep - needs 10.7 m lift and telescopic forks; 99.4% of pallets ≤ 1.6 t",
+     "Why (data)": f"Pallets stored up to the 8th level (top beam {top_beam:.1f} m) - needs 10.7 m lift; single-deep racks, so standard forks; {LW['loads'] - LW['over_1600']:,} of {LW['loads']:,} loads ≤ 1.6 t",
      "How it is used": f"Perimeter + cross-aisles; ~{60 / t_put:.0f} putaways/h; feeds fast-pick lanes from the rear", "Units": units("ETV")},
     {"Machine": "EJE 120i pallet truck", "Process": "Large orders: pick-to-pallet",
      "Why (data)": f"{seg['large']['pct_orders']:.0f}% of orders ({seg['large']['orders_day']:.0f}/day) are pallet-sized: median {lg['litres_median']:.0f} L, {lg['kg_median']:.0f} kg (p90 {lg['kg_p90']:.0f} kg) - too big/heavy for a trolley",
@@ -279,14 +306,41 @@ just = pd.DataFrame([
 ])
 save_table(just.set_index("Machine"), "mhe_justification.csv")
 
-# ====================================================== loose containers: in-house vs outsourced
+# ====================================================== loose-container zone (teacher feedback: separate zone for loose containers)
+# Sized from the Asian-origin receipts in the stock data (INBOUND TRUCK NO with >= 10 loads ~ one container):
+# how many different SKUs (= pallets being built at the same time) and how many pallets one container gives.
+ASIA = {"CN", "TW", "KR", "VN", "JP", "IN", "TH", "MY", "ID", "HK", "PH", "SG"}
+rc = []
+for s_ in st_all.values():
+    a_ = s_.drop_duplicates("LODNUM"); a_ = a_[a_["ORGCOD"].astype(str).isin(ASIA)]
+    rc.append(a_.groupby("INBOUND TRUCK NO").agg(loads=("LODNUM", "nunique"), skus=("PART", "nunique")))
+rc = pd.concat(rc); rc = rc[rc["loads"] >= 10]
+PALLET_FLOOR = 1.9                                          # m2 per floor-staged pallet incl. access (as receiving)
+build_spots = int(np.ceil(rc["skus"].quantile(.75))) + 1    # one build spot per SKU in a typical-large container (+1 mixed/rest)
+buffer_pal = int(np.ceil(rc["loads"].quantile(.75)))        # finished pallets of a typical-large container waiting for putaway
+zone_parts = {"Unload lane with extendable roller conveyor (12 x 2 m)": 24.0,
+              f"Pallet build spots ({build_spots} x 3 m2)": build_spots * 3.0,
+              f"Finished-pallet buffer ({buffer_pal} x {PALLET_FLOOR} m2)": buffer_pal * PALLET_FLOOR,
+              "Label / scan / stretch-wrap station": 16.0}
+zone_net = sum(zone_parts.values()); zone_need = zone_net * 1.3          # +30% walkways
+from geometry import LOOSE as LOOSE_M2
+loose_zone = {"containers_sampled": int(len(rc)), "loads_per_container_median": float(rc["loads"].median()),
+              "loads_per_container_p75": float(rc["loads"].quantile(.75)), "loads_per_container_max": int(rc["loads"].max()),
+              "skus_per_container_median": float(rc["skus"].median()), "skus_per_container_p75": float(rc["skus"].quantile(.75)),
+              "skus_per_container_max": int(rc["skus"].max()),
+              "build_spots": build_spots, "buffer_pallets": buffer_pal,
+              "parts_m2": {k: round(v, 0) for k, v in zone_parts.items()},
+              "area_needed_m2": round(zone_need, 0), "area_planned_m2": LOOSE_M2,
+              "crew": INP["destuff_crew"], "hours_per_container": INP["destuff_h"]}
+
+# ====================================================== loose containers: who does the work in the zone
 cont = pd.DataFrame([
-    {"Option": "In-house DHL crew", "How": "2 DHL staff de-stuff each container at door R1",
+    {"Option": "In-house DHL crew", "How": "2 DHL staff unpack each container in the loose-container zone at door R1",
      "DHL labour": f"{INP['destuff_crew'] * INP['destuff_h']:.0f} person-h per container", "Door": f"R1 ~{door_container:.1f} h/day",
      "Pros": "Full control, flexible timing", "Cons": "Heavy manual handling, training, peak days need 2 crews"},
-    {"Option": "On-site specialist contractor (recommended)", "How": "Contractor crew unloads and palletises at R1, paid per container",
+    {"Option": "On-site specialist contractor", "How": "Contractor crew unpacks and palletises in the same zone, paid per container",
      "DHL labour": "none", "Door": f"R1 ~{door_container:.1f} h/day",
-     "Pros": "No own labour or peak staffing; specialist speed and safety; cost scales with containers", "Cons": "Per-container fee (D3); booking coordination"},
+     "Pros": "No own labour or peak staffing; specialist speed and safety; cost scales with containers", "Cons": "Per-container fee (no public price - quote needed); booking coordination"},
     {"Option": "Port / CFS devanning", "How": "Container unpacked and palletised near the port; arrives as a palletised trailer",
      "DHL labour": "none", "Door": "standard trailer",
      "Pros": "Simplest receiving - everything palletised", "Cons": "Extra transport and handling cost; ~1 day longer lead time; less control"},
@@ -386,7 +440,8 @@ update_metrics("dock_mhe", {
                       "trailer_door_h": round(door_trailer, 2), "container_door_h": round(door_container, 2)},
     "outbound_doors": out_summary, "carriers_trailers_per_day": carriers.head(10).to_dict(),
     "order_release": release, "turning_check": turning.to_dict("records"), "justification": just.to_dict("records"),
-    "container_options": cont.to_dict("records"), "departure_plan": departure,
+    "container_options": cont.to_dict("records"), "departure_plan": departure, "loose_zone": loose_zone,
+    "load_checks": {"weight": LW, "long": LG, "tall": TL},
 })
 
 print("CYCLE TIMES"); print(cycle.to_string(index=False))
@@ -394,3 +449,5 @@ print("\nINBOUND DOORS"); print(inbound.to_string(index=False)); print("-> base 
 print("\nOUTBOUND", json.dumps(out_summary, indent=1, default=float))
 print("\nFLEET"); print(fleet.to_string(index=False))
 print("\nRELEASE", release)
+print("\nLOOSE ZONE", loose_zone)
+print("LOAD CHECKS", LW, LG, TL)

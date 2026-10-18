@@ -208,16 +208,16 @@
         "ABC_vol": "B",
         "skus": 858,
         "qty": 204050,
-        "lines": 11712,
+        "lines": 11699,
         "sku_pct": 19.7,
         "qty_pct": 15.0,
-        "line_pct": 30.0
+        "line_pct": 29.9
       },
       {
         "ABC_vol": "C",
         "skus": 2931,
         "qty": 67923,
-        "lines": 11042,
+        "lines": 11055,
         "sku_pct": 67.3,
         "qty_pct": 5.0,
         "line_pct": 28.3
@@ -525,7 +525,7 @@
         "unit": "pallets",
         "rate_per_h": 25
       },
-      "Container de-stuffing (outsourced)": {
+      "Loose-container unpacking (own zone, A026)": {
         "unit": "person-h",
         "rate_per_h": null
       },
@@ -578,7 +578,7 @@
         "DHL staff": true
       },
       {
-        "Process": "Container de-stuffing (outsourced)",
+        "Process": "Loose-container unpacking (own zone, A026)",
         "Driver/day (avg)": 6.0,
         "Unit": "person-h",
         "Rate/h": "-",
@@ -624,7 +624,7 @@
         "Peak factor": 1.83,
         "Hours (avg)": 3.6,
         "Hours (peak)": 6.5,
-        "FTE avg": 0.47,
+        "FTE avg": 0.48,
         "FTE peak": 0.87,
         "FTE (ceil peak)": 1,
         "DHL staff": true
@@ -732,18 +732,21 @@
     ]
   },
   "layout": {
-    "building_L_m": 93.4,
+    "building_L_m": 96.2,
     "building_depth_m": 70.0,
-    "total_area_m2": 6541,
-    "pct_of_7000": 93.0,
-    "positions_capacity": 14074,
-    "positions_target": 14074,
+    "total_area_m2": 6731,
+    "pct_of_7000": 96.0,
     "fits_7000": true,
     "zones": [
       {
         "Zone": "Receiving & inbound staging",
         "Area m2": 262,
         "% of building": "4%"
+      },
+      {
+        "Zone": "Loose-container zone (unpack & palletise)",
+        "Area m2": 190,
+        "% of building": "3%"
       },
       {
         "Zone": "Offices & amenities",
@@ -756,19 +759,19 @@
         "% of building": "3%"
       },
       {
-        "Zone": "Double-deep reserve (A/B)",
+        "Zone": "Single-deep pallet racks (A/B/C reserve)",
         "Area m2": 3505,
-        "% of building": "54%"
+        "% of building": "52%"
       },
       {
-        "Zone": "Selective + cantilever (irregular/XLONG/C)",
+        "Zone": "Selective + cantilever (odd / long items)",
         "Area m2": 728,
         "% of building": "11%"
       },
       {
-        "Zone": "Forward-pick module (carton-flow/shelving)",
+        "Zone": "Fast-pick area (carton-flow / shelving)",
         "Area m2": 500,
-        "% of building": "8%"
+        "% of building": "7%"
       },
       {
         "Zone": "Packing & consolidation",
@@ -786,6 +789,16 @@
         "% of building": "7%"
       }
     ],
+    "rack_modules": 11,
+    "storage_aisles": 10,
+    "levels": 8,
+    "bays_per_row": 18,
+    "positions_total": 9504,
+    "positions_standard": 7776,
+    "positions_odd_long": 1728,
+    "positions_target": 9500,
+    "rack_type": "single-deep, back-to-back",
+    "loose_zone_m2": 190,
     "dd_area_m2": 3505,
     "sel_area_m2": 728
   },
@@ -824,7 +837,7 @@
   "dock_mhe": {
     "jungheinrich": {
       "ETV 216i": {
-        "role": "Reach truck - putaway, replenishment, full-pallet picks (double-deep via telescopic forks)",
+        "role": "Reach truck - putaway, replenishment, full-pallet picks (single-deep racks: standard forks)",
         "capacity_kg": 1600,
         "load_centre_mm": 600,
         "max_lift_mm": 10700,
@@ -888,23 +901,23 @@
       {
         "Move": "Putaway (receiving -> reserve)",
         "Truck": "ETV 216i",
-        "Avg one-way m": 76.0,
-        "Cycle min": 2.45,
-        "Moves/h": 24.5
+        "Avg one-way m": 79.0,
+        "Cycle min": 2.38,
+        "Moves/h": 25.2
       },
       {
         "Move": "Replenishment (reserve -> fast-pick rear)",
         "Truck": "ETV 216i",
         "Avg one-way m": 28.0,
-        "Cycle min": 1.93,
-        "Moves/h": 31.1
+        "Cycle min": 1.83,
+        "Moves/h": 32.8
       },
       {
         "Move": "Full-pallet pick (reserve -> outbound)",
         "Truck": "ETV 216i",
         "Avg one-way m": 78.0,
-        "Cycle min": 2.47,
-        "Moves/h": 24.3
+        "Cycle min": 2.37,
+        "Moves/h": 25.3
       },
       {
         "Move": "Unload pallet (trailer -> receiving lane)",
@@ -925,34 +938,42 @@
       {
         "Model": "Jungheinrich ETV 216i",
         "Task": "Putaway + replenishment + full-pallet picks",
-        "Equip-h/day avg": 5.1,
-        "Equip-h/day peak": 9.5,
+        "Equip-h/day avg": 4.9,
+        "Equip-h/day peak": 9.2,
+        "Units required (avg)": 1,
         "Units required (peak)": 2,
-        "Units recommended": 3
+        "Units recommended": 2,
+        "Utilisation avg %": 33.0
       },
       {
         "Model": "Jungheinrich EJE 120i",
         "Task": "Large orders: pick-to-pallet (one order per pallet)",
         "Equip-h/day avg": 7.8,
         "Equip-h/day peak": 14.3,
+        "Units required (avg)": 2,
         "Units required (peak)": 3,
-        "Units recommended": 4
+        "Units recommended": 3,
+        "Utilisation avg %": 35.0
       },
       {
         "Model": "Jungheinrich ERE 225",
         "Task": "Unload trailers/containers, load outbound, dock moves",
         "Equip-h/day avg": 2.2,
         "Equip-h/day peak": 4.6,
+        "Units required (avg)": 1,
         "Units required (peak)": 1,
-        "Units recommended": 2
+        "Units recommended": 2,
+        "Utilisation avg %": 14.0
       },
       {
         "Model": "Pick trolley (3-tier, 6 totes) + totes",
         "Task": "Small orders: zone batch picking, sorted at the put-wall",
         "Equip-h/day avg": 3.6,
         "Equip-h/day peak": 6.5,
+        "Units required (avg)": 1,
         "Units required (peak)": 1,
-        "Units recommended": 6
+        "Units recommended": 6,
+        "Utilisation avg %": NaN
       }
     ],
     "fit_checks": [
@@ -975,6 +996,26 @@
         "Check": "Pallet weight p95 875 kg / p99 1344 kg",
         "Requirement": "1,600 kg @ 600 mm",
         "Result": "OK for 99.4% of SKUs; >1 t pallets slotted on low levels"
+      },
+      {
+        "Check": "Actual load weight in stock (qty x unit weight): 10 loads > 1 t, 3 > 1.6 t",
+        "Requirement": "1,600 kg @ 600 mm",
+        "Result": "OK - the few loads > 1.6 t go to floor positions, moved with the ERE 225 (2.5 t)"
+      },
+      {
+        "Check": "Single-deep (back-to-back) racks",
+        "Requirement": "every pallet reachable from an aisle",
+        "Result": "OK - standard forks; no telescopic attachment, no residual-capacity loss"
+      },
+      {
+        "Check": "Long pallets: 163 loads 1.9-2.4 m (XLONG/CONS), 26 > 2.4 m",
+        "Requirement": "fit the rack and the 3.0 m aisle",
+        "Result": "OK - 1.9-2.4 m pallets stored crosswise, 1 per 2.7 m bay in the odd/long modules (forks enter the long side); > 2.4 m on cantilever"
+      },
+      {
+        "Check": "Tall loads: 940 loads 1.16-1.68 m, 42 > 1.68 m",
+        "Requirement": "1.41 m level pitch",
+        "Result": "OK - top level (~1.7 m free under the roof clearance) has 1,188 positions; > 1.68 m on the floor"
       },
       {
         "Check": "Large orders up to p90 671 kg",
@@ -1125,16 +1166,16 @@
       {
         "Machine": "ETV 216i reach truck",
         "Process": "Putaway, replenishment, full-pallet picks",
-        "Why (data)": "Pallets stored up to the 8th level (top beam 10.0 m) and two deep - needs 10.7 m lift and telescopic forks; 99.4% of pallets \u2264 1.6 t",
+        "Why (data)": "Pallets stored up to the 8th level (top beam 10.0 m) - needs 10.7 m lift; single-deep racks, so standard forks; 11,012 of 11,015 loads \u2264 1.6 t",
         "How it is used": "Perimeter + cross-aisles; ~25 putaways/h; feeds fast-pick lanes from the rear",
-        "Units": 3
+        "Units": 2
       },
       {
         "Machine": "EJE 120i pallet truck",
         "Process": "Large orders: pick-to-pallet",
         "Why (data)": "16% of orders (23/day) are pallet-sized: median 234 L, 140 kg (p90 671 kg) - too big/heavy for a trolley",
         "How it is used": "One order per pallet; ~15 lines in ~20 min; drops the pallet at packing",
-        "Units": 4
+        "Units": 3
       },
       {
         "Machine": "Pick trolley + totes",
@@ -1161,19 +1202,19 @@
     "container_options": [
       {
         "Option": "In-house DHL crew",
-        "How": "2 DHL staff de-stuff each container at door R1",
+        "How": "2 DHL staff unpack each container in the loose-container zone at door R1",
         "DHL labour": "6 person-h per container",
         "Door": "R1 ~3.3 h/day",
         "Pros": "Full control, flexible timing",
         "Cons": "Heavy manual handling, training, peak days need 2 crews"
       },
       {
-        "Option": "On-site specialist contractor (recommended)",
-        "How": "Contractor crew unloads and palletises at R1, paid per container",
+        "Option": "On-site specialist contractor",
+        "How": "Contractor crew unpacks and palletises in the same zone, paid per container",
         "DHL labour": "none",
         "Door": "R1 ~3.3 h/day",
         "Pros": "No own labour or peak staffing; specialist speed and safety; cost scales with containers",
-        "Cons": "Per-container fee (D3); booking coordination"
+        "Cons": "Per-container fee (no public price - quote needed); booking coordination"
       },
       {
         "Option": "Port / CFS devanning",
@@ -1289,6 +1330,44 @@
           "Fed by wave": "W3"
         }
       ]
+    },
+    "loose_zone": {
+      "containers_sampled": 568,
+      "loads_per_container_median": 20.0,
+      "loads_per_container_p75": 34.25,
+      "loads_per_container_max": 89,
+      "skus_per_container_median": 7.0,
+      "skus_per_container_p75": 11.0,
+      "skus_per_container_max": 82,
+      "build_spots": 12,
+      "buffer_pallets": 35,
+      "parts_m2": {
+        "Unload lane with extendable roller conveyor (12 x 2 m)": 24.0,
+        "Pallet build spots (12 x 3 m2)": 36.0,
+        "Finished-pallet buffer (35 x 1.9 m2)": 66.0,
+        "Label / scan / stretch-wrap station": 16.0
+      },
+      "area_needed_m2": 185.0,
+      "area_planned_m2": 190,
+      "crew": 2,
+      "hours_per_container": 3.0
+    },
+    "load_checks": {
+      "weight": {
+        "over_1000": 10,
+        "over_1600": 3,
+        "loads": 11015
+      },
+      "long": {
+        "loads_over_1_9m": 163,
+        "loads_over_2_4m": 26
+      },
+      "tall": {
+        "loads_1_16_to_1_68": 940,
+        "loads_over_1_68": 42,
+        "height_missing": 493,
+        "top_level_positions": 1188
+      }
     }
   },
   "picking": {
@@ -1340,7 +1419,7 @@
       {
         "Zone": "Fast-pick area (A/B)",
         "Lines/day": 188.0,
-        "Lines per tour": 30.6,
+        "Lines per tour": 30.7,
         "Tour limited by": "trolley volume",
         "Walk per tour (m)": 123.0,
         "Tour (min)": 18.5,
@@ -1352,20 +1431,20 @@
       {
         "Zone": "Reserve low levels (C)",
         "Lines/day": 104.0,
-        "Lines per tour": 31.3,
+        "Lines per tour": 31.0,
         "Tour limited by": "trolley volume",
         "Walk per tour (m)": 624.0,
-        "Tour (min)": 30.3,
+        "Tour (min)": 30.2,
         "Lines/h": 62.0,
         "Tours/day": 3.3,
-        "Picker-h avg": 1.67,
-        "Picker-h peak": 3.06
+        "Picker-h avg": 1.68,
+        "Picker-h peak": 3.07
       }
     ],
     "large_orders": {
       "orders_day": 23.0,
       "lines_per_order": 14.9,
-      "lines_fast_pick": 11.6,
+      "lines_fast_pick": 11.5,
       "lines_reserve": 3.4,
       "walk_per_order_m": 337.0,
       "min_per_order": 20.3,
@@ -1376,7 +1455,7 @@
       "kg_p90": 671.0,
       "litres_median": 234.0
     },
-    "pick_fte_avg": 1.51,
+    "pick_fte_avg": 1.52,
     "pick_fte_peak": 2.77,
     "equipment": [
       {
@@ -1397,8 +1476,8 @@
         "Item": "Jungheinrich EJE 120i walkie pallet truck",
         "Use": "Large orders - pick-to-pallet",
         "Required": 3,
-        "Planned": 4,
-        "Why this number": "peak hours / (7.5 h x 80%) + 1 spare"
+        "Planned": 3,
+        "Why this number": "peak hours / (7.5 h x 80%); no spare once 2+ trucks (one breakdown still covers an average day)"
       }
     ],
     "tugger": {
@@ -1415,7 +1494,7 @@
     "routing": [
       {
         "Tour": "Small-order trolley tour (reserve zone)",
-        "Lines in reserve": 31.3,
+        "Lines in reserve": 31.0,
         "S-shape": 660.0,
         "Return": 895.0,
         "Midpoint": 665.0,
@@ -1425,7 +1504,7 @@
       {
         "Tour": "Large-order pallet tour (reserve part)",
         "Lines in reserve": 3.4,
-        "S-shape": 247.0,
+        "S-shape": 248.0,
         "Return": 254.0,
         "Midpoint": 221.0,
         "Largest gap": 220.0,
@@ -1609,13 +1688,13 @@
     ],
     "concepts": {
       "Flow-through (receiving west, shipping east)": {
-        "putaway_one_way_m": 64.9,
+        "putaway_one_way_m": 65.2,
         "per_class_m": {
-          "A": 66.7,
+          "A": 64.7,
           "B": 65.0,
-          "C": 63.5
+          "C": 65.5
         },
-        "putaway_km_day": 12.8
+        "putaway_km_day": 12.9
       },
       "U-shaped (receiving + shipping on the east wall)": {
         "putaway_one_way_m": 59.0,
@@ -1631,12 +1710,12 @@
       {
         "Criterion": "Put-away travel (reach truck, per load, one way)",
         "Flow-through": "65 m",
-        "U-shaped": "59 m (-9%)"
+        "U-shaped": "59 m (-10%)"
       },
       {
         "Criterion": "Reach-truck time saved per day",
         "Flow-through": "-",
-        "U-shaped": "~10 min"
+        "U-shaped": "~11 min"
       },
       {
         "Criterion": "Picking travel (all picks start/end at packing, east)",
@@ -1659,7 +1738,7 @@
         "U-shaped": "Suits strong ABC (ours: 13% of SKUs = 80%)"
       }
     ],
-    "concept_verdict": "Keep flow-through. U-shaped saves only ~9% put-away travel (~10 reach-truck minutes/day) because slow C items still bring 46% of inbound loads and picking travel is identical; its door saving depends on all inbound arriving before noon, which sea containers cannot guarantee. Flow-through keeps inbound, returns and outbound apart and fits the side-wall dock lengths.",
+    "concept_verdict": "Keep flow-through. U-shaped saves only ~10% put-away travel (~11 reach-truck minutes/day) because slow C items still bring 46% of inbound loads and picking travel is identical; its door saving depends on all inbound arriving before noon, which sea containers cannot guarantee. Flow-through keeps inbound, returns and outbound apart and fits the side-wall dock lengths.",
     "inbound_share_by_class_pct": {
       "C": 46.0,
       "B": 20.0,
@@ -1672,8 +1751,8 @@
       "picks_in_best_quintile_pct": 55.0,
       "picks_in_best_two_quintiles_pct": 72.0,
       "A_skus_in_best_two_quintiles_pct": 56.0,
-      "bulky_A_skus": 134,
-      "small_fast_C_skus": 119,
+      "bulky_A_skus": 129,
+      "small_fast_C_skus": 121,
       "same_family_rate_pct": 62.0,
       "random_baseline_pct": 40.0,
       "single_line_orders_pct": 51.0
@@ -1681,33 +1760,33 @@
     "coi_vs_abc": [
       {
         "COI_quintile": "Q1 (best)",
-        "A": 162,
-        "B": 173,
-        "C": 119
+        "A": 161,
+        "B": 172,
+        "C": 121
       },
       {
         "COI_quintile": "Q2",
-        "A": 110,
-        "B": 150,
-        "C": 194
+        "A": 111,
+        "B": 152,
+        "C": 191
       },
       {
         "COI_quintile": "Q3",
-        "A": 78,
-        "B": 136,
-        "C": 240
+        "A": 83,
+        "B": 124,
+        "C": 247
       },
       {
         "COI_quintile": "Q4",
-        "A": 78,
-        "B": 91,
-        "C": 285
+        "A": 73,
+        "B": 105,
+        "C": 276
       },
       {
         "COI_quintile": "Q5 (worst)",
         "A": 56,
-        "B": 72,
-        "C": 326
+        "B": 70,
+        "C": 328
       }
     ],
     "hazmat": {
@@ -1725,7 +1804,7 @@
       },
       {
         "KPI (W3)": "Put-away cycle time",
-        "Expected": "2.5 min per pallet (~24 per truck-hour)",
+        "Expected": "2.4 min per pallet (~25 per truck-hour)",
         "Basis": "ETV 216i cycle model on the Option B routes (S006)"
       },
       {
@@ -1739,5 +1818,854 @@
         "Basis": "waves end 45 min before each slot; today 50.1% of lines are staged 'LATE' (A005, definition to confirm)"
       }
     ]
+  },
+  "performance_cost": {
+    "cost_register": {
+      "labour_rate": {
+        "value": 28.0,
+        "low": 24.0,
+        "high": 34.0,
+        "unit": "EUR per paid hour (operative)",
+        "id": "A030",
+        "basis": "CAO Beroepsgoederenvervoer 2025 wage scales B-C EUR 14.40-18.28/h (S019) x 1.08 holiday pay x 1.33 employer premiums (CBS transport & storage: EUR 10.9 premiums on EUR 33.5 wages per worked hour, S018) x 1.19 paid-but-not-worked time; stays below the CBS sector average of EUR 44.4 (which includes drivers and managers)"
+      },
+      "lead_rate": {
+        "value": 38.0,
+        "low": 32.0,
+        "high": 45.0,
+        "unit": "EUR per paid hour (team leader)",
+        "id": "A030",
+        "basis": "CAO scale F-G EUR 23-25/h (S019) x same factors"
+      },
+      "admin_rate": {
+        "value": 33.0,
+        "low": 28.0,
+        "high": 40.0,
+        "unit": "EUR per paid hour (inventory control / admin)",
+        "id": "A030",
+        "basis": "between operative and team leader"
+      },
+      "paid_h_shift": {
+        "value": 8.0,
+        "low": 8.0,
+        "high": 8.0,
+        "unit": "paid hours per shift",
+        "id": "A015",
+        "basis": "7.5 productive + breaks"
+      },
+      "days_year": {
+        "value": 244,
+        "low": 244,
+        "high": 244,
+        "unit": "working days per year",
+        "id": "A031",
+        "basis": "61 operating days measured in Q2 2025 x 4"
+      },
+      "indirect_fte": {
+        "value": 1.5,
+        "low": 1.0,
+        "high": 2.0,
+        "unit": "FTE",
+        "id": "A032",
+        "basis": "1 team leader (span ~1:9 at peak) + 0.5 inventory control / WMS admin"
+      },
+      "rack_pp": {
+        "value": 130.0,
+        "low": 80.0,
+        "high": 200.0,
+        "unit": "EUR per pallet position, installed",
+        "id": "A033",
+        "basis": "EU selective racking EUR 80-140/position equipment (S020) + 30-50% install; installed 75-150 (S020); 12 m frames -> upper half"
+      },
+      "cantilever_pp": {
+        "value": 250.0,
+        "low": 150.0,
+        "high": 400.0,
+        "unit": "EUR per arm position",
+        "id": "A033",
+        "basis": "assumption: ~2x a pallet position (heavier column + arms)"
+      },
+      "rack_reuse": {
+        "value": 25.0,
+        "low": 15.0,
+        "high": 40.0,
+        "unit": "EUR per position to dismantle + re-assemble existing racking",
+        "id": "A033",
+        "basis": "assumption: ~20% of a new installed position; only if today's racking fits the new layout (to confirm with DHL)"
+      },
+      "rack_protect": {
+        "value": 0.05,
+        "low": 0.03,
+        "high": 0.08,
+        "unit": "share of racking cost",
+        "id": "A033",
+        "basis": "end-of-aisle guards, upright protectors, load signs (EN 15635, S015)"
+      },
+      "flow_bay": {
+        "value": 1800.0,
+        "low": 1100.0,
+        "high": 2300.0,
+        "unit": "EUR per carton-flow bay (2 m, 5 levels)",
+        "id": "A034",
+        "basis": "new USD 1,200-2,500 per bay (S025) at ~0.9 EUR/USD; used EUR 650/bay (S025) = floor"
+      },
+      "ptl_slot": {
+        "value": 150.0,
+        "low": 60.0,
+        "high": 200.0,
+        "unit": "EUR per put-to-light slot",
+        "id": "A035",
+        "basis": "USD 60-200 per station (S025)"
+      },
+      "ptl_integr": {
+        "value": 12000.0,
+        "low": 5000.0,
+        "high": 30000.0,
+        "unit": "EUR one-off",
+        "id": "A035",
+        "basis": "installation + WMS integration USD 3,000-18,000 + software (S025)"
+      },
+      "rf_unit": {
+        "value": 1500.0,
+        "low": 450.0,
+        "high": 2300.0,
+        "unit": "EUR per RF terminal incl. cradle",
+        "id": "A036",
+        "basis": "Zebra MC3300 listings EUR 435-2,326 + cradle EUR 182 (S025)"
+      },
+      "pack_station": {
+        "value": 2500.0,
+        "low": 1500.0,
+        "high": 4000.0,
+        "unit": "EUR per pack station",
+        "id": "A036",
+        "basis": "assumption: bench, scale, label printer"
+      },
+      "trolley": {
+        "value": 433.0,
+        "low": 280.0,
+        "high": 600.0,
+        "unit": "EUR per pick trolley",
+        "id": "A036",
+        "basis": "Fetra picking trolley EUR 432.86 net (S025)"
+      },
+      "tote": {
+        "value": 16.0,
+        "low": 14.0,
+        "high": 20.0,
+        "unit": "EUR per tote 600x400x320",
+        "id": "A036",
+        "basis": "EUR 14.56-19.95 (S025)"
+      },
+      "wrapper": {
+        "value": 3849.0,
+        "low": 3000.0,
+        "high": 9000.0,
+        "unit": "EUR per semi-automatic stretch wrapper",
+        "id": "A036",
+        "basis": "Vogel Starter EUR 3,849 new (S025)"
+      },
+      "conveyor": {
+        "value": 1250.0,
+        "low": 1000.0,
+        "high": 2500.0,
+        "unit": "EUR per extendable roller conveyor (4.5 m)",
+        "id": "A036",
+        "basis": "Cromwell GBP 1,049 ex VAT (S025)"
+      },
+      "roll_cage": {
+        "value": 150.0,
+        "low": 100.0,
+        "high": 250.0,
+        "unit": "EUR per roll cage",
+        "id": "A036",
+        "basis": "assumption"
+      },
+      "wms_config": {
+        "value": 25000.0,
+        "low": 10000.0,
+        "high": 50000.0,
+        "unit": "EUR one-off",
+        "id": "A037",
+        "basis": "assumption: WMS set-up of waves, put-wall, slotting & putaway rules (~25 consultant days)"
+      },
+      "contingency": {
+        "value": 0.1,
+        "low": 0.05,
+        "high": 0.2,
+        "unit": "share of CAPEX",
+        "id": "A037",
+        "basis": "planning allowance"
+      },
+      "lease_etv": {
+        "value": 900.0,
+        "low": 495.0,
+        "high": 1550.0,
+        "unit": "EUR per month, full-service lease",
+        "id": "A038",
+        "basis": "Dutch reach-truck lease offers EUR 350-495/month all-in (72 months) up to rental EUR 1,100-1,550/month (S021); 10.7 m Li-ion truck -> upper half"
+      },
+      "lease_eje": {
+        "value": 150.0,
+        "low": 100.0,
+        "high": 250.0,
+        "unit": "EUR per month, full-service lease",
+        "id": "A038",
+        "basis": "assumption: Li-ion pallet truck new ~EUR 2,500-3,500 (S025) over 72 months + service"
+      },
+      "lease_ere": {
+        "value": 350.0,
+        "low": 250.0,
+        "high": 500.0,
+        "unit": "EUR per month, full-service lease",
+        "id": "A038",
+        "basis": "assumption: rider pallet truck, between pallet truck and reach truck"
+      },
+      "kwh_truck_h": {
+        "value": 4.0,
+        "low": 3.0,
+        "high": 6.0,
+        "unit": "kWh per truck operating hour (ETV); 1.5 for pallet trucks",
+        "id": "A039",
+        "basis": "assumption"
+      },
+      "power_price": {
+        "value": 0.2046,
+        "low": 0.17,
+        "high": 0.25,
+        "unit": "EUR per kWh",
+        "id": "A039",
+        "basis": "Eurostat nrg_pc_205, NL non-household 500-2,000 MWh, H1 2025 (S022)"
+      },
+      "rack_inspect": {
+        "value": 2500.0,
+        "low": 1500.0,
+        "high": 4000.0,
+        "unit": "EUR per year",
+        "id": "A040",
+        "basis": "assumption: 1 expert inspection per year (EN 15635, S015)"
+      },
+      "it_support": {
+        "value": 0.15,
+        "low": 0.1,
+        "high": 0.2,
+        "unit": "share of IT CAPEX per year",
+        "id": "A040",
+        "basis": "assumption: device repair, licences, spares"
+      },
+      "life_rack": {
+        "value": 15,
+        "low": 15,
+        "high": 15,
+        "unit": "years",
+        "id": "A041",
+        "basis": "straight-line depreciation"
+      },
+      "life_equip": {
+        "value": 7,
+        "low": 7,
+        "high": 7,
+        "unit": "years",
+        "id": "A041",
+        "basis": "straight-line depreciation"
+      },
+      "life_it": {
+        "value": 5,
+        "low": 5,
+        "high": 5,
+        "unit": "years",
+        "id": "A041",
+        "basis": "straight-line depreciation"
+      }
+    },
+    "quantities": {
+      "positions": 9504,
+      "flow_bays": 31,
+      "flow_lanes": 930,
+      "ptl_slots": 90,
+      "rf_units": 14,
+      "pack_stations": 4,
+      "roll_cages": 41,
+      "trolleys": 6,
+      "totes": 54,
+      "etv": 2,
+      "eje": 3,
+      "ere": 2,
+      "containers_year": 244,
+      "move_hours": 437.0
+    },
+    "capex_total": 1627140.0,
+    "capex_by_group": {
+      "Storage": 1307296.0,
+      "Picking": 59262.0,
+      "Sorting & packing": 45499.0,
+      "Loose-container zone": 6349.0,
+      "IT": 46000.0,
+      "One-off": 14813.0,
+      "Contingency": 147922.0
+    },
+    "capex_table": [
+      {
+        "Group": "Storage",
+        "Item": "Single-deep pallet racking (incl. installation)",
+        "Qty": 9504,
+        "Unit": "positions",
+        "Unit price EUR": 130.0,
+        "Source": "A033 / S020",
+        "Total EUR": 1235520.0,
+        "Life (yrs)": 15,
+        "Depreciation EUR/yr": 82368.0
+      },
+      {
+        "Group": "Storage",
+        "Item": "Cantilever racking for goods > 2.4 m",
+        "Qty": 40,
+        "Unit": "arm positions",
+        "Unit price EUR": 250.0,
+        "Source": "A033",
+        "Total EUR": 10000.0,
+        "Life (yrs)": 15,
+        "Depreciation EUR/yr": 666.67
+      },
+      {
+        "Group": "Storage",
+        "Item": "Rack protection, end guards, load signs",
+        "Qty": 1,
+        "Unit": "lot",
+        "Unit price EUR": 61776.0,
+        "Source": "A033 / S015",
+        "Total EUR": 61776.0,
+        "Life (yrs)": 15,
+        "Depreciation EUR/yr": 4118.4
+      },
+      {
+        "Group": "Picking",
+        "Item": "Carton-flow bays, fast-pick area",
+        "Qty": 31,
+        "Unit": "bays",
+        "Unit price EUR": 1800.0,
+        "Source": "A034 / S025",
+        "Total EUR": 55800.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 7971.43
+      },
+      {
+        "Group": "Picking",
+        "Item": "Pick trolleys (3-tier, 6 totes)",
+        "Qty": 6,
+        "Unit": "trolleys",
+        "Unit price EUR": 433.0,
+        "Source": "S011 / S025",
+        "Total EUR": 2598.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 371.14
+      },
+      {
+        "Group": "Picking",
+        "Item": "Totes 600 x 400",
+        "Qty": 54,
+        "Unit": "totes",
+        "Unit price EUR": 16.0,
+        "Source": "S025",
+        "Total EUR": 864.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 123.43
+      },
+      {
+        "Group": "Sorting & packing",
+        "Item": "Put-to-light wall (slots)",
+        "Qty": 90,
+        "Unit": "slots",
+        "Unit price EUR": 150.0,
+        "Source": "A035 / S025",
+        "Total EUR": 13500.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 1928.57
+      },
+      {
+        "Group": "Sorting & packing",
+        "Item": "Put-to-light installation + WMS link",
+        "Qty": 1,
+        "Unit": "lot",
+        "Unit price EUR": 12000.0,
+        "Source": "A035 / S025",
+        "Total EUR": 12000.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 1714.29
+      },
+      {
+        "Group": "Sorting & packing",
+        "Item": "Pack stations (bench, scale, label printer)",
+        "Qty": 4,
+        "Unit": "stations",
+        "Unit price EUR": 2500.0,
+        "Source": "A036",
+        "Total EUR": 10000.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 1428.57
+      },
+      {
+        "Group": "Sorting & packing",
+        "Item": "Stretch wrapper (packing)",
+        "Qty": 1,
+        "Unit": "units",
+        "Unit price EUR": 3849.0,
+        "Source": "S025",
+        "Total EUR": 3849.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 549.86
+      },
+      {
+        "Group": "Sorting & packing",
+        "Item": "Roll cages for parcels",
+        "Qty": 41,
+        "Unit": "cages",
+        "Unit price EUR": 150.0,
+        "Source": "A036",
+        "Total EUR": 6150.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 878.57
+      },
+      {
+        "Group": "Loose-container zone",
+        "Item": "Extendable roller conveyor (into the container)",
+        "Qty": 2,
+        "Unit": "units",
+        "Unit price EUR": 1250.0,
+        "Source": "S025",
+        "Total EUR": 2500.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 357.14
+      },
+      {
+        "Group": "Loose-container zone",
+        "Item": "Stretch wrapper (newly built pallets)",
+        "Qty": 1,
+        "Unit": "units",
+        "Unit price EUR": 3849.0,
+        "Source": "S025",
+        "Total EUR": 3849.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 549.86
+      },
+      {
+        "Group": "IT",
+        "Item": "RF terminals with cradles",
+        "Qty": 14,
+        "Unit": "units",
+        "Unit price EUR": 1500.0,
+        "Source": "A036 / S025",
+        "Total EUR": 21000.0,
+        "Life (yrs)": 5,
+        "Depreciation EUR/yr": 4200.0
+      },
+      {
+        "Group": "IT",
+        "Item": "WMS set-up: waves, put-wall, slotting, putaway rules",
+        "Qty": 1,
+        "Unit": "lot",
+        "Unit price EUR": 25000.0,
+        "Source": "A037",
+        "Total EUR": 25000.0,
+        "Life (yrs)": 5,
+        "Depreciation EUR/yr": 5000.0
+      },
+      {
+        "Group": "One-off",
+        "Item": "Move-in / re-slotting (each load moved once)",
+        "Qty": 11015,
+        "Unit": "loads",
+        "Unit price EUR": 1.34,
+        "Source": "ETV cycle model + A030",
+        "Total EUR": 14812.59,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 2116.08
+      },
+      {
+        "Group": "Contingency",
+        "Item": "Contingency 10%",
+        "Qty": 1,
+        "Unit": "lot",
+        "Unit price EUR": 147921.86,
+        "Source": "A037",
+        "Total EUR": 147921.86,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 21131.69
+      }
+    ],
+    "depreciation_year": 135474.0,
+    "opex_total": 454794.0,
+    "opex_by_group": {
+      "Labour": 404441.0,
+      "Machinery": 37127.0,
+      "Upkeep": 13225.0
+    },
+    "opex_table": [
+      {
+        "Group": "Labour",
+        "Item": "Direct DHL labour (receiving, putaway, replenishment, picking, packing, loading)",
+        "Qty / yr": 9083.31,
+        "Unit": "paid h",
+        "Unit cost EUR": 28.0,
+        "Source": "capacity plan (D2 \u00a76) x A030",
+        "Total EUR/yr": 254332.59
+      },
+      {
+        "Group": "Labour",
+        "Item": "Loose-container zone crew (2 people x 3 h per container)",
+        "Qty / yr": 1561.6,
+        "Unit": "paid h",
+        "Unit cost EUR": 28.0,
+        "Source": "A019 x A030 (or contractor fee, see break-even)",
+        "Total EUR/yr": 43724.8
+      },
+      {
+        "Group": "Labour",
+        "Item": "Team leader + inventory control / admin",
+        "Qty / yr": 2928.0,
+        "Unit": "paid h",
+        "Unit cost EUR": 36.33,
+        "Source": "A032 x A030",
+        "Total EUR/yr": 106384.0
+      },
+      {
+        "Group": "Machinery",
+        "Item": "ETV 216i reach truck lease (2)",
+        "Qty / yr": 24.0,
+        "Unit": "truck-months",
+        "Unit cost EUR": 900.0,
+        "Source": "A038 / S021",
+        "Total EUR/yr": 21600.0
+      },
+      {
+        "Group": "Machinery",
+        "Item": "EJE 120i pallet truck lease (3)",
+        "Qty / yr": 36.0,
+        "Unit": "truck-months",
+        "Unit cost EUR": 150.0,
+        "Source": "A038",
+        "Total EUR/yr": 5400.0
+      },
+      {
+        "Group": "Machinery",
+        "Item": "ERE 225 rider pallet truck lease (2)",
+        "Qty / yr": 24.0,
+        "Unit": "truck-months",
+        "Unit cost EUR": 350.0,
+        "Source": "A038",
+        "Total EUR/yr": 8400.0
+      },
+      {
+        "Group": "Machinery",
+        "Item": "Electricity for trucks",
+        "Qty / yr": 8442.4,
+        "Unit": "kWh",
+        "Unit cost EUR": 0.2,
+        "Source": "A039 / S022",
+        "Total EUR/yr": 1727.32
+      },
+      {
+        "Group": "Upkeep",
+        "Item": "Rack inspection (EN 15635) and repairs",
+        "Qty / yr": 1.0,
+        "Unit": "per year",
+        "Unit cost EUR": 2500.0,
+        "Source": "A040 / S015",
+        "Total EUR/yr": 2500.0
+      },
+      {
+        "Group": "Upkeep",
+        "Item": "IT support, licences, device spares",
+        "Qty / yr": 1.0,
+        "Unit": "per year",
+        "Unit cost EUR": 10725.0,
+        "Source": "A040",
+        "Total EUR/yr": 10725.0
+      }
+    ],
+    "annual_cost": 590267.0,
+    "unit_cost": {
+      "per_order_line": 3.78,
+      "per_order": 16.8,
+      "per_inbound_pallet": 24.46,
+      "per_position_month": 5.18,
+      "labour_share_pct": 68.52
+    },
+    "volumes_year": {
+      "lines": 156160.0,
+      "orders": 35136.0,
+      "inbound_pallets": 24132.0
+    },
+    "loose_cost_per_container": 179.0,
+    "levers": [
+      {
+        "Lever": "Batch picking + demand-based slotting (fast-pick area)",
+        "Today h/day": 23.8,
+        "Future h/day": 11.4,
+        "Saved h/day": 12.4,
+        "Saved EUR/yr": 90364.58666666667
+      },
+      {
+        "Lever": "Wave release instead of one evening release (no 08:00 peak staffing)",
+        "Today h/day": 7.4,
+        "Future h/day": 0.0,
+        "Saved h/day": 7.4,
+        "Saved EUR/yr": 53927.253333333334
+      }
+    ],
+    "saving_year": 144292.0,
+    "payback_years": 11.3,
+    "capex_reuse_racking": 461475.0,
+    "payback_reuse_years": 3.2,
+    "pick_today_h": 23.763,
+    "pick_today_staffed_h": 31.13,
+    "pick_future_h": 11.37,
+    "leadtime": {
+      "orders": 8774,
+      "today_median_h": 24.7,
+      "today_mean_h": 44.8,
+      "today_p90_h": 102.2,
+      "today_same_day_pct": 26.0,
+      "today_within_24h_pct": 37.0,
+      "future_median_h": 21.8,
+      "future_mean_h": 26.0,
+      "future_p90_h": 70.5,
+      "future_same_day_pct": 29.0,
+      "future_within_24h_pct": 65.0
+    },
+    "kpis": [
+      {
+        "Group": "Space",
+        "KPI": "Pallet positions vs peak need",
+        "How it is measured": "positions provided / peak occupied locations",
+        "Today (data)": "8,512 occupied (peak)",
+        "Future (design)": "9,504 positions (90% full at peak, 85% on average)",
+        "Target / benchmark": "\u2264 90% full at peak (A010)"
+      },
+      {
+        "Group": "Space",
+        "KPI": "Floor area used",
+        "How it is measured": "zones + aisles / 7,000 m\u00b2",
+        "Today (data)": "\u2014",
+        "Future (design)": "6,731 m\u00b2 (96%)",
+        "Target / benchmark": "\u2264 7,000 m\u00b2"
+      },
+      {
+        "Group": "Space",
+        "KPI": "Storage headroom",
+        "How it is measured": "months until the racks are full if stock keeps growing as in Apr\u2013Jun",
+        "Today (data)": "+10% locations in 2 months",
+        "Future (design)": "~2 months",
+        "Target / benchmark": "\u2265 12 months \u2192 clear dead stock, add a 12th rack module"
+      },
+      {
+        "Group": "Inbound",
+        "KPI": "Dock-to-stock time",
+        "How it is measured": "truck at the door \u2192 pallet in its location",
+        "Today (data)": "large China receipts take 1\u20133 days to book in",
+        "Future (design)": "~1.5 h per palletised trailer; ~3.8 h per loose container",
+        "Target / benchmark": "< 3.5 h best-in-class (S023)"
+      },
+      {
+        "Group": "Inbound",
+        "KPI": "Put-away cycle time",
+        "How it is measured": "minutes per pallet, reach truck",
+        "Today (data)": "\u2014",
+        "Future (design)": "2.4 min per pallet (~25 per truck-hour)",
+        "Target / benchmark": "\u2264 3 min"
+      },
+      {
+        "Group": "Picking",
+        "KPI": "Pick rate",
+        "How it is measured": "order lines per picker-hour",
+        "Today (data)": "\u2014",
+        "Future (design)": "~56 lines/h (fast-pick 99, reserve 62, large orders 44)",
+        "Target / benchmark": "\u2265 50 lines/h"
+      },
+      {
+        "Group": "Picking",
+        "KPI": "Picking hours per day",
+        "How it is measured": "picker-hours, average day",
+        "Today (data)": "~31 h (modelled: single-order picking, staffed for the 08:00 peak)",
+        "Future (design)": "11.4 h",
+        "Target / benchmark": "\u2014"
+      },
+      {
+        "Group": "Picking",
+        "KPI": "Pick accuracy",
+        "How it is measured": "% of orders without a picking error",
+        "Today (data)": "not in the data",
+        "Future (design)": "\u2265 99.7% (scan every pick + put-to-light check)",
+        "Target / benchmark": "median 99.3%, best 99.68% (S023)"
+      },
+      {
+        "Group": "Service",
+        "KPI": "Order lead time (per order)",
+        "How it is measured": "order received \u2192 trailer leaves",
+        "Today (data)": "median 25 h, p90 102 h",
+        "Future (design)": "median 22 h, p90 70 h",
+        "Target / benchmark": "next day; same day if in before 12:00"
+      },
+      {
+        "Group": "Service",
+        "KPI": "Orders shipped the same day",
+        "How it is measured": "% of orders",
+        "Today (data)": "26%",
+        "Future (design)": "29%",
+        "Target / benchmark": "all orders in before 12:00"
+      },
+      {
+        "Group": "Service",
+        "KPI": "On-time staging",
+        "How it is measured": "% of lines staged before the planned departure",
+        "Today (data)": "49.9% (50.1% 'LATE', A005)",
+        "Future (design)": "\u2265 98% (waves planned back from departures)",
+        "Target / benchmark": "\u2265 98%"
+      },
+      {
+        "Group": "Docks",
+        "KPI": "Trailers at the doors at once",
+        "How it is measured": "busy day, p90",
+        "Today (data)": "15 (parked all day)",
+        "Future (design)": "max 4 of 5 doors (time slots)",
+        "Target / benchmark": "\u2264 5 doors"
+      },
+      {
+        "Group": "People",
+        "KPI": "Direct labour",
+        "How it is measured": "FTE, average / peak day",
+        "Today (data)": "not in the data",
+        "Future (design)": "4.7 / 8.6 FTE + 1.5 indirect",
+        "Target / benchmark": "\u2014"
+      },
+      {
+        "Group": "People",
+        "KPI": "Labour productivity",
+        "How it is measured": "order lines per direct labour hour",
+        "Today (data)": "\u2014",
+        "Future (design)": "18.3 lines/h",
+        "Target / benchmark": "\u2014"
+      },
+      {
+        "Group": "Machinery",
+        "KPI": "Truck utilisation (average day)",
+        "How it is measured": "operating h / (units \u00d7 7.5 h)",
+        "Today (data)": "\u2014",
+        "Future (design)": "ETV 33% \u00b7 EJE 35% \u00b7 ERE 14%",
+        "Target / benchmark": "peak day \u2264 80%"
+      },
+      {
+        "Group": "Cost",
+        "KPI": "Cost per order line",
+        "How it is measured": "(OPEX + depreciation) / lines",
+        "Today (data)": "\u2014",
+        "Future (design)": "\u20ac3.78",
+        "Target / benchmark": "\u2014"
+      },
+      {
+        "Group": "Cost",
+        "KPI": "Cost per order",
+        "How it is measured": "(OPEX + depreciation) / orders",
+        "Today (data)": "\u2014",
+        "Future (design)": "\u20ac16.80",
+        "Target / benchmark": "\u2014"
+      },
+      {
+        "Group": "Safety",
+        "KPI": "Trucks and pickers separated",
+        "How it is measured": "pick zones without reach-truck traffic",
+        "Today (data)": "\u2014",
+        "Future (design)": "100% of pick faces (trucks refill from the rear / use perimeter + cross-aisles)",
+        "Target / benchmark": "0 lost-time incidents"
+      }
+    ],
+    "stress": [
+      {
+        "Volume": "100%",
+        "Direct FTE (peak day)": 8.6,
+        "ETV 216i needed": 2,
+        "EJE 120i needed": 3,
+        "ERE 225 needed": 1,
+        "Outbound doors (busiest hour)": 4,
+        "Pickers in the busiest wave": 3
+      },
+      {
+        "Volume": "150%",
+        "Direct FTE (peak day)": 13.0,
+        "ETV 216i needed": 3,
+        "EJE 120i needed": 4,
+        "ERE 225 needed": 2,
+        "Outbound doors (busiest hour)": 5,
+        "Pickers in the busiest wave": 4
+      },
+      {
+        "Volume": "200%",
+        "Direct FTE (peak day)": 17.3,
+        "ETV 216i needed": 4,
+        "EJE 120i needed": 5,
+        "ERE 225 needed": 2,
+        "Outbound doors (busiest hour)": 7,
+        "Pickers in the busiest wave": 6
+      },
+      {
+        "Volume": "250%",
+        "Direct FTE (peak day)": 21.6,
+        "ETV 216i needed": 4,
+        "EJE 120i needed": 6,
+        "ERE 225 needed": 2,
+        "Outbound doors (busiest hour)": 8,
+        "Pickers in the busiest wave": 7
+      }
+    ],
+    "sensitivity": [
+      {
+        "Driver": "Reach-truck lease (\u20ac495\u20131,550/month)",
+        "Low EUR/yr": 580547.0,
+        "High EUR/yr": 605867.0,
+        "Swing EUR/yr": 25320.0
+      },
+      {
+        "Driver": "Racking price (\u20ac80\u2013200/position)",
+        "Low EUR/yr": 553677.0,
+        "High EUR/yr": 641494.0,
+        "Swing EUR/yr": 87817.0
+      },
+      {
+        "Driver": "Productivity \u00b120% (labour hours)",
+        "Low EUR/yr": 539401.0,
+        "High EUR/yr": 641134.0,
+        "Swing EUR/yr": 101733.0
+      },
+      {
+        "Driver": "Labour rate (\u20ac24\u201334/h)",
+        "Low EUR/yr": 547688.0,
+        "High EUR/yr": 654137.0,
+        "Swing EUR/yr": 106449.0
+      }
+    ],
+    "sensitivity_base": 590267.0,
+    "storage": {
+      "occupied_peak": 8512,
+      "occupied_mean": 8125.0,
+      "growth_per_quarter_pct": 15.9,
+      "months_headroom": 2.2,
+      "fte_avg": 4.7,
+      "fte_peak": 8.6
+    },
+    "sorting": {
+      "small_orders_day": 120.0,
+      "small_orders_wave_avg": 40.0,
+      "small_orders_wave_peak": 73.0,
+      "ptl_slots": 90,
+      "trolley_tours_day": 9.0,
+      "lines_per_tour": 31.0,
+      "staging_lanes": 14,
+      "roll_cages": 41,
+      "containers_day": 1,
+      "container_skus_median": 7.0,
+      "container_skus_p75": 11.0,
+      "container_loads_median": 20.0,
+      "build_spots": 12
+    }
   }
 }

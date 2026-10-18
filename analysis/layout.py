@@ -1,4 +1,7 @@
 """
+LEGACY (Deliverable 1 block plan, old 14,074-position target). Superseded by warehouse_floorplan.py,
+which now owns the zone areas and the counted rack positions; not part of the run order.
+
 PHASE 6 - LAYOUT & ZONING (Option B), 3-dimensional.
 Sizes each functional zone from the capacity analysis, lays them out to scale in
 a flow-through block plan, and renders a 3D massing. Verifies total floor area

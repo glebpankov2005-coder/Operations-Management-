@@ -57,11 +57,12 @@ def draw_flow(title, steps, filename):
 
 # 1) RECEIVING & PUTAWAY
 draw_flow("Receiving & Putaway", [
-    {"kind": "start", "text": "Inbound trailer arrives"},
+    {"kind": "start", "text": "Inbound trailer / container arrives"},
+    {"kind": "decision", "text": "Loose container?", "note": "yes -> door R1: unpack in the container zone, build pallets per SKU, label"},
     {"kind": "process", "text": "Unload & scan pallets (ASN check)", "note": "RF scan; ~25 pallets/h"},
     {"kind": "decision", "text": "Qty / quality OK?", "note": "discrepancy -> hold & report"},
     {"kind": "process", "text": "Register stock in WMS (LODNUM)"},
-    {"kind": "process", "text": "System-directed putaway location", "note": "velocity-based: A/B->double-deep reserve near pick; C->deep/upper"},
+    {"kind": "process", "text": "System-directed putaway location", "note": "velocity-based: A/B->reserve near their pick faces; C->further away / upper"},
     {"kind": "process", "text": "Reach truck moves pallet to slot", "note": "cantilever for XLONG goods (>240cm)"},
     {"kind": "end", "text": "Pallet stored & confirmed"},
 ], "flow_receiving_putaway.png")

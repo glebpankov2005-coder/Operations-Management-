@@ -194,7 +194,7 @@ figure("sku_pallet_weight_hist.png", "Fig 1. Pallet-weight distribution at SKU l
 
 # ============================ 4. INVENTORY ============================
 doc.add_heading("4. Inventory & storage-position requirement", level=1)
-table(["Snapshot", "Detail recs", "Loads (positions)", "Occupied locations", "Active SKUs", "Cube (m³)"],
+table(["Snapshot", "Detail recs", "Loads", "Occupied locations", "Active SKUs", "Cube (m³)"],
       [[r["snapshot"], f"{r['detail_records']:,}", f"{r['loads_LODNUM']:,}",
         f"{r['occupied_locations']:,}", f"{r['active_skus']:,}", f"{r['total_cube_m3']:,.0f}"]
        for r in inv], widths=[2.7, 2.4, 3.0, 3.2, 2.2, 2.0])
@@ -228,6 +228,7 @@ table(["Metric", "Mean", "Median", "p95", "Max"], [
      f"{o['units_per_order']['p95']:.0f}", o["units_per_order"]["max"]],
 ], widths=[4.5, 2.5, 2.5, 2.5, 3.0])
 lt = o["delivery_leadtime_h_arrive_to_dispatch"]
+LTO = M["performance_cost"]["leadtime"]                                   # per-order lead time (performance_cost.py)
 bullets([
     f"**{o['n_orders']:,} orders / {o['n_order_lines']:,} lines**; **{lpo['single_line_pct']}% single-line** "
     f"orders and **{upl['single_unit_pct']}% single-unit** lines — a small-order-heavy profile.",
@@ -238,9 +239,10 @@ bullets([
     f"**Picking is each-dominant by line count** (the labour driver) and case-dominant by volume. DHL's "
     f"historical pick flags (case/list {o['pick_class_pct']['case_or_list']}%, each {o['pick_class_pct']['each']}%, "
     f"{o['pick_class_pct']['other']}% unflagged) reflect past practice and are not used for design.",
-    f"Delivery lead time (order received → dispatched): **average {lt['mean']} h (~{lt['mean']/24:.1f} days)**, "
-    f"median {lt['median']} h (~{lt['median']/24:.1f} days), p90 {lt['p90']} h. Right-skewed (mean > median), "
-    f"so the typical order is nearer the median; measured as TRAILER DISPATCED DATE − ORDER ARRIVE DATE.",
+    f"Delivery lead time (order received → trailer leaves), **per order: median {LTO['today_median_h']:.0f} h, "
+    f"average {LTO['today_mean_h']:.0f} h, p90 {LTO['today_p90_h']:.0f} h**; {LTO['today_same_day_pct']:.0f}% of orders leave the same day. "
+    f"Counted per order line instead the median is {lt['median']:.0f} h, because big multi-line orders wait longest. "
+    "Measured as last TRAILER DISPATCED DATE − ORDER ARRIVE DATE of each order.",
     f"Channel mix (order type): " + ", ".join(f"{k} {v:,}" for k, v in list(o['order_type_mix'].items())[:5]) + ".",
     f"Geography: " + ", ".join(f"{k} {v:,}" for k, v in list(o['country_mix'].items())[:5]) +
     " — an NL hub serving Western Europe.",
@@ -375,17 +377,20 @@ bullets([
 ])
 doc.add_heading("Option B — Hybrid density + velocity slotting + zone/batch picking  (recommended)", level=2)
 bullets([
-    "**Storage:** double-deep reach racking for A/B reserve + selective single-deep for irregular SKUs + a "
+    "**Storage:** single-deep pallet racking placed back-to-back (one pallet each side of the rack, every pallet "
+    "directly reachable from an aisle), 3.0 m reach-truck aisles, 8 levels; selective racks for irregular SKUs + a "
     f"forward-pick module (carton-flow / shelving) for fast case/each; cantilever for XLONG goods. "
-    f"≈{pct['Double-deep']:.0f}% of the envelope for storage + working areas — room to grow.",
+    f"≈{pct['Selective - narrow aisle']:.0f}% of the envelope for storage + working areas.",
+    "**Update (Deliverable 3):** first drafted as double-deep; changed to single-deep back-to-back (team decision: no two-deep racks). "
+    "The drawn layout already holds 9,504 positions (target ~9,500), and no telescopic forks are needed.",
     "**Picking:** zone + batch/wave picking (batches the 50% single-line orders); A-movers in a golden-zone "
     "forward pick; voice/RF; put-to-light consolidation at pack.",
-    "**MHE:** reach trucks with telescopic forks (Jungheinrich ETV 216i), pick trolleys for small orders and walkie "
+    "**MHE:** reach trucks with standard forks (Jungheinrich ETV 216i), pick trolleys for small orders and walkie "
     "pallet trucks (EJE 120i) for large orders, rider pallet trucks (ERE 225) at the docks, voice/RF, print-and-apply "
     "— sized in Deliverable 2.",
     "**Policies:** velocity (demand-ABC) slotting, hybrid random-within-zone storage, min/max replenishment, "
     "FIFO via FIF DATE where relevant.",
-    "**Verdict:** fits with buffer, materially lower travel/labour than A, moderate CAPEX — strongest business case.",
+    "**Verdict:** fits the envelope, materially lower travel/labour than A thanks to slotting and batching, moderate CAPEX — strongest business case.",
 ])
 doc.add_heading("Option C — High-density / semi-automated", level=2)
 bullets([
@@ -413,12 +418,13 @@ figure("decision_matrix.png", "Fig 8. Weighted decision-matrix scores.", 12)
 bullets([
     f"**Recommended: {dec['winner']}.** It wins on base and cost-driven weightings; C overtakes only when "
     "space is the dominant criterion — likely if A008 resolves to a small Assa-only envelope.",
-    f"**Why (data):** double-deep holds the corrected target in ≈{pct['Double-deep']:.0f}% of the envelope, leaving "
-    f"growth room with fewer aisles than selective racking; {ptl.get('each', 0):.0f}% of order lines are each-picks "
+    f"**Why (data):** single-deep reach racking holds the corrected target in ≈{pct['Selective - narrow aisle']:.0f}% of the envelope "
+    f"with every pallet directly accessible (no honeycombing); {ptl.get('each', 0):.0f}% of order lines are each-picks "
     "and 50% of orders single-line → batch/zone picking from a fast-pick area is the biggest labour lever; 48.6% "
     "ABC mismatch → velocity slotting is a cheap, high-value win; 73% single-load tail → dense reserve.",
     "**Conditions before locking:** confirm the 7,000 m² scope (A008); obtain labour/equipment costs (A006) to "
-    "confirm B vs C in the financial model; validate double-deep against the EURO/K3/XLONG pallet mix.",
+    "confirm B vs C in the financial model (done in Deliverable 3); the EURO/K3/XLONG pallet mix was checked against the "
+    "single-deep racks in Deliverable 3 (long pallets crosswise, > 2.4 m on cantilever).",
 ])
 para("Recommended concept preview (detailed layout and 3D in Deliverable 2):", size=9.5, color=GREY, italic=True, space_after=4)
 figure("layout_floorplan.png", "Fig 9. Recommended Option B — warehouse floor plan (rack-level, to scale).", 16)
