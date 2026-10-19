@@ -67,7 +67,7 @@ box(0.5, DEPTH-oh+0.5, 0, left_w-1, oh-1, 6, M_OFF, "office")
 for wx, wy, wsx, wsy, wsz in [(0,0,L,0.3,2),(0,DEPTH-0.3,L,0.3,8),(0,0,0.3,DEPTH,8),(L-0.3,0,0.3,DEPTH,8)]:
     box(wx, wy, 0, wsx, wsy, wsz, M_WALL, "wall")
 # dock doors (dock_mhe_plan.py): 3 receiving on the WEST wall, 5 shipping on the EAST wall, 4.3 m pitch
-for yc in (vh + 3.2, vh - 4.5, vh - 8.8):                                              # R1 container dock at the loose zone; R2-R3 trailers
+for yc in (vh + 3.2, vh * 0.75, vh * 0.25):                                            # R1 container dock at the loose zone; R2 north half, R3 south half (geometry.R_DOORS)
     box(-0.9, yc - 1.4, 0, 0.9, 2.8, 3, M_DOCK); plane(0.35, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK)
 for k in range(5):
     yc = uh/2 + (k - 2) * 4.3

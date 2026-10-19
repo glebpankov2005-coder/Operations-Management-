@@ -23,8 +23,8 @@ ax.imshow(img); ax.axis("off")
 ax.set_title("Option B — Warehouse 3D (Blender render)", fontsize=16, weight="bold", color="#1f2937", pad=12)
 handles = [
     Patch(fc=(0.30, 0.42, 0.85), label="Single-deep pallet racks (back-to-back)"),
-    Patch(fc=(0.55, 0.66, 0.95), label="Selective + cantilever"),
-    Patch(fc=(0.35, 0.74, 0.52), label="Forward-pick module"),
+    Patch(fc=(0.55, 0.66, 0.95), label="Odd-items + long-goods modules"),
+    Patch(fc=(0.35, 0.74, 0.52), label="Fast-pick area"),
     Patch(fc=(0.95, 0.78, 0.45), label="Receiving / Outbound (staging)"),
     Patch(fc=(0.93, 0.62, 0.42), label="Loose-container zone (door R1)"),
     Patch(fc=(0.94, 0.62, 0.62), label="Packing & consolidation"),

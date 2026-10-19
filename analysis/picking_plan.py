@@ -19,7 +19,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from load_data import combined_outbound, all_storage
 from _util import save_table, save_fig, update_metrics, TABLES
-from geometry import core_w, aisle_x, storage_aisle_len, fwd_h, rack_y0, cross_y, la, ra
+from geometry import core_w, aisle_x, storage_aisle_len, fwd_h, rack_y0, cross_y, la, ra, FP_X0, FP_X1
 
 M = json.load(open(os.path.join(os.path.dirname(__file__), "..", "outputs", "reports", "phase1_metrics.json"), encoding="utf-8"))
 LINES_PEAKF = M["peak"]["lines"]["peak_over_avg"]
@@ -94,7 +94,7 @@ order_pct = {k: round(float((o.litres <= v).mean() * 100), 1) for k, v in
              [("1_tote", TOTE_L), ("4_totes", 4 * TOTE_L), ("1_pallet_1000L", 1000), ("2_pallets_2300L", 2300)]}
 
 # ------------------------------------------------ travel models on the layout
-L_F = core_w - 4.0                        # usable length of the fast-pick module front
+L_F = FP_X1 - FP_X0                       # length of the fast-pick pick aisle (geometry.py)
 A = len(aisle_x); SPAN = float(aisle_x[-1] - aisle_x[0])
 def dist_F(n):                            # return routing along the module (P&D at east end, next to packing)
     return 0.0 if n <= 0 else 2 * L_F * n / (n + 1)
@@ -243,12 +243,51 @@ PUTWALL = {"slots": pw_cols * PW_LEVELS, "columns": pw_cols, "levels": PW_LEVELS
            "small_orders_wave_avg": round(float(seg.loc["small", "orders_day"]) / WAVES, 0), "small_orders_wave_peak": round(small_wave_pk, 0),
            "put_s_per_line": 8.0}
 
+# ------------------------------------------------ fast-pick faces: does every A/B item get a pick face? (storage check, A046)
+# The carton-flow row (geometry.py) holds the most-picked A/B items that fit a lane; the top 1% get a second lane
+# (duplicate face, peak_slotting.py). Across the pick aisle the wall row holds the rest: shelf slots for the other
+# A/B items, long-item shelves (items lie lengthwise) and floor pallet faces for heavy or bulky cases. All of them
+# face the same pick aisle, so the walk in the pick-time model (dist_F) does not change.
+from geometry import FP_N_FLOW_BAYS, FP_FLOW_LEVELS, FP_FLOW_LANES, FP_X0, FP_X1, FP_PAL_W, FP_SHELF_W, FP_LONG_W
+LANE_CM, LANE_KG = (28.0, 33.0, 60.0), 15.0               # fits a lane: each <= 28 x 33 x 60 cm and <= 15 kg
+FP_SHELF_SLOTS, FP_LONG_SLOTS = 21, 12                    # shelving bay 7 levels x 3 slots (as small parts); long bay 6 x 2
+fF = P[P.zone == "F"].groupby("PRTNUM").size().sort_values(ascending=False)          # A/B items picked in Q2, by lines
+dims = np.sort(m.reindex(fF.index)[["l", "w", "h"]].astype(float).values, axis=1)   # smallest .. largest side (cm)
+kg_f = m.reindex(fF.index)["kg"].astype(float).fillna(0).values
+known = ~np.isnan(dims[:, 2])
+lane_fit = known & (dims[:, 0] <= LANE_CM[0]) & (dims[:, 1] <= LANE_CM[1]) & (dims[:, 2] <= LANE_CM[2]) & (kg_f <= LANE_KG)
+long_fp = known & ~lane_fit & (dims[:, 2] > LANE_CM[2])
+bulky_fp = known & ~lane_fit & ~long_fp
+lines_sku = P.groupby("PRTNUM").size().sort_values(ascending=False)
+top1 = set(lines_sku.head(max(1, int(len(lines_sku) * 0.01))).index)                # extreme SKUs: a second face
+n_lanes = FP_N_FLOW_BAYS * FP_FLOW_LEVELS * FP_FLOW_LANES
+fit_ids = fF.index[lane_fit]                                                      # sorted by lines
+dup = int(sum(1 for s_ in fit_ids[:n_lanes] if s_ in top1))
+in_lane = fit_ids[: n_lanes - dup]
+shelf_ids = fF.index[(lane_fit & ~fF.index.isin(in_lane)) | ~known]
+fp_shelf_bays = int(np.ceil(len(shelf_ids) * 1.15 / FP_SHELF_SLOTS))             # +15% free slots, as the small parts
+fp_long_bays = int(np.ceil(long_fp.sum() * 1.15 / FP_LONG_SLOTS))
+fp_pal_faces = int(np.ceil(bulky_fp.sum() * 1.15))
+wall_row_m = fp_pal_faces * FP_PAL_W + fp_shelf_bays * FP_SHELF_W + fp_long_bays * FP_LONG_W
+assert wall_row_m <= FP_X1 - FP_X0, "fast-pick wall row too short for its faces"
+def _share(ids):
+    return round(float(fF.reindex(ids).sum() / fF.sum() * 100), 1)
+fast_pick = {"skus": int(len(fF)), "lines_day": round(float(fF.sum() / n_days), 0),
+             "share_of_picked_lines_pct": round(float(fF.sum() / len(P) * 100), 1),
+             "flow_bays": FP_N_FLOW_BAYS, "flow_lanes": int(n_lanes), "skus_in_lanes": int(len(in_lane)), "duplicate_lanes": dup,
+             "lane_lines_pct": _share(in_lane),
+             "shelf_skus": int(len(shelf_ids)), "shelf_bays": fp_shelf_bays, "shelf_lines_pct": _share(shelf_ids),
+             "long_skus": int(long_fp.sum()), "long_bays": fp_long_bays, "long_lines_pct": _share(fF.index[long_fp]),
+             "bulky_skus": int(bulky_fp.sum()), "pallet_faces": fp_pal_faces, "bulky_lines_pct": _share(fF.index[bulky_fp]),
+             "wall_row_m": round(wall_row_m, 1), "wall_row_available_m": round(FP_X1 - FP_X0, 1),
+             "lane_limit_cm": list(LANE_CM), "lane_limit_kg": LANE_KG, "shelf_slots_bay": FP_SHELF_SLOTS, "long_slots_bay": FP_LONG_SLOTS}
+
 # ------------------------------------------------ outputs
 seg_out = seg[["orders_day", "lines_day", "pct_orders", "pct_lines", "pct_volume"]].round(1)
 save_table(seg_out, "picking_segments.csv"); save_table(small.set_index("Zone"), "picking_small_orders.csv")
 save_table(pd.DataFrame(equipment).set_index("Item"), "picking_equipment.csv")
 update_metrics("picking", {
-    "small_parts": vlm,
+    "small_parts": vlm, "fast_pick": fast_pick,
     "params": {"tote_l": TOTE_L, "tote_kg": TOTE_KG, "trolley_totes": TROLLEY_TOTES, "small_max_l": SMALL_MAX_L,
                "small_max_kg": SMALL_MAX_KG, "v_walk": V_WALK, "v_eje": round(V_EJE, 2), "t_line_small": T_LINE_SMALL,
                "t_line_large": T_LINE_LARGE, "delay": DELAY},
@@ -285,4 +324,5 @@ print(f"PICK FTE avg {pick_fte_avg:.2f} peak {pick_fte_pk:.2f}")
 print("EQUIP", [(e['Item'], e['Required'], e['Planned']) for e in equipment])
 print("TUGGER", tugger)
 print("SMALL PARTS", vlm)
+print("FAST-PICK FACES", fast_pick)
 print("ROUTING"); [print(" ", r) for r in routing]

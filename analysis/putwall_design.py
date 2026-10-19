@@ -13,7 +13,8 @@ from matplotlib.lines import Line2D
 from _util import save_fig, update_metrics, REPORTS
 from geometry import (DEPTH, L, left_w, right_w, rax, cx0, cx1, ra, fwd_h, rack_y0, rack_y1, cross_y, mod_x, BLOCK, n_mod,
                       OFF, RET, rvh, lzh, uh, PK_Y0, PW_X0, PW_DEPTH, PW_LEN, PW_Y0, BENCH_X0, BENCH_W,
-                      N_BENCH, CAGE_X0, SHELF_Y0)
+                      N_BENCH, CAGE_X0, SHELF_Y0, R_DOORS, S_DOORS, FP_AISLE_Y)
+import layout_draw as D
 
 M = json.load(open(os.path.join(REPORTS, "phase1_metrics.json"), encoding="utf-8"))
 PK = M["picking"]; PW = PK["putwall"]; SP = PK["small_parts"]
@@ -31,7 +32,7 @@ def draw_plan(ax, detail):
     oh, rh = OFF / left_w, RET / left_w
     zones = [(0, 0, left_w, rvh, "#f4c98c", "Receiving"), (0, rvh, left_w, lzh, "#f6dfb6", "Container\nzone"),
              (0, DEPTH - oh - rh, left_w, rh, "#e6bcd8", "Returns"), (0, DEPTH - oh, left_w, oh, "#cfd6e2", "Offices"),
-             (cx0, 0, cx1 - cx0, fwd_h, "#dff3e6", "Fast-pick area"),
+             (cx0, 0, cx1 - cx0, fwd_h, "#dff3e6", ""),
              (rax, 0, right_w, uh, "#f4c98c", "Outbound\nstaging"), (rax, PK_Y0, right_w, DEPTH - PK_Y0, "#f7d4d4", "")]
     for x, y, w, h, c, name in zones:
         ax.add_patch(Rectangle((x + 0.3, y + 0.3), w - 0.6, h - 0.6, facecolor=c, edgecolor="none", zorder=1))
@@ -55,11 +56,11 @@ def draw_plan(ax, detail):
             ax.add_patch(Rectangle((CAGE_X0 + j * 1.3, PW_Y0 + i * 1.5 + 0.2), 1.0, 1.1, facecolor=C_CAGE, edgecolor="white", lw=0.5, zorder=2))
     ax.add_patch(Rectangle((rax + 0.5, PK_Y0 + 0.6), 4.0, 3.8, facecolor="#fde7b0", edgecolor="none", zorder=2))   # large-order pallets
     ax.add_patch(Rectangle((rax + 5.2, PK_Y0 + 0.6), 2.2, 2.2, facecolor="#d1d5db", edgecolor="none", zorder=2))   # stretch wrapper
-    for yc in (rvh + 3.2, rvh - 4.5, rvh - 8.8):                        # dock doors
-        ax.add_patch(Rectangle((-1.8, yc - 1.4), 1.6, 2.8, facecolor=STEEL, edgecolor="none", zorder=3))
-    for k in range(5):
-        yc = uh / 2 + (k - 2) * 4.3
-        ax.add_patch(Rectangle((L + 0.2, yc - 1.4), 1.6, 2.8, facecolor=STEEL, edgecolor="none", zorder=3))
+    D.fast_pick(ax, z=1.5)                                               # carton flow, pick aisle, wall row
+    if not detail:
+        ax.text((cx0 + cx1) / 2 - 12, FP_AISLE_Y, "Fast-pick area", ha="center", va="center", fontsize=10, weight="bold",
+                color=INK, zorder=3, bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.85))
+    D.doors(ax, labels=False)                                            # R1-R3 west, S1-S5 east (geometry.py)
     if detail:                                                           # people and trolleys in the enlarged view
         for yy in (PW_Y0 + 1.0, PW_Y0 + 2.6, PW_Y0 + 7.5):
             ax.add_patch(Rectangle((rax + 0.5, yy), 1.0, 0.6, facecolor="#fde2d4", edgecolor=C_PICK, lw=1.0, zorder=4))
@@ -95,7 +96,7 @@ zx0, zx1, zy0, zy1 = ra - 2.0, L + 0.8, PK_Y0 - 6.5, SHELF_Y0 + 5.5
 axA.add_patch(Rectangle((zx0, zy0), zx1 - zx0, zy1 - zy0, facecolor="none", edgecolor=HL, lw=2.6, zorder=10))
 axA.text(zx0 - 1.0, zy1 + 1.2, "put-to-light wall\nis here", ha="right", va="bottom", fontsize=13, weight="bold", color=HL, zorder=10,
          bbox=dict(boxstyle="round,pad=0.25", fc="white", ec=HL, lw=1.0))
-flow(axA, [(cx1 - 14, fwd_h * 0.5), (ra, fwd_h * 0.5), (ra, PW_Y0 + 5.0), (PW_X0 - 0.4, PW_Y0 + 5.0)], C_PICK)
+flow(axA, [(cx1 - 14, FP_AISLE_Y), (ra, FP_AISLE_Y), (ra, PW_Y0 + 5.0), (PW_X0 - 0.4, PW_Y0 + 5.0)], C_PICK)
 flow(axA, [(CAGE_X0 + 1.15, PW_Y0 - 0.2), (CAGE_X0 + 1.15, uh - 3.0)], C_PACK)
 axA.annotate("", xy=(L / 2 + 30, DEPTH + 2.5), xytext=(L / 2 + 30, DEPTH - 3.5), arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.8))
 axA.text(L / 2 + 30, DEPTH + 3.2, "N", ha="center", fontsize=10, weight="bold", color=INK)

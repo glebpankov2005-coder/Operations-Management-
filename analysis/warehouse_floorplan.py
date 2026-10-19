@@ -25,7 +25,9 @@ POS = M["capacity"]["design_positions_target"]
 # ---- footprint / columns: single source = geometry.py (content-derived widths from volume-based areas) ----
 from geometry import (DEPTH, RECV, OFF, RET, PACK, OUTB, FWD, LOOSE, dd_area, sel_area, CIRC,
                       left_w, right_w, core_w, aisle, L, cx0, cx1, rax, LEVELS,
-                      PK_Y0, PW_X0, PW_DEPTH, PW_LEN, PW_Y0, BENCH_X0, BENCH_W, N_BENCH, CAGE_X0, SHELF_Y0)
+                      PK_Y0, PW_X0, PW_DEPTH, PW_LEN, PW_Y0, BENCH_X0, BENCH_W, N_BENCH, CAGE_X0, SHELF_Y0,
+                      R_DOORS, FP_AISLE_Y, FP_REFILL_Y0)
+import layout_draw as D
 TOTAL_AREA = RECV + OFF + RET + LOOSE + PACK + OUTB + FWD + dd_area + sel_area + CIRC
 
 fig, ax = plt.subplots(figsize=(15.5, 9))
@@ -41,20 +43,23 @@ for gx in np.arange(0, L + 1, L / 6):
     for gy in np.arange(0, DEPTH + 1, DEPTH / 3):
         ax.add_patch(Rectangle((gx - 0.35, gy - 0.35), 0.7, 0.7, facecolor="#cbd5e1", edgecolor="none", zorder=0.7))
 
-def soft_zone(x0, y0, w, h, color, name, sub=None):
+def soft_zone(x0, y0, w, h, color, name, sub=None, label_y=None):
+    """Zone background; the label sits at label_y (default: centre) on a white tag so the zone's inside stays visible."""
     ax.add_patch(FancyBboxPatch((x0, y0), w, h, boxstyle="round,pad=0,rounding_size=0.6",
-                 facecolor=color, edgecolor="white", lw=1.4, alpha=0.9, zorder=2))
-    ax.text(x0 + w/2, y0 + h/2 + (1.0 if sub else 0), "\n".join(name.split(" & ")) if w < 12 else name,
-            ha="center", va="center", fontsize=8, weight="bold", color=INK, zorder=3)
-    if sub:
-        ax.text(x0 + w/2, y0 + h/2 - 1.8, sub, ha="center", va="center", fontsize=6.8, color=SUB, zorder=3)
+                 facecolor=color, edgecolor="white", lw=1.4, alpha=0.9, zorder=1.2))
+    if not name:
+        return
+    ly = y0 + h / 2 if label_y is None else label_y
+    ax.text(x0 + w / 2, ly, f"{name}\n{sub}" if sub else name, ha="center", va="center", fontsize=7, weight="bold",
+            color=INK, zorder=3.5, linespacing=1.1, bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.88))
 
 # ---- left support column: offices (top), returns, loose-container zone, receiving (bottom, dock side) ----
 oh, rh, rvh, lzh = OFF/left_w, RET/left_w, RECV/left_w, LOOSE/left_w
-soft_zone(0.4, DEPTH-oh, left_w-0.8, oh-0.4, "#cfd6e2", "Offices & amenities", f"{OFF} m²")
-soft_zone(0.4, DEPTH-oh-rh, left_w-0.8, rh-0.2, "#e6bcd8", "Returns", f"{RET} m²")
-soft_zone(0.4, rvh+0.2, left_w-0.8, lzh-0.4, "#f6dfb6", "Container & unpack zone", f"{LOOSE} m²")
-soft_zone(0.4, 0.4, left_w-0.8, rvh-0.4, "#f4c98c", "Receiving & staging", f"{RECV} m²")
+soft_zone(0.4, DEPTH-oh, left_w-0.8, oh-0.4, "#cfd6e2", "Offices\n& amenities", f"{OFF} m²")
+soft_zone(0.4, DEPTH-oh-rh, left_w-0.8, rh-0.2, "#e6bcd8", "Returns", f"{RET} m²", label_y=DEPTH-oh-2.6)
+soft_zone(0.4, rvh+0.2, left_w-0.8, lzh-0.4, "#f6dfb6", "Container zone", f"{LOOSE} m²", label_y=rvh+10.15)
+soft_zone(0.4, 0.4, left_w-0.8, rvh-0.4, "#f4c98c", "Receiving", f"{RECV} m²", label_y=rvh-2.1)
+D.receiving(ax, z=2.2, lent=True); D.container_zone(ax, z=2.2); D.returns(ax, z=2.2)
 # ---- right column: packing (top), outbound (bottom, dock side) ----
 ph, uh = PACK/right_w, OUTB/right_w
 soft_zone(rax+0.4, DEPTH-ph+0.2, right_w-0.8, ph-0.6, "#f7d4d4", "")
@@ -74,20 +79,25 @@ for i_ in range(7):
                                edgecolor="white", lw=0.4, zorder=2.6))
 ax.text(rax + right_w / 2, (PW_Y0 + PW_LEN + SHELF_Y0) / 2, f"Packing · {PACK} m²", ha="center", va="center",
         fontsize=7.2, weight="bold", color=INK, zorder=3, bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.9))
-soft_zone(rax+0.4, 0.4, right_w-0.8, uh-0.2, "#f4c98c", "Outbound & shipping", f"{OUTB} m²")
+soft_zone(rax+0.4, 0.4, right_w-0.8, uh-0.2, "#f4c98c", "Outbound", f"{OUTB} m²", label_y=uh/2 + 2.15)   # between lanes S3 / S4
+D.outbound(ax, z=2.2)
 from matplotlib.patches import Patch
-pack_handles = [Patch(facecolor=C_WALL, label="Put-to-light wall (120 slots)"), Patch(facecolor=C_BENCH, label="Pack stations"),
-                Patch(facecolor=C_CAGE, label="Roll cages per carrier"), Patch(facecolor=C_SHELF, label="Small-parts bin shelving")]
+pack_handles = [Patch(facecolor=D.COL["flow"], label="Carton-flow lanes (fast-pick)"),
+                Patch(facecolor=D.COL["shelf"], label="Shelving (fast-pick, small parts)"),
+                Patch(facecolor=D.COL["fp_pal"], label="Floor pallets, heavy fast movers"),
+                Patch(facecolor=C_WALL, label=f"Put-to-light wall ({M['picking']['putwall']['slots']} slots)"),
+                Patch(facecolor=C_BENCH, label="Pack stations"), Patch(facecolor=C_CAGE, label="Roll cages per carrier"),
+                Patch(facecolor=D.COL["conveyor"], label="Roller conveyor (containers)"),
+                Patch(facecolor=D.COL["pallet"], edgecolor=D.COL["pallet_edge"], label="Pallet places (lanes, build spots)")]
 
 # ---- storage core: forward-pick band (bottom) + double-deep reserve racks ----
 fwd_h = FWD / core_w
 # forward-pick module (carton flow / shelving) - fine horizontal lanes
 ax.add_patch(Rectangle((cx0, 0), core_w, fwd_h, facecolor="#dff3e6", edgecolor="#74cf9a", lw=1.2, zorder=1.5))
-for yy in np.arange(0.8, fwd_h, 1.6):
-    ax.plot([cx0+0.5, cx1-0.5], [yy, yy], color="#74cf9a", lw=0.7, alpha=0.7, zorder=1.6)
-ax.text(cx0 + core_w/2, fwd_h/2, "FAST-PICK AREA  (best-sellers)  ·  500 m²",
-        ha="center", va="center", fontsize=8, weight="bold", color="#2f855a", zorder=3,
-        bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
+D.fast_pick(ax, z=1.7)                     # refill strip | carton-flow lanes | pick aisle | wall row (geometry.py)
+ax.text(cx0 + core_w * 0.36, FP_AISLE_Y, f"FAST-PICK AREA  (best-sellers)  ·  {FWD} m²",
+        ha="center", va="center", fontsize=7.5, weight="bold", color="#2f855a", zorder=3,
+        bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.9))
 
 # reserve racks: single-deep back-to-back blocks (one pallet each side) + aisles, with a central cross-aisle
 END_AISLE = 3.2                        # front + rear cross-aisles: every storage aisle open at BOTH ends (no U-turns)
@@ -116,8 +126,8 @@ for m in range(n_mod):
         for by in np.arange(y0+bay_, y1, bay_):                                          # bay divisions
             ax.plot([bx, bx+BLOCK], [by, by], color="white", lw=0.5, alpha=0.8, zorder=2.1)
     # aisle number at top
-    if m < n_mod:
-        ax.text(bx + BLOCK + (aisle_w[m] if m < n_mod - 1 else AISLEW)/2, rack_y1 + 0.7, f"A{aisle_no}", ha="center", fontsize=6, color=SUB, zorder=3)
+    if m < n_mod - 1:                                                                   # 10 storage aisles
+        ax.text(bx + BLOCK + aisle_w[m] / 2, rack_y1 + 0.7, f"A{aisle_no}", ha="center", fontsize=6, color=SUB, zorder=3)
         aisle_no += 1
 # cross aisle label
 ax.text(cx0 + core_w/2, (cross_y0+cross_y1)/2, "middle cross-aisle", ha="center", va="center",
@@ -148,7 +158,7 @@ def docks_side(x_wall, y_centre, n, prefix, outside):
                 weight="bold", zorder=13, rotation=90)
     return ys_
 # R1 = container dock beside the loose-container zone; R2-R3 = palletised trailers beside receiving
-in_doors = np.concatenate([docks_side(0, rvh + 3.2, 1, "R", "left"), np.array([rvh - 4.5, rvh - 4.5 - DOOR_PITCH])])
+in_doors = np.concatenate([docks_side(0, R_DOORS["R1"], 1, "R", "left"), np.array([R_DOORS["R2"], R_DOORS["R3"]])])
 for i, dy in enumerate(in_doors[1:], 2):
     ax.add_patch(FancyBboxPatch((-2.3, dy - 1.5), 1.7, 3.0, boxstyle="round,pad=0,rounding_size=0.3",
                  facecolor=STEEL, edgecolor="white", lw=0.8, zorder=12))
@@ -174,10 +184,10 @@ dim_h(0, L, DEPTH + 4.5, f"{L:.0f} m")
 dim_v(0, DEPTH, -6.5, f"{DEPTH:.0f} m")
 
 # ---- scale bar + north arrow ----
-ax.plot([2, 12], [-9.5, -9.5], color=INK, lw=2.4)
-for xx in (2, 12):
-    ax.plot([xx, xx], [-10.1, -8.9], color=INK, lw=2.4)
-ax.text(7, -11.3, "10 m", ha="center", fontsize=8, color=INK)
+ax.plot([L - 44, L - 34], [-2.6, -2.6], color=INK, lw=2.4)                 # scale bar above the title block
+for xx in (L - 44, L - 34):
+    ax.plot([xx, xx], [-3.2, -2.0], color=INK, lw=2.4)
+ax.text(L - 32.5, -2.6, "10 m", ha="left", va="center", fontsize=8, color=INK)
 ax.annotate("", xy=(L+4, DEPTH-2), xytext=(L+4, DEPTH-8), arrowprops=dict(arrowstyle="-|>", color=INK, lw=2.2))
 ax.text(L+4, DEPTH-0.5, "N", ha="center", fontsize=11, weight="bold", color=INK)
 
@@ -192,7 +202,7 @@ rows = [("DRAWING", "Option B — warehouse floor plan (rack-level)"),
         ("POSITIONS", f"{positions_total:,} single-deep  ·  target ~9,500"),
         ("DOCKS / MHE", "3 in (W) · 5 out (E) · ETV 216i, EJE 120i, ERE 225"),
         ("SCALE / SIZE", f"~1:400  ·  {L:.0f} × {DEPTH:.0f} m = {TOTAL_AREA:,} m²  ({TOTAL_AREA / 7000:.0%})"),
-        ("DATE / REV", "2026  ·  Rev B (loose-container zone)")]
+        ("DATE / REV", "2026  ·  Rev C (zone insides, fast-pick faces)")]
 for i, (k, v) in enumerate(rows):
     yy = tb_y + tb_h - 2.6 - i*1.25
     ax.text(tb_x+1.2, yy, k, fontsize=6.3, weight="bold", color=SUB, va="center", zorder=7)
@@ -201,8 +211,8 @@ for i, (k, v) in enumerate(rows):
 title_txt = ax.text(L/2, DEPTH + 8, "Option B — Warehouse Floor Plan (rack-level, to scale)",
                     ha="center", fontsize=15, weight="bold", color=INK)
 
-ax.legend(handles=pack_handles, loc="lower left", bbox_to_anchor=(0.2, 0.0), ncol=2, fontsize=8, frameon=False,
-          title="Inside the packing area", title_fontsize=8)
+ax.legend(handles=pack_handles, loc="lower left", bbox_to_anchor=(0.0, 0.0), ncol=2, fontsize=7.5, frameon=False,
+          title="Inside the zones", title_fontsize=8, alignment="left")
 fig.savefig(os.path.join(FIGS, "layout_floorplan.png"), dpi=130, bbox_inches="tight")
 print(f"Saved layout_floorplan.png  ({n_mod} rack modules, {positions_total:,} positions, building {L:.0f}x{DEPTH:.0f} m)")
 
@@ -242,13 +252,13 @@ x5 = CAGE_X0 + 1.15                                    # packed orders leave the
 route([(-1.45, in_doors[1]), (left_w * 0.62, in_doors[1])], BLUE)                      # 1 in through R2 (pallets)
 badge(left_w * 0.18, in_doors[1], 1, BLUE)
 ORANGE = "#d97706"                                                                     # loose container: R1 -> zone -> receiving
-route([(-1.45, in_doors[0]), (left_w * 0.55, in_doors[0]), (left_w * 0.55, rvh - 3.0)], ORANGE)
+route([(-1.45, in_doors[0]), (left_w * 0.72, in_doors[0])], ORANGE)                      # C: container -> conveyor
 badge(left_w * 0.18, in_doors[0], "C", ORANGE)
-route([(left_w - 0.8, 20.0), (la, 20.0), (la, cd_y), (start + 7.0, cd_y)], BLUE)         # 2 up left aisle, into cross-aisle
+route([(left_w - 0.6, in_doors[1]), (la, in_doors[1]), (la, cd_y), (start + 7.0, cd_y)], BLUE)   # 2 up left aisle, into cross-aisle
 badge(la, cd_y - 4.0, 2, BLUE)
-route([(x_ref, cd_y + 10), (x_ref, fwd_h + 1.4)], GREEN)                               # 3 reserve -> fast-pick rear
+route([(x_ref, cd_y + 10), (x_ref, FP_REFILL_Y0 + 0.9)], GREEN)                        # 3 reserve -> back of the fast-pick lanes
 badge(x_ref, cd_y - 8, 3, GREEN)
-route([(cx1 - 11, fwd_h * 0.5), (ra, fwd_h * 0.5), (ra, pk_y), (PW_X0 - 0.3, pk_y)], REDD)  # 4 pick -> right aisle -> put-wall
+route([(cx1 - 11, FP_AISLE_Y), (ra, FP_AISLE_Y), (ra, pk_y), (PW_X0 - 0.3, pk_y)], REDD)  # 4 pick aisle -> right aisle -> put-wall
 badge(ra, (fwd_h + pk_y) / 2, 4, REDD)
 route([(x5, PW_Y0 + 0.4), (x5, uh - 4.2)], REDD)                                       # 5 pack -> outbound
 badge(x5, PK_Y0 + 2.4, 5, REDD)
@@ -261,8 +271,8 @@ handles = [Line2D([0], [0], color=ORANGE, lw=5, label="C  Loose container: unpac
            Line2D([0], [0], color=BLUE, lw=5, label="1–2  In & put away"),
            Line2D([0], [0], color=GREEN, lw=5, label="3  Refill the fast-pick area"),
            Line2D([0], [0], color=REDD, lw=5, label="4–6  Pick → put-wall & pack → out")] + pack_handles
-leg = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=4, fontsize=10,
-                frameon=True, fancybox=True, borderpad=0.9, columnspacing=3.2, handlelength=3.2)
+leg = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.02), ncol=3, fontsize=9,
+                frameon=True, fancybox=True, borderpad=0.8, columnspacing=1.6, handlelength=2.6)
 leg.get_frame().set_edgecolor("#9db4fb"); leg.get_frame().set_linewidth(1.2)
 title_txt.set_text("Option B — Layout, Zoning & Order Flow (on the floor plan)")
 fig.savefig(os.path.join(FIGS, "layout_orderflow.png"), dpi=130, bbox_inches="tight")

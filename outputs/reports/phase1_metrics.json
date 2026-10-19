@@ -1463,6 +1463,35 @@
       },
       "skus_small_ab_in_fast_pick": 390
     },
+    "fast_pick": {
+      "skus": 1409,
+      "lines_day": 453.0,
+      "share_of_picked_lines_pct": 71.5,
+      "flow_bays": 31,
+      "flow_lanes": 930,
+      "skus_in_lanes": 888,
+      "duplicate_lanes": 42,
+      "lane_lines_pct": 89.5,
+      "shelf_skus": 462,
+      "shelf_bays": 26,
+      "shelf_lines_pct": 5.6,
+      "long_skus": 42,
+      "long_bays": 5,
+      "long_lines_pct": 2.0,
+      "bulky_skus": 17,
+      "pallet_faces": 20,
+      "bulky_lines_pct": 2.9,
+      "wall_row_m": 55.0,
+      "wall_row_available_m": 63.6,
+      "lane_limit_cm": [
+        28.0,
+        33.0,
+        60.0
+      ],
+      "lane_limit_kg": 15.0,
+      "shelf_slots_bay": 21,
+      "long_slots_bay": 12
+    },
     "params": {
       "tote_l": 40.0,
       "tote_kg": 15.0,
@@ -2350,6 +2379,7 @@
       "positions": 8960,
       "flow_bays": 31,
       "flow_lanes": 930,
+      "fp_shelf_bays": 36,
       "ptl_slots": 120,
       "rf_units": 14,
       "pack_stations": 4,
@@ -2362,16 +2392,16 @@
       "containers_year": 244,
       "move_hours": 437.0
     },
-    "capex_total": 1622226.0,
+    "capex_total": 1630146.0,
     "capex_by_group": {
       "Storage": 1232640.0,
       "Small-item storage": 69184.0,
-      "Picking": 59262.0,
+      "Picking": 66462.0,
       "Sorting & packing": 49999.0,
       "Loose-container zone": 6349.0,
       "IT": 46000.0,
       "One-off": 11317.0,
-      "Contingency": 147475.0
+      "Contingency": 148195.0
     },
     "capex_table": [
       {
@@ -2439,6 +2469,17 @@
         "Total EUR": 55800.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 7971.43
+      },
+      {
+        "Group": "Picking",
+        "Item": "Fast-pick shelving + long-item shelves (wall row)",
+        "Qty": 36,
+        "Unit": "bays",
+        "Unit price EUR": 200.0,
+        "Source": "A046 / S030",
+        "Total EUR": 7200.0,
+        "Life (yrs)": 7,
+        "Depreciation EUR/yr": 1028.57
       },
       {
         "Group": "Picking",
@@ -2577,14 +2618,14 @@
         "Item": "Contingency 10%",
         "Qty": 1,
         "Unit": "lot",
-        "Unit price EUR": 147475.12,
+        "Unit price EUR": 148195.12,
         "Source": "A037",
-        "Total EUR": 147475.12,
+        "Total EUR": 148195.12,
         "Life (yrs)": 7,
-        "Depreciation EUR/yr": 21067.87
+        "Depreciation EUR/yr": 21170.73
       }
     ],
-    "depreciation_year": 140460.0,
+    "depreciation_year": 141591.0,
     "opex_total": 341548.0,
     "opex_by_group": {
       "Labour": 290588.0,
@@ -2674,13 +2715,13 @@
         "Total EUR/yr": 11400.0
       }
     ],
-    "annual_cost": 482007.0,
+    "annual_cost": 483139.0,
     "unit_cost": {
       "per_order_line": 3.09,
-      "per_order": 13.72,
-      "per_inbound_pallet": 19.97,
-      "per_position_month": 4.48,
-      "labour_share_pct": 60.29
+      "per_order": 13.75,
+      "per_inbound_pallet": 20.02,
+      "per_position_month": 4.49,
+      "labour_share_pct": 60.15
     },
     "volumes_year": {
       "lines": 156160.0,
@@ -2705,11 +2746,11 @@
       }
     ],
     "saving_year": 101208.0,
-    "payback_years": 16.0,
-    "capex_reuse_racking": 512722.0,
+    "payback_years": 16.1,
+    "capex_reuse_racking": 520642.0,
     "payback_reuse_years": 5.1,
-    "capex_process": 148788.0,
-    "payback_process_years": 1.47,
+    "capex_process": 156708.0,
+    "payback_process_years": 1.55,
     "small_item_options": [
       {
         "Option": "Keep in pallet racks (today)",
@@ -2981,7 +3022,7 @@
         "Type": "own",
         "How it is measured": "(OPEX + depreciation) \u00f7 orders",
         "Today (data)": "\u2014",
-        "Future (design)": "\u20ac13.72",
+        "Future (design)": "\u20ac13.75",
         "Target / benchmark": "\u2014"
       },
       {
@@ -3035,30 +3076,30 @@
     "sensitivity": [
       {
         "Driver": "Reach-truck lease (\u20ac495\u20131,550/month)",
-        "Low EUR/yr": 472287.0,
-        "High EUR/yr": 497607.0,
+        "Low EUR/yr": 473419.0,
+        "High EUR/yr": 498739.0,
         "Swing EUR/yr": 25320.0
       },
       {
         "Driver": "Productivity \u00b120% (labour hours)",
-        "Low EUR/yr": 445362.0,
-        "High EUR/yr": 518653.0,
+        "Low EUR/yr": 446493.0,
+        "High EUR/yr": 519784.0,
         "Swing EUR/yr": 73291.0
       },
       {
         "Driver": "Racking price (\u20ac80\u2013200/position)",
-        "Low EUR/yr": 447511.0,
-        "High EUR/yr": 530302.0,
+        "Low EUR/yr": 448643.0,
+        "High EUR/yr": 531433.0,
         "Swing EUR/yr": 82790.0
       },
       {
         "Driver": "Labour rate (\u20ac20\u201328/h)",
-        "Low EUR/yr": 482007.0,
-        "High EUR/yr": 567791.0,
+        "Low EUR/yr": 483139.0,
+        "High EUR/yr": 568923.0,
         "Swing EUR/yr": 85784.0
       }
     ],
-    "sensitivity_base": 482007.0,
+    "sensitivity_base": 483139.0,
     "storage": {
       "occupied_peak": 8512,
       "occupied_mean": 8125.0,
@@ -3107,5 +3148,96 @@
       27.7
     ],
     "pack_stations": 4
+  },
+  "storage_design": {
+    "fast_pick": {
+      "skus": 1409,
+      "lines_day": 453.0,
+      "share_of_picked_lines_pct": 71.5,
+      "flow_bays": 31,
+      "flow_lanes": 930,
+      "skus_in_lanes": 888,
+      "duplicate_lanes": 42,
+      "lane_lines_pct": 89.5,
+      "shelf_skus": 462,
+      "shelf_bays": 26,
+      "shelf_lines_pct": 5.6,
+      "long_skus": 42,
+      "long_bays": 5,
+      "long_lines_pct": 2.0,
+      "bulky_skus": 17,
+      "pallet_faces": 20,
+      "bulky_lines_pct": 2.9,
+      "wall_row_m": 55.0,
+      "wall_row_available_m": 63.6,
+      "lane_limit_cm": [
+        28.0,
+        33.0,
+        60.0
+      ],
+      "lane_limit_kg": 15.0,
+      "shelf_slots_bay": 21,
+      "long_slots_bay": 12
+    },
+    "levels": 8,
+    "top_beam_m": 10.02
+  },
+  "zones_design": {
+    "zones": [
+      {
+        "No": 1,
+        "Zone": "Receiving",
+        "m2": 262,
+        "What happens": "trailers unloaded at R2 / R3; pallets\ncounted, checked and scanned"
+      },
+      {
+        "No": 2,
+        "Zone": "Container zone",
+        "m2": 190,
+        "What happens": "containers at R1 unpacked; cartons\nsorted onto 12 pallets at a time"
+      },
+      {
+        "No": 3,
+        "Zone": "Pallet racks",
+        "m2": 4233,
+        "What happens": "8,960 pallet places: stock in\nreserve and slow items"
+      },
+      {
+        "No": 4,
+        "Zone": "Fast-pick area",
+        "m2": 500,
+        "What happens": "pick faces for the 1,409\nbest-selling items"
+      },
+      {
+        "No": 5,
+        "Zone": "Packing",
+        "m2": 450,
+        "What happens": "put-to-light wall, 4 pack stations,\nsmall-parts shelving"
+      },
+      {
+        "No": 6,
+        "Zone": "Outbound staging",
+        "m2": 216,
+        "What happens": "a lane per shipping door S1\u2013S5:\ngoods wait for their truck"
+      },
+      {
+        "No": 7,
+        "Zone": "Returns",
+        "m2": 180,
+        "What happens": "returned goods checked and sorted:\nrestock, rework or scrap"
+      },
+      {
+        "No": 8,
+        "Zone": "Offices & amenities",
+        "m2": 250,
+        "What happens": "office, canteen, toilets and lockers"
+      },
+      {
+        "No": 9,
+        "Zone": "Aisles",
+        "m2": 450,
+        "What happens": "perimeter and cross-aisles: where\ntrucks and people move"
+      }
+    ]
   }
 }

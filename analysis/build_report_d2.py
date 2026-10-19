@@ -95,7 +95,7 @@ sl = pt["share_lines_pct"]; su = pt["share_units_pct"]
 POS_PEAK, POS_TARGET = 8512, 9500
 PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["departure_plan"]
 DE = M["design_evaluation"]
-LZ = dm["loose_zone"]; SP = PK["small_parts"]; PWW = PK["putwall"]; LGC = dm["load_checks"]["long"]
+LZ = dm["loose_zone"]; SP = PK["small_parts"]; PWW = PK["putwall"]; LGC = dm["load_checks"]["long"]; FPK = PK["fast_pick"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
 
 # COVER
@@ -154,6 +154,10 @@ table(["Topic", "Before", "Now (this version)"], [
     ["Loose containers", "Unpacked at the dock door", f"Own {LZ['area_planned_m2']} m² loose-container zone at door R1: unpack, sort per SKU, build pallets"],
     ["Racking", "Double-deep (telescopic forks)", f"Single-deep back-to-back: {lay['positions_total']:,} positions incl. {lay['positions_long']} long-goods, standard forks"],
     ["Small parts", "A pallet location each", f"{SP['skus']:,} slow small SKUs in half-bins on {SP['shelf_bays']} shelving bays next to the put-wall"],
+    ["Fast-pick area", "500 m² band, inside not drawn", f"{FPK['flow_lanes']} carton-flow lanes (refilled from the rear) + a wall row of "
+     f"shelves and floor pallets across the pick aisle: a pick face for all {FPK['skus']:,} A/B SKUs (A046)"],
+    ["Receiving doors", "R2 and R3 side by side", "R2 in the north half, R3 in the south half: R2's half can be lent to container "
+     "unpacking while R3 keeps working (A044, A047)"],
     ["08:00 peak", "Treated as customer demand", "Caused by the order-release routine → release in waves"],
 ], widths=[3.0, 5.0, 8.0], arr=9)
 
@@ -186,19 +190,32 @@ bullets([
     f"an extendable roller conveyor, sorts them by SKU and builds pallets on the build spots → stretch-wrap, print LPN "
     f"labels, scan against the ASN → the pallet goes to normal putaway. About {cp['inbound_pattern']['destuff_h']:.0f} h "
     f"per 40 ft container (A019, A026, Section 4.6).",
-    "**Policy applied:** demand-based directed putaway (A/B close to their fast-pick faces, C further away); "
-    "pallets over 1 t on low levels; long goods (up to 2.05 m) in the long-goods module via its 3.2 m aisle.",
+    "**Where (Fig 2b):** each trailer door has an unload lane with 9 pallet places, a check bench and a pick-up point where the "
+    "reach truck collects the pallet; R2 is in the north half of receiving and R3 in the south half. The container zone at R1 has "
+    f"the roller conveyor, {LZ['build_spots']} build spots (one per SKU), room for {LZ['buffer_pallets']} finished pallets and a wrap/label station.",
+    "**Policy applied:** demand-based directed putaway (A/B reserve close to the fast-pick area, C further away); "
+    "pallets over 1 t on low levels, tall loads on the top level; long goods (up to 2.05 m) in the long-goods module via its "
+    "3.2 m aisle (where each kind of load is stored: Fig 2c).",
     "**Truck route:** reach trucks use the left perimeter aisle and the cross-aisle, never the fast-pick area — "
     "Jungheinrich's 'clear traffic guidance' principle (S009).",
 ])
 figure("flow_receiving_putaway.png", "Fig 2. Receiving & putaway flow.", 12)
+figure("inbound_zones.png", "Fig 2b. Receiving, the container zone and returns enlarged (west side), with the key.", 16.5)
+figure("storage_where.png", "Fig 2c. Where goods are stored: the whole warehouse, the fast-pick area and the racks enlarged, with the key.", 17)
 doc.add_heading("2.2 Replenishment", level=2)
 bullets([f"**Steps:** fast-pick face below minimum → WMS replenishment task → ETV 216i takes the reserve pallet down "
-         f"the storage aisle → feeds the carton-flow lane from the rear → confirm (~{meas['replen_pallets_day']:.0f} "
-         f"pallets/day on average).",
+         f"the storage aisle → puts it down in the refill strip behind the carton-flow lanes → the driver slides the cases into "
+         f"the lane from the rear → confirm (~{meas['replen_pallets_day']:.0f} pallets/day on average).",
+         f"**The fast-pick area (Fig 3b, A046):** {FPK['flow_bays']} carton-flow bays give {FPK['flow_lanes']} lanes for the "
+         f"{FPK['skus_in_lanes']} most-picked A/B SKUs ({FPK['lane_lines_pct']:.0f}% of their lines; the busiest {FPK['duplicate_lanes']} "
+         f"get a second lane). The other {FPK['skus'] - FPK['skus_in_lanes']} A/B SKUs — less picked, long or heavy — stand on the wall "
+         "row across the same pick aisle (shelves, long-item shelves, floor pallets) and are refilled by hand or with the EJE 120i "
+         "between the waves.",
          "**Policy applied:** min/max replenishment; FIFO via FIF DATE where relevant. Pickers work the front of the "
          "lanes and trucks the rear, so people and reach trucks never share a face."])
 figure("flow_replenishment.png", "Fig 3. Replenishment flow.", 11)
+figure("storage_how.png", "Fig 3b. How storing works: a rack cut across, the fast-pick area cut north–south, and the four steps "
+       "put away → store → refill → pick.", 16.5)
 doc.add_heading("2.3 Picking (zone + batch / wave)", level=2)
 ov = PK["order_volume"]
 bullets([
@@ -229,7 +246,7 @@ bullets([
     f"**The put-to-light wall (Fig 5c):** {PWW['columns']} × {PWW['levels']} = {PWW['slots']} slots, {PWW['length_m']} m long, open on "
     "both sides; each slot holds one order tote. The putter scans an item, the slot of its order lights up with the quantity, the item "
     "goes in and the light is pressed. When an order is complete the light on the pack side goes on and the packer takes the tote out. "
-    "Small slow parts are picked from the bin shelving directly behind the wall (Deliverable 3, §3.1–3.2).",
+    "Small slow parts are picked from the bin shelving directly behind the wall (Deliverable 3, §5.1–5.2).",
     f"**Measured outbound:** {outd['trailers_per_day_mean']:.0f} trailers/day (p90 {outd['trailers_per_day_p90']:.0f}), "
     f"carrying on average only {outd['pallets_per_trailer_mean']} pallets + {outd['cartons_per_trailer_mean']:.0f} "
     f"cartons; {outd['share_trailers_zero_pallets_pct']:.0f}% of trailers carry no pallets at all (DHL Parcel routes).",
@@ -433,6 +450,8 @@ table(["Zone", "Area m²", "% of building"],
       [[z["Zone"], f"{z['Area m2']:,}", z["% of building"]] for z in lay["zones"]], widths=[8.5, 3.5, 3.5])
 para(f"**Total floor area {lay['total_area_m2']:,} m² = {lay['pct_of_7000']:.0f}% of the 7,000 m² envelope.**",
      bold=True, sa=4)
+figure("zone_guide.png", "Fig 9b. The nine zones, numbered in the order the goods pass through them, with what happens in each "
+       "(Deliverable 3 §3 adds who works there and when).", 16.5)
 geo = dm["geometry"]
 bullets([
     f"**Storage:** {lay['positions_total']:,} single-deep positions, counted on the drawing ({lay['rack_modules']} back-to-back rack "
@@ -445,15 +464,16 @@ bullets([
     f"**Working areas sized from measured volumes:** inbound ~{meas['inbound_loads_day']:.0f} loads/day (peak "
     f"{meas['inbound_max_day']:.0f}); outbound {meas['outbound_pallets_day']:.0f} pallets + "
     f"{meas['outbound_cartons_day']:.0f} cartons/day.",
-    f"**Docks:** {N_IN} receiving (west: R1 = container dock beside the loose-container zone, R2–R3 for trailers) and {N_OUT} shipping (east). A trailer door needs ~4.3 m "
+    f"**Docks:** {N_IN} receiving (west: R1 = container dock beside the loose-container zone, R2 and R3 for trailers in the north "
+    f"and south half of receiving) and {N_OUT} shipping (east, one staging lane per door). A trailer door needs ~4.3 m "
     "of wall — the 9.9 m receiving and 9.5 m outbound columns are too narrow on the south wall, so the doors sit on "
     "the side walls. This also separates inbound and outbound truck traffic.",
     "**Aisles open at both ends:** three 3.2 m cross-aisles (front, middle, rear) break up the racking, so no truck or "
     "picker ever needs a U-turn. Storage aisles are 3.0 m — wider than the ETV 216i needs (2.63–2.79 m, S006) and "
     f"far wider than the EJE 120i (1.79–1.94 m, S010); the aisle in front of the long goods is 3.2 m (Section 5.2).",
 ])
-figure("layout_floorplan.png", "Fig 10. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions; "
-       "inside the packing area: put-to-light wall, pack stations, roll cages and small-parts shelving.", 17)
+figure("layout_floorplan.png", "Fig 10. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions, "
+       "and the inside of every zone: unload lanes, container zone, fast-pick lanes and wall row, packing, outbound lanes.", 17)
 figure("layout_orderflow.png", "Fig 11. Main flow on the floor plan: in (R2) → put away → refill → pick → put-to-light wall "
        "and pack → out (S2). Arrows follow the real truck and picker routes; container flow C via R1.", 16)
 figure("layout_3d_render.png", "Fig 12. Option B in 3D (Blender): rack rows, fast-pick area, zones, 3 receiving doors "

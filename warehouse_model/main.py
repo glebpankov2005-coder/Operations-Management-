@@ -129,7 +129,7 @@ box(0, DEPTH-WT, 0, L, WT, 8.0, M_WALL, "wall_back")
 box(0, 0, 0, WT, DEPTH, 8.0, M_WALL, "wall_left")
 box(L-WT, 0, 0, WT, DEPTH, 8.0, M_WALL, "wall_right")
 # dock doors (dock_mhe_plan.py): 3 receiving on the WEST wall, 5 shipping on the EAST wall, 4.3 m pitch
-for yc in (vh + 3.2, vh - 4.5, vh - 8.8):                                              # R1 container dock at the loose zone; R2-R3 trailers
+for yc in (vh + 3.2, vh * 0.75, vh * 0.25):                                            # R1 container dock at the loose zone; R2 north half, R3 south half (geometry.R_DOORS)
     box(-0.45, yc - 1.4, 0, 0.5, 2.8, 3.4, M_DOCK, "recv_dock")          # door slab (outer face, seen by camera)
     plane(0.35, yc - 1.25, 2.4, 2.5, 0.03, M_DOCK, "recv_leveller")        # dock leveller plate inside
 for k in range(5):

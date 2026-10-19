@@ -86,9 +86,11 @@ seg = {r["segment"]: r for r in PK["segments"]}
 LINES_PEAKF = M["peak"]["lines"]["peak_over_avg"]
 WAVES = len(DM["departure_plan"]["waves"])
 
-# fast-pick faces: one row of 2 m carton-flow bays along the module front (A/B items), 5 levels x ~6 lanes
-flow_bays = int((core_w - 4.0) // 2.0)
-flow_lanes = flow_bays * 5 * 6
+# fast-pick faces (picking_plan.py, A046): one row of 2 m carton-flow bays (5 levels x 6 lanes) for the most-picked A/B
+# items; across the pick aisle a wall row with shelving and long-item shelves (2.2 m bays ~ 2 standard bays) + floor pallets
+FP = PK["fast_pick"]
+flow_bays, flow_lanes = FP["flow_bays"], FP["flow_lanes"]
+fp_shelf_eq = FP["shelf_bays"] + 2 * FP["long_bays"]
 # put-to-light wall: one tote slot per tote of the small orders open in a wave on the peak day (+20%)
 small_orders_wave_pk = seg["small"]["orders_day"] * LINES_PEAKF / WAVES
 ptl_slots = PK["putwall"]["slots"]                      # one tote per slot; 2-4-tote orders use adjacent slots (picking_plan.py)
@@ -107,6 +109,7 @@ capex_rows = [
     ("Small-item storage", "Bin shelving for small parts (next to the put-wall)", VLM["shelf_bays"], "bays", C["shelf_bay"], "A042 / S030"),
     ("Small-item storage", "Half-bins and dividers", VLM["shelf_bays"] * VLM["slots_per_bay"], "slots", C["vlm_slot"], "A042 / S025"),
     ("Picking", "Carton-flow bays, fast-pick area", flow_bays, "bays", C["flow_bay"], "A034 / S025"),
+    ("Picking", "Fast-pick shelving + long-item shelves (wall row)", fp_shelf_eq, "bays", C["shelf_bay"], "A046 / S030"),
     ("Picking", "Pick trolleys (3-tier, 6 totes)", tro, "trolleys", C["trolley"], "S011 / S025"),
     ("Picking", "Totes 600 x 400", totes, "totes", C["tote"], "S025"),
     ("Sorting & packing", "Put-to-light wall (slots)", ptl_slots, "slots", C["ptl_slot"], "A035 / S025"),
@@ -218,7 +221,7 @@ CAPEX_REUSE = float((capex.loc[~rack_items & (capex["Group"] != "Contingency"), 
 PAYBACK_REUSE = CAPEX_REUSE / SAVING if SAVING > 0 else float("inf")
 # the labour saving comes from the PROCESS changes (batching, fast-pick area, put-wall, waves); racks and lifts are
 # capacity (needed to store the stock), so the process part is paid back on its own
-proc_items = capex["Item"].str.startswith(("Carton-flow", "Pick trolleys", "Totes", "Put-to-light", "WMS set-up", "RF terminals"))
+proc_items = capex["Item"].str.startswith(("Carton-flow", "Fast-pick shelving", "Pick trolleys", "Totes", "Put-to-light", "WMS set-up", "RF terminals"))
 CAPEX_PROCESS = float(capex.loc[proc_items, "Total EUR"].sum() * (1 + C["contingency"]))
 PAYBACK_PROCESS = CAPEX_PROCESS / SAVING if SAVING > 0 else float("inf")
 
@@ -511,7 +514,7 @@ save_fig(fig, "d3_sorting_timeline.png")
 # ======================================================================= metrics
 update_metrics("performance_cost", {
     "cost_register": {k: {"value": v[0], "low": v[1], "high": v[2], "unit": v[3], "id": v[4], "basis": v[5]} for k, v in COST.items()},
-    "quantities": {"positions": POS, "flow_bays": flow_bays, "flow_lanes": flow_lanes, "ptl_slots": ptl_slots, "rf_units": rf_units,
+    "quantities": {"positions": POS, "flow_bays": flow_bays, "flow_lanes": flow_lanes, "fp_shelf_bays": fp_shelf_eq, "ptl_slots": ptl_slots, "rf_units": rf_units,
                    "pack_stations": pack_stations, "roll_cages": roll_cages, "trolleys": tro, "totes": totes,
                    "etv": n_etv, "eje": n_eje, "ere": n_ere, "containers_year": containers_year, "move_hours": round(move_h, 0)},
     "capex_total": round(CAPEX, 0), "capex_by_group": {k: round(v, 0) for k, v in capex_groups.items()},

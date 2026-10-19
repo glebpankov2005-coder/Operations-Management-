@@ -80,7 +80,7 @@ vol = [
     ("inb_day", CP["measured"]["inbound_loads_day"], "inbound pallets per working day", "measured"),
     ("positions", LAY["positions_total"], "pallet positions (single-deep, incl. long goods)", "floor plan"),
     ("positions_long", LAY["positions_long"], "long-goods positions (4.5 m bays)", "floor plan"),
-    ("n_etv", Q["etv"], "ETV 216i reach trucks", "fleet review (D3 §4)"),
+    ("n_etv", Q["etv"], "ETV 216i reach trucks", "fleet review (D3 §6.1)"),
     ("n_eje", Q["eje"], "EJE 120i pallet trucks", "fleet review"),
     ("n_ere", Q["ere"], "ERE 225 rider pallet trucks", "fleet review"),
     ("etv_h_day", fleet["ETV 216i"]["Equip-h/day avg"], "ETV operating hours per day", "cycle-time model"),
@@ -103,7 +103,7 @@ header(wc, 1, ["Group", "Item", "Qty", "Unit", "Unit price", "Total", "Life (yrs
 price_formula = {   # item prefix -> unit-price formula (named inputs)
     "Single-deep pallet racking": "=rack_pp", "Long-goods racking": "=long_bay_pp", "Rack protection": "=rack_protect*positions*rack_pp",
     "Bin shelving": "=shelf_bay", "Half-bins": "=vlm_slot",
-    "Carton-flow": "=flow_bay", "Pick trolleys": "=trolley", "Totes": "=tote", "Put-to-light wall": "=ptl_slot",
+    "Carton-flow": "=flow_bay", "Fast-pick shelving": "=shelf_bay", "Pick trolleys": "=trolley", "Totes": "=tote", "Put-to-light wall": "=ptl_slot",
     "Put-to-light installation": "=ptl_integr", "Pack stations": "=pack_station", "Stretch wrapper": "=wrapper",
     "Roll cages": "=roll_cage", "Extendable roller": "=conveyor", "RF terminals": "=rf_unit", "WMS set-up": "=wms_config",
     "Move-in": "=t_put_min/60*(labour_rate+lease_etv*12/(days_year*7.5))",
@@ -138,7 +138,7 @@ wc.cell(row=rt, column=8, value=f"=SUM(H{r0}:H{rc})").number_format = EUR
 for c in range(1, 10): wc.cell(row=rt, column=c).fill = TOT
 name(wc, f"$F${rt}", "capex_total"); name(wc, f"$H${rt}", "depreciation")
 rack_rows = [r0 + i for i, it in enumerate(rows) if it["Item"].startswith(("Single-deep", "Long-goods", "Rack protection"))]
-proc_rows = [r0 + i for i, it in enumerate(rows) if it["Item"].startswith(("Carton-flow", "Pick trolleys", "Totes", "Put-to-light", "WMS set-up", "RF terminals"))]
+proc_rows = [r0 + i for i, it in enumerate(rows) if it["Item"].startswith(("Carton-flow", "Fast-pick shelving", "Pick trolleys", "Totes", "Put-to-light", "WMS set-up", "RF terminals"))]
 rr = rt + 2
 wc.cell(row=rr, column=2, value="CAPEX if today's racking is re-used (dismantle + rebuild at rack_reuse per position)").font = BOLD
 wc.cell(row=rr, column=6, value=f"=(SUM(F{r0}:F{rl})-{'-'.join('F' + str(x) for x in rack_rows)}+positions*rack_reuse)*(1+contingency)").number_format = EUR

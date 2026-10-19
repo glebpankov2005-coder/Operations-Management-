@@ -400,11 +400,29 @@
     {
       "id": "A045",
       "assumption": "Area check outbound staging and packing",
-      "value": "outbound staging need: p90 60 m2, max 100 m2 of 216; packing need 401 m2 of 450 incl. shelving",
+      "value": "outbound staging need: p90 60 m2, max 100 m2 of 216; packing need 423 m2 of 450 incl. shelving and the put-wall",
       "unit": "m2",
       "reason": "Measured afternoon trailers (pallets x 1.9 m2 + roll cages x 1.0 m2, +30%); pack stations, put-wall, shelving, waiting pallets, wrapper, packaging stock",
       "source": "Measured + planning assumption",
       "impact": "medium"
+    },
+    {
+      "id": "A046",
+      "assumption": "Every fast mover (A/B item) gets a pick face in the fast-pick area",
+      "value": "31 carton-flow bays (2 m, 5 levels x 6 lanes = 930 lanes) hold the 888 most-picked A/B items that fit a lane (each <= 28 x 33 x 60 cm, <= 15 kg) + 42 second lanes for the top 1%; across the 2.6 m pick aisle a wall row holds the rest: 26 shelving bays (462 items), 5 long-item bays of 2.2 m (42 items up to ~2 m, lying lengthwise) and 20 floor pallet faces (17 heavy/bulky items) = 55 of 63.6 m",
+      "unit": "faces",
+      "reason": "Check of the design: 1,409 A/B items were picked in Q2 but the carton flow has 930 lanes. Lanes go to the items with the most picks (89.5% of fast-pick lines); the rest face the same aisle, so the pick walk does not change. Lane and shelf sizes are planning assumptions; shelving priced as the small-parts shelving (S030)",
+      "source": "Measured (Q2 order lines, SKU dimensions) + planning assumption + S030",
+      "impact": "medium"
+    },
+    {
+      "id": "A047",
+      "assumption": "Fixed places inside the working zones",
+      "value": "Receiving: R2 in the north half (lent to container unpacking on big-container days), R3 in the south half; container zone: 10.5 m roller conveyor from R1, 12 build spots (6 each side), 35-pallet buffer, 4 x 4 m wrap/label station; fast-pick band: wall row 1.2 m, pick aisle 2.6 m, carton flow 1.8 m deep, refill strip ~1.6 m",
+      "unit": "m",
+      "reason": "Drawn to scale in geometry.py so the floor plan, the zone figures and the space checks (dock_mhe_plan.py) use the same places; sizes follow the parts sized in A013, A044 and A046",
+      "source": "Layout design (geometry.py)",
+      "impact": "low"
     }
   ]
 }
