@@ -24,7 +24,8 @@ POS = M["capacity"]["design_positions_target"]
 
 # ---- footprint / columns: single source = geometry.py (content-derived widths from volume-based areas) ----
 from geometry import (DEPTH, RECV, OFF, RET, PACK, OUTB, FWD, LOOSE, dd_area, sel_area, CIRC,
-                      left_w, right_w, core_w, aisle, L, cx0, cx1, rax, LEVELS)
+                      left_w, right_w, core_w, aisle, L, cx0, cx1, rax, LEVELS,
+                      PK_Y0, PW_X0, PW_DEPTH, PW_LEN, PW_Y0, BENCH_X0, BENCH_W, N_BENCH, CAGE_X0, SHELF_Y0)
 TOTAL_AREA = RECV + OFF + RET + LOOSE + PACK + OUTB + FWD + dd_area + sel_area + CIRC
 
 fig, ax = plt.subplots(figsize=(15.5, 9))
@@ -56,8 +57,27 @@ soft_zone(0.4, rvh+0.2, left_w-0.8, lzh-0.4, "#f6dfb6", "Container & unpack zone
 soft_zone(0.4, 0.4, left_w-0.8, rvh-0.4, "#f4c98c", "Receiving & staging", f"{RECV} m²")
 # ---- right column: packing (top), outbound (bottom, dock side) ----
 ph, uh = PACK/right_w, OUTB/right_w
-soft_zone(rax+0.4, DEPTH-ph+0.2, right_w-0.8, ph-0.6, "#f2a7a7", "Packing & consolidation", f"{PACK} m²")
+soft_zone(rax+0.4, DEPTH-ph+0.2, right_w-0.8, ph-0.6, "#f7d4d4", "")
+# packing internals (geometry.py): put-to-light wall, pack stations, roll cages, small-parts shelving
+C_WALL, C_BENCH, C_CAGE, C_SHELF = "#1d4ed8", "#e59a7a", "#9fdcbf", "#b9cbf3"
+n_rows = 12
+for r_ in range(n_rows):
+    y_ = SHELF_Y0 + r_ * 2.2
+    ax.add_patch(Rectangle((rax + 0.9, y_), right_w - 1.8, 1.2, facecolor=C_SHELF, edgecolor="white", lw=0.4, zorder=2.5))
+ax.add_patch(Rectangle((PW_X0, PW_Y0), PW_DEPTH, PW_LEN, facecolor=C_WALL, edgecolor="none", zorder=2.6))
+for i_ in range(N_BENCH):
+    ax.add_patch(Rectangle((BENCH_X0, PW_Y0 + i_ * PW_LEN / N_BENCH + 0.35), BENCH_W, PW_LEN / N_BENCH - 0.7,
+                           facecolor=C_BENCH, edgecolor="white", lw=0.4, zorder=2.6))
+for i_ in range(7):
+    for j_ in range(2):
+        ax.add_patch(Rectangle((CAGE_X0 + j_ * 1.3, PW_Y0 + i_ * 1.5 + 0.2), 1.0, 1.1, facecolor=C_CAGE,
+                               edgecolor="white", lw=0.4, zorder=2.6))
+ax.text(rax + right_w / 2, (PW_Y0 + PW_LEN + SHELF_Y0) / 2, f"Packing · {PACK} m²", ha="center", va="center",
+        fontsize=7.2, weight="bold", color=INK, zorder=3, bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.9))
 soft_zone(rax+0.4, 0.4, right_w-0.8, uh-0.2, "#f4c98c", "Outbound & shipping", f"{OUTB} m²")
+from matplotlib.patches import Patch
+pack_handles = [Patch(facecolor=C_WALL, label="Put-to-light wall (120 slots)"), Patch(facecolor=C_BENCH, label="Pack stations"),
+                Patch(facecolor=C_CAGE, label="Roll cages per carrier"), Patch(facecolor=C_SHELF, label="Small-parts bin shelving")]
 
 # ---- storage core: forward-pick band (bottom) + double-deep reserve racks ----
 fwd_h = FWD / core_w
@@ -181,6 +201,8 @@ for i, (k, v) in enumerate(rows):
 title_txt = ax.text(L/2, DEPTH + 8, "Option B — Warehouse Floor Plan (rack-level, to scale)",
                     ha="center", fontsize=15, weight="bold", color=INK)
 
+ax.legend(handles=pack_handles, loc="lower left", bbox_to_anchor=(0.2, 0.0), ncol=2, fontsize=8, frameon=False,
+          title="Inside the packing area", title_fontsize=8)
 fig.savefig(os.path.join(FIGS, "layout_floorplan.png"), dpi=130, bbox_inches="tight")
 print(f"Saved layout_floorplan.png  ({n_mod} rack modules, {positions_total:,} positions, building {L:.0f}x{DEPTH:.0f} m)")
 
@@ -213,12 +235,12 @@ def badge(x, y, n, color):
 cd_y = (cross_y0 + cross_y1) / 2
 aisle_c = [mod_x[k] + BLOCK + aisle_w[k] / 2 for k in range(n_mod - 1)]
 x_ref = aisle_c[3]                                     # storage aisle A4 (open channel) for the refill run
-pk_y = DEPTH - ph + 12.0                              # into packing at the put-wall (put side, south part)
-x5 = pack_cx + 1.2
+pk_y = PW_Y0 + PW_LEN / 2                              # pickers arrive at the PICK side of the put-to-light wall
+x5 = CAGE_X0 + 1.15                                    # packed orders leave the roll cages for outbound staging
 
 # ---- main flow 1-6 : In -> put away -> refill -> pick -> pack -> out ----
-route([(-1.45, in_doors[2]), (left_w * 0.62, in_doors[2])], BLUE)                      # 1 in through R3 (pallets)
-badge(left_w * 0.18, in_doors[2], 1, BLUE)
+route([(-1.45, in_doors[1]), (left_w * 0.62, in_doors[1])], BLUE)                      # 1 in through R2 (pallets)
+badge(left_w * 0.18, in_doors[1], 1, BLUE)
 ORANGE = "#d97706"                                                                     # loose container: R1 -> zone -> receiving
 route([(-1.45, in_doors[0]), (left_w * 0.55, in_doors[0]), (left_w * 0.55, rvh - 3.0)], ORANGE)
 badge(left_w * 0.18, in_doors[0], "C", ORANGE)
@@ -226,10 +248,10 @@ route([(left_w - 0.8, 20.0), (la, 20.0), (la, cd_y), (start + 7.0, cd_y)], BLUE)
 badge(la, cd_y - 4.0, 2, BLUE)
 route([(x_ref, cd_y + 10), (x_ref, fwd_h + 1.4)], GREEN)                               # 3 reserve -> fast-pick rear
 badge(x_ref, cd_y - 8, 3, GREEN)
-route([(cx1 - 11, fwd_h * 0.5), (ra, fwd_h * 0.5), (ra, pk_y), (rax + 2.6, pk_y)], REDD)  # 4 pick -> right aisle -> packing
+route([(cx1 - 11, fwd_h * 0.5), (ra, fwd_h * 0.5), (ra, pk_y), (PW_X0 - 0.3, pk_y)], REDD)  # 4 pick -> right aisle -> put-wall
 badge(ra, (fwd_h + pk_y) / 2, 4, REDD)
-route([(x5, pack_cy - 5), (x5, uh - 4.2)], REDD)                                       # 5 pack -> outbound
-badge(x5, (pack_cy - 5 + DEPTH - ph) / 2, 5, REDD)
+route([(x5, PW_Y0 + 0.4), (x5, uh - 4.2)], REDD)                                       # 5 pack -> outbound
+badge(x5, PK_Y0 + 2.4, 5, REDD)
 route([(rax + 1.2, out_doors[1]), (L + 4.5, out_doors[1])], REDD)                      # 6 out through S2
 badge(out_cx, out_doors[1], 6, REDD)
 
@@ -238,7 +260,7 @@ ax.set_ylim(-21, DEPTH + 10)
 handles = [Line2D([0], [0], color=ORANGE, lw=5, label="C  Loose container: unpack, build pallets"),
            Line2D([0], [0], color=BLUE, lw=5, label="1–2  In & put away"),
            Line2D([0], [0], color=GREEN, lw=5, label="3  Refill the fast-pick area"),
-           Line2D([0], [0], color=REDD, lw=5, label="4–6  Pick → pack → out")]
+           Line2D([0], [0], color=REDD, lw=5, label="4–6  Pick → put-wall & pack → out")] + pack_handles
 leg = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=4, fontsize=10,
                 frameon=True, fancybox=True, borderpad=0.9, columnspacing=3.2, handlelength=3.2)
 leg.get_frame().set_edgecolor("#9db4fb"); leg.get_frame().set_linewidth(1.2)

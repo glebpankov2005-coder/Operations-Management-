@@ -37,3 +37,13 @@ storage_aisle_len = rack_y1 - rack_y0                                           
 LEVELS, PITCH_M, BASE_M = 8, 1.41, 0.15
 lvl_h = BASE_M + PITCH_M * np.arange(LEVELS)
 mean_h, top_beam = float(lvl_h.mean()), float(lvl_h.max())
+
+# ---- packing area internals (east column): one place for the floor plan and the put-wall figures ----
+# South part: put-to-light wall with the PICK side facing west (right perimeter aisle, where pickers arrive)
+# and the PACK side facing east (pack stations, then roll cages per carrier). North part: small-parts shelving.
+PK_Y0 = DEPTH - PACK / right_w              # south edge of packing (outbound staging lies directly south of it)
+PW_X0, PW_DEPTH, PW_LEN = rax + 2.2, 0.6, 10.8   # wall: 24 columns x 0.45 m = 10.8 m (picking_plan.py sizes 120 slots)
+PW_Y0 = PK_Y0 + 5.0                         # 5 m strip south of the wall: large-order pallets, stretch wrapper
+BENCH_X0, BENCH_W, N_BENCH = PW_X0 + PW_DEPTH + 1.5, 1.8, 4
+CAGE_X0 = BENCH_X0 + BENCH_W + 0.4          # roll cages per carrier, east of the pack stations
+SHELF_Y0 = PW_Y0 + PW_LEN + 3.0             # small-parts shelving rows start 3 m north of the wall (empty totes, walkway)

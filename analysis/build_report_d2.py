@@ -224,10 +224,12 @@ doc.add_heading("2.4 Consolidation, packing & shipping", level=2)
 bullets([
     "**Steps:** full trolleys of batch-picked totes → put-to-light wall sorts the items into orders → pack, print-and-apply → "
     "parcel cartons onto roll cages by carrier / large-order pallets wrapped → stage by carrier → live-load at the booked time → dispatch.",
-    f"**The put-to-light wall (Fig 5b):** {PWW['columns']} × {PWW['levels']} = {PWW['slots']} slots, {PWW['length_m']} m long, open on "
+    "**Where:** the put-to-light wall stands at the south end of the packing area (east side), with its pick side on the right "
+    "perimeter aisle where the pickers arrive and the pack stations behind it (Fig 5b).",
+    f"**The put-to-light wall (Fig 5c):** {PWW['columns']} × {PWW['levels']} = {PWW['slots']} slots, {PWW['length_m']} m long, open on "
     "both sides; each slot holds one order tote. The putter scans an item, the slot of its order lights up with the quantity, the item "
     "goes in and the light is pressed. When an order is complete the light on the pack side goes on and the packer takes the tote out. "
-    "Small slow parts are picked from the bin shelving directly behind the wall (Deliverable 3, §3.1).",
+    "Small slow parts are picked from the bin shelving directly behind the wall (Deliverable 3, §3.1–3.2).",
     f"**Measured outbound:** {outd['trailers_per_day_mean']:.0f} trailers/day (p90 {outd['trailers_per_day_p90']:.0f}), "
     f"carrying on average only {outd['pallets_per_trailer_mean']} pallets + {outd['cartons_per_trailer_mean']:.0f} "
     f"cartons; {outd['share_trailers_zero_pallets_pct']:.0f}% of trailers carry no pallets at all (DHL Parcel routes).",
@@ -235,7 +237,8 @@ bullets([
     f"the outbound staging lanes, not in parked trailers; {N_OUT} shipping doors on the east wall (Section 4.4).",
 ])
 figure("flow_pack_ship.png", "Fig 5. Consolidation, packing & shipping flow.", 12)
-figure("putwall_layout.png", "Fig 5b. Put-to-light wall: the packing area from above with the worker steps, and the front of the wall.", 17)
+figure("putwall_where.png", "Fig 5b. Where the put-to-light wall is: the whole warehouse and the packing area enlarged.", 17)
+figure("putwall_how.png", "Fig 5c. How the put-to-light wall works, seen from the side.", 16)
 doc.add_heading("2.5 Returns (reverse logistics)", level=2)
 bullets([
     "**Steps:** customer return arrives through the receiving doors → receive & scan (RMA) → inspect and grade in "
@@ -449,9 +452,10 @@ bullets([
     "picker ever needs a U-turn. Storage aisles are 3.0 m — wider than the ETV 216i needs (2.63–2.79 m, S006) and "
     f"far wider than the EJE 120i (1.79–1.94 m, S010); the aisle in front of the long goods is 3.2 m (Section 5.2).",
 ])
-figure("layout_floorplan.png", "Fig 10. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions.", 17)
-figure("layout_orderflow.png", "Fig 11. Main flow on the floor plan: in (R1) → put away → refill → pick → pack → "
-       "out (S2). Arrows follow the real truck and picker routes.", 16)
+figure("layout_floorplan.png", "Fig 10. Detailed warehouse floor plan (rack-level, to scale) — racks, aisles, docks, dimensions; "
+       "inside the packing area: put-to-light wall, pack stations, roll cages and small-parts shelving.", 17)
+figure("layout_orderflow.png", "Fig 11. Main flow on the floor plan: in (R2) → put away → refill → pick → put-to-light wall "
+       "and pack → out (S2). Arrows follow the real truck and picker routes; container flow C via R1.", 16)
 figure("layout_3d_render.png", "Fig 12. Option B in 3D (Blender): rack rows, fast-pick area, zones, 3 receiving doors "
        "(west) and 5 shipping doors (east).", 16)
 figure("layout_worker_render.png", "Fig 13. Worker and truck movement (Blender, top-down): pickers with trolleys in "

@@ -3102,11 +3102,10 @@
       "small_orders_wave_peak": 73.0,
       "put_s_per_line": 8.0
     },
-    "packing_area_m": [
-      9.5,
-      47.3
+    "wall_xy_m": [
+      88.8,
+      27.7
     ],
-    "shelf_rows": 12,
     "pack_stations": 4
   }
 }

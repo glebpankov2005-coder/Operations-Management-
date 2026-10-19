@@ -184,8 +184,8 @@ table(["Topic", "Before", "Now", "Why"], [
     ["KPIs", "W3 list", "Our own design KPIs + the W3 ones", "Feedback: come up with our own KPIs"],
     ["Hazardous goods", "Class unknown, PGS 15", "Recounted, classified by customs code → mostly PGS 37-2", "Feedback: recheck counts and classes"],
 ], widths=[2.8, 3.6, 4.6, 5.0], arr=9)
-figure("layout_orderflow.png", "Fig 1. Updated floor plan: container zone (C) with R1, long-goods module next to the right "
-       "perimeter aisle, and the main order flow (1–6).", 16.5)
+figure("layout_orderflow.png", "Fig 1. Updated floor plan: container zone (C) with R1, long-goods module, the packing area with the "
+       "put-to-light wall, and the main order flow (1–6).", 16.5)
 
 # ================================================================ 2 KPIs
 doc.add_heading("2. Our KPIs — expected performance of the design", level=1)
@@ -287,50 +287,47 @@ bullets([
     "**Large orders are not sorted:** each one is picked straight onto its own pallet, so it goes directly to packing.",
 ])
 PWD = PK["putwall"]; TS = {int(k): v for k, v in PK["small_order_totes_share"].items()}
-doc.add_heading("3.1 The put-to-light wall, step by step", level=2)
+doc.add_heading("3.1 The put-to-light wall — where it is and how it works", level=2)
 para("The put-to-light wall is where the small orders are sorted. Pickers do not pick order by order: they pick many "
      "small orders at once into a few totes (a batch), and the wall splits that batch into customer orders. It does not "
      "store anything — an item stays in the wall for at most one wave (~3 hours).", sa=4)
-figure("putwall_layout.png", "Fig 6. The packing area from above with the worker steps (a), and the front of the wall (b).", 17)
+para("**Where it is.** In the packing area on the east side of the building, at its south end: right next to the right "
+     "perimeter aisle (where the pickers arrive from the fast-pick area and the racks) and just north of the outbound "
+     "staging and the shipping doors. Fig 6 shows it on the whole layout and enlarged; it is also drawn on the floor plan (Fig 1).", sa=4)
+figure("putwall_where.png", "Fig 6. Where the put-to-light wall is: (a) the whole warehouse, (b) the packing area enlarged, with the key.", 17)
+para("**How it works.** The wall is a shelf you can reach from both sides. The pick side faces the aisle, the pack side "
+     "faces the pack stations. Fig 7 shows it from the side:", sa=4)
+figure("putwall_how.png", "Fig 7. How the wall works, seen from the side: pick side (left), the wall, pack side (right).", 16.5)
 bullets([
-    f"**What it is:** double-sided shelving, {PWD['columns']} columns × {PWD['levels']} levels = **{PWD['slots']} slots**, "
-    f"{PWD['length_m']} m long and {PWD['depth_m']} m deep, slots between 0.2 and 2.0 m high. Each slot holds one open plastic "
-    "tote (600 × 400 mm, ~40 L) for one order. Every slot has a light with a button on both sides.",
-    f"**How many slots and why:** the peak wave has ~{PWD['small_orders_wave_peak']:.0f} small orders; {TS.get(1, 0):.0f}% need one "
-    f"tote, {TS.get(2, 0):.0f}% two and {TS.get(3, 0) + TS.get(4, 0):.0f}% three or four (average {PK['totes_per_small_order']:.2f} totes). "
-    f"{PWD['small_orders_wave_peak']:.0f} × {PK['totes_per_small_order']:.2f} × 1.2 spare → {PWD['slots']} slots. A bigger order "
-    "simply gets 2–4 slots next to each other.",
-    "**Where it stands:** in the south part of the packing area, along the right perimeter aisle. The put side faces the aisle "
-    "where the pickers arrive; the pack side faces the pack stations. The small-parts shelving is directly north of it and "
-    "the carrier roll cages and outbound lanes directly south — every walk is a few metres.",
+    f"**Size:** {PWD['columns']} columns × {PWD['levels']} levels = **{PWD['slots']} slots**, {PWD['length_m']} m long, "
+    f"{PWD['depth_m']} m deep, slots between 0.2 and 2.0 m high. Each slot holds one open tote (600 × 400 mm, ~40 L) for one order "
+    "and has a light with a button on both sides.",
+    f"**Why {PWD['slots']} slots:** the peak wave has ~{PWD['small_orders_wave_peak']:.0f} small orders; {TS.get(1, 0):.0f}% need one "
+    f"tote, {TS.get(2, 0):.0f}% two and {TS.get(3, 0) + TS.get(4, 0):.0f}% three or four (average {PK['totes_per_small_order']:.2f}). "
+    f"{PWD['small_orders_wave_peak']:.0f} × {PK['totes_per_small_order']:.2f} × 1.2 spare → {PWD['slots']} slots. A bigger order gets "
+    "2–4 slots next to each other.",
+    "**Orders from two zones** wait in their slot until the last item arrives — only then does the pack-side light go on, so "
+    "nobody packs half an order. A wrong item gives no light, so picking mistakes are caught here.",
 ])
 para("Where each item is stored before it reaches the wall:", sa=4)
 table(["Item type", "Stored in", "How it is stored", "Who picks it"], [
     ["Fast movers (A/B)", "Fast-pick area (south band)", "cases in carton-flow lanes: refilled from the back by the reach truck, "
      "picked from the front at 0.6–1.6 m height", "zone 1 picker with a trolley"],
     ["Slow movers (C)", "Low levels of the reserve racks", "on the pallet, levels 1–2 within reach", "zone 2–3 picker with a trolley"],
-    ["Small slow parts", "Bin shelving behind the wall", f"one SKU per half-bin (300 × 400 mm), 7 levels, {SP['shelf_bays']} bays",
-     "the wall operator, between puts"],
-    ["Big orders (pallet-sized)", "—", "do not use the wall: picked straight onto a pallet", "EJE 120i picker"],
+    ["Small slow parts", "Bin shelving behind the wall (E)", f"one SKU per half-bin (300 × 400 mm), 7 levels, {SP['shelf_bays']} bays",
+     "the putter, between puts"],
+    ["Big orders (pallet-sized)", "—", "do not use the wall: picked straight onto a pallet (F)", "EJE 120i picker"],
 ], widths=[3.0, 3.6, 6.2, 3.2], arr=9)
-para("Who works at the wall, and how they move:", sa=4)
 pk_fte = [r for r in CP["labour_table"] if r["Process"].startswith("Packing")][0]
-table(["Role", "Where", "How they move", "Equipment", "People"], [
-    ["Picker (zones 1–3)", "fast-pick area / reserve aisles", "push a trolley along the zone route; bring the full trolley to the put side, "
-     "take an empty one back (2 trolleys per picker)", "trolley with 6 totes, RF scanner", "1–2 per zone per wave"],
-    ["Wall operator (putter)", "put side of the wall + small-parts shelving", "walks along the 10.8 m wall; steps into the shelving "
-     "behind it for small parts", "RF ring scanner, lights", "1 per wave"],
-    ["Packer", "pack side + pack station", "takes a full order out of its slot, turns round to the bench (1–2 m), puts the carton "
-     "in the carrier cage", "pack bench, scale, label printer", f"~{pk_fte['FTE avg']:.1f} FTE (average day), ~{pk_fte['FTE peak']:.1f} (peak day, 4 stations)"],
-], widths=[2.8, 3.2, 5.4, 2.8, 1.8], arr=9)
-bullets([
-    f"**Putting takes ~{PWD['put_s_per_line']:.0f} seconds per line** (scan, look, put, press). The time is part of the packing "
-    "labour in the capacity plan (45 lines per hour covers scan, put and pack).",
-    "**Orders from two zones** wait in their slot until the last item arrives; only then does the pack-side light go on, so a "
-    "packer never packs half an order.",
-    "**Mistakes are caught at the wall:** a wrong item gives no light, and an order with a missing item stays unlit and is "
-    "listed on the wall screen at the end of the wave.",
-])
+para("Who works at the wall, and how they move:", sa=4)
+table(["Role", "Where (Fig 6)", "How they move", "People"], [
+    ["Picker", "zones → aisle H → pick side B", "pushes a trolley along the zone route, leaves the full trolley at B and takes an "
+     "empty one back (2 trolleys per picker)", "1–2 per zone per wave"],
+    ["Putter", "pick side B + shelving E", f"walks along the {PWD['length_m']} m wall putting items in; picks small parts in E "
+     f"(~{PWD['put_s_per_line']:.0f} s per item)", "1 per wave"],
+    ["Packer", "pack side C → cages D", "takes a finished order out of the wall, turns to the bench 1–2 m away, puts the carton in "
+     "the carrier's cage", f"~{pk_fte['FTE avg']:.1f} FTE (average), ~{pk_fte['FTE peak']:.1f} (peak, 4 stations)"],
+], widths=[2.2, 3.6, 7.6, 2.6], arr=9)
 doc.add_heading("3.2 How are small items stored efficiently?", level=2)
 para(f"Today every SKU sits on a pallet location, even when its whole stock is a few litres. {SP['skus']:,} slow SKUs (C class "
      f"or no demand in Q2) have ≤ 50 litres of stock, units ≤ 20 L, ≤ 15 kg and ≤ 60 cm — together only {SP['stock_m3']:.0f} m³, "
@@ -454,7 +451,7 @@ para("The capacity plan (D2 §6) is turned into money in three steps: (1) count 
      "Trucks are leased with full service (repairs included), so they are OPEX. The building, dock levellers, sprinklers and "
      "the hazmat compartment are outside the project scope and not included.", sa=6)
 doc.add_heading("5.1 One-off investment (CAPEX)", level=2)
-figure("d3_capex.png", f"Fig 7. CAPEX by group — total {eur(PC['capex_total'], True)}.", 13.5)
+figure("d3_capex.png", f"Fig 8. CAPEX by group — total {eur(PC['capex_total'], True)}.", 13.5)
 rows = [[r["Item"], f"{r['Qty']:,.0f} {r['Unit']}", eur(r["Unit price EUR"]) if r["Unit price EUR"] >= 10 else f"€{r['Unit price EUR']:.2f}",
          eur(r["Total EUR"]), r["Source"]] for r in PC["capex_table"]]
 rows.append(["Total CAPEX", "", "", eur(PC["capex_total"]), ""])
@@ -466,7 +463,7 @@ bullets([
     f"**Depreciation:** {eur(PC['depreciation_year'])} a year (racking 15 years, equipment 7, IT 5).",
 ])
 doc.add_heading("5.2 Running cost (OPEX)", level=2)
-figure("d3_opex.png", f"Fig 8. OPEX by group — total {eur(PC['opex_total'], True)} per year.", 13.5)
+figure("d3_opex.png", f"Fig 9. OPEX by group — total {eur(PC['opex_total'], True)} per year.", 13.5)
 rows = [[r["Item"], f"{r['Qty / yr']:,.0f} {r['Unit']}", f"€{r['Unit cost EUR']:,.2f}" if r["Unit cost EUR"] < 10 else eur(r["Unit cost EUR"]),
          eur(r["Total EUR/yr"]), r["Source"]] for r in PC["opex_table"]]
 rows.append(["Total OPEX per year", "", "", eur(PC["opex_total"]), ""])
@@ -501,7 +498,7 @@ bullets([
     "value too, but no reliable price.",
 ])
 doc.add_heading("5.5 What if our cost assumptions are wrong?", level=2)
-figure("d3_tornado.png", "Fig 9. Yearly cost (OPEX + depreciation) when each assumption moves to the low or high end of its range.", 15)
+figure("d3_tornado.png", "Fig 10. Yearly cost (OPEX + depreciation) when each assumption moves to the low or high end of its range.", 15)
 bullets([
     f"**Labour rate and productivity matter most** — labour is ~{PC['unit_cost']['labour_share_pct']:.0f}% of the yearly cost. DHL's real "
     "hourly cost and time studies (A006, A025) are the most valuable inputs to get.",
