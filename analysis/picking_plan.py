@@ -232,6 +232,17 @@ tugger = {"loop_m": round(loop_m, 0), "runs_per_day": runs_day, "min_per_run": r
           "picker_walk_saved_h_day": round(walk_saved_h, 2),
           "verdict": "Not justified at current volume - keep as scale-up option"}
 
+# ------------------------------------------------ put-to-light wall (sorting batch picks into orders)
+# Each order gets one tote slot per tote it needs; slots open for the orders of one wave (peak day, +20%).
+PW_LEVELS, PW_COL_W, PW_DEPTH, PW_WORK = 5, 0.45, 0.6, 1.5      # 5 levels 0.2-2.0 m; 450 mm per column; work strip each side
+small_wave_pk = float(seg.loc["small", "orders_day"]) * LINES_PEAKF / WAVES
+pw_slots = int(np.ceil(small_wave_pk * float(s_ord.totes.mean()) * 1.2 / 10) * 10)
+pw_cols = int(np.ceil(pw_slots / PW_LEVELS))
+PUTWALL = {"slots": pw_cols * PW_LEVELS, "columns": pw_cols, "levels": PW_LEVELS, "length_m": round(pw_cols * PW_COL_W, 1),
+           "depth_m": PW_DEPTH, "area_m2": round(pw_cols * PW_COL_W * (PW_DEPTH + 2 * PW_WORK), 0),
+           "small_orders_wave_avg": round(float(seg.loc["small", "orders_day"]) / WAVES, 0), "small_orders_wave_peak": round(small_wave_pk, 0),
+           "put_s_per_line": 8.0}
+
 # ------------------------------------------------ outputs
 seg_out = seg[["orders_day", "lines_day", "pct_orders", "pct_lines", "pct_volume"]].round(1)
 save_table(seg_out, "picking_segments.csv"); save_table(small.set_index("Zone"), "picking_small_orders.csv")
@@ -247,6 +258,9 @@ update_metrics("picking", {
                      "share_volume_orders_over_1m3_pct": round(float(o.litres[o.litres > 1000].sum() / o.litres.sum() * 100), 0)},
     "segments": seg_out.reset_index().to_dict("records"),
     "orders_per_trolley": round(orders_per_trolley, 1),
+    "totes_per_small_order": round(float(s_ord.totes.mean()), 2),
+    "putwall": PUTWALL,
+    "small_order_totes_share": {int(k): round(float(v) * 100, 1) for k, v in s_ord.totes.value_counts(normalize=True).sort_index().items()},
     "small_orders": small.to_dict("records"), "large_orders": large,
     "pick_fte_avg": round(pick_fte_avg, 2), "pick_fte_peak": round(pick_fte_pk, 2),
     "equipment": equipment, "tugger": tugger, "routing": routing,

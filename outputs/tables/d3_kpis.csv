@@ -22,6 +22,6 @@ Outbound staging fill,Docks,own,staging m² needed on the busiest afternoon ÷ 2
 Direct labour,People,own,"FTE, average / peak day",not in the data,4.7 / 8.7 FTE + 1.5 indirect,—
 Labour productivity,People,own,order lines per direct labour hour,—,18.2 lines/h,—
 Truck utilisation (average day),Machinery,own,operating h ÷ (units × 7.5 h),—,ETV 33% · EJE 31% · ERE 14%,peak day ≤ 80%
-Cost per order line,Cost,own,(OPEX + depreciation) ÷ lines,—,€3.08,—
-Cost per order,Cost,own,(OPEX + depreciation) ÷ orders,—,€13.68,—
+Cost per order line,Cost,own,(OPEX + depreciation) ÷ lines,—,€3.09,—
+Cost per order,Cost,own,(OPEX + depreciation) ÷ orders,—,€13.72,—
 Trucks and pickers separated,Safety,own,pick faces without reach-truck traffic,—,100% (trucks refill from the rear and use the perimeter + cross-aisles),0 lost-time incidents

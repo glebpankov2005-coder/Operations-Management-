@@ -213,7 +213,7 @@ def badge(x, y, n, color):
 cd_y = (cross_y0 + cross_y1) / 2
 aisle_c = [mod_x[k] + BLOCK + aisle_w[k] / 2 for k in range(n_mod - 1)]
 x_ref = aisle_c[3]                                     # storage aisle A4 (open channel) for the refill run
-pk_y = DEPTH - 5.5                                     # entry height into packing (above its label)
+pk_y = DEPTH - ph + 12.0                              # into packing at the put-wall (put side, south part)
 x5 = pack_cx + 1.2
 
 # ---- main flow 1-6 : In -> put away -> refill -> pick -> pack -> out ----

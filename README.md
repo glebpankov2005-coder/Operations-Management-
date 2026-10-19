@@ -49,6 +49,7 @@ The Word files and the workbook are **generated** from the analysis by `analysis
 | `design_evaluation.py` | Week 3 alignment: U-shaped vs flow-through evaluation, COI slotting + affinity, lead time per region, class data checks, hazmat vs PGS 15, W3 KPIs |
 | `warehouse_floorplan.py` | To-scale floor plan + order-flow figure; **single source for zone areas and counted rack positions** (`layout` metrics) |
 | `flowcharts.py` · `flow_swimlane.py` | Process flowcharts and the swimlane |
+| `putwall_design.py` | Put-to-light wall: packing-area plan with worker steps + front view of the wall (120 tote slots) |
 | `performance_cost.py` | D3: KPIs (today vs future), per-order lead-time model, CAPEX/OPEX, unit costs, payback, sensitivity, 150–250% stress test |
 | `build_report.py` · `build_report_d2.py` · `build_report_d3.py` · `build_workbook_d3.py` | Generate the Word deliverables and the D3 calculation workbook |
 | `layout.py` | Legacy (D1 block plan, old 14,074 target) — superseded by `warehouse_floorplan.py`, not in the run order |
@@ -67,6 +68,7 @@ python analysis/capacity_plan.py       # labour, pick type, inbound, feasibility
 python analysis/dock_mhe_plan.py       # dock doors, MHE fleet, load checks, loose-container zone, order release
 python analysis/design_evaluation.py   # W3: layout concepts, COI, lead time per region, KPIs
 python analysis/flowcharts.py          # process flowcharts (+ flow_swimlane.py, warehouse_reports.py)
+python analysis/putwall_design.py      # put-to-light wall figure
 python analysis/performance_cost.py    # D3: KPIs, CAPEX/OPEX, payback, sensitivity, stress test
 python analysis/build_report.py        # Deliverable 1 .docx
 python analysis/build_report_d2.py     # Deliverable 2 .docx

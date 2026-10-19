@@ -95,7 +95,7 @@ sl = pt["share_lines_pct"]; su = pt["share_units_pct"]
 POS_PEAK, POS_TARGET = 8512, 9500
 PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["departure_plan"]
 DE = M["design_evaluation"]
-LZ = dm["loose_zone"]; SP = PK["small_parts"]; LGC = dm["load_checks"]["long"]
+LZ = dm["loose_zone"]; SP = PK["small_parts"]; PWW = PK["putwall"]; LGC = dm["load_checks"]["long"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
 
 # COVER
@@ -222,8 +222,12 @@ bullets([
 figure("flow_picking.png", "Fig 4. Picking flow (zone + batch/wave).", 12)
 doc.add_heading("2.4 Consolidation, packing & shipping", level=2)
 bullets([
-    "**Steps:** picked roll cages → put-to-light sort by order → pack, print-and-apply → parcel cartons onto roll "
-    "cages by carrier / pallets wrapped → stage by carrier → live-load at the booked time → dispatch.",
+    "**Steps:** full trolleys of batch-picked totes → put-to-light wall sorts the items into orders → pack, print-and-apply → "
+    "parcel cartons onto roll cages by carrier / large-order pallets wrapped → stage by carrier → live-load at the booked time → dispatch.",
+    f"**The put-to-light wall (Fig 5b):** {PWW['columns']} × {PWW['levels']} = {PWW['slots']} slots, {PWW['length_m']} m long, open on "
+    "both sides; each slot holds one order tote. The putter scans an item, the slot of its order lights up with the quantity, the item "
+    "goes in and the light is pressed. When an order is complete the light on the pack side goes on and the packer takes the tote out. "
+    "Small slow parts are picked from the bin shelving directly behind the wall (Deliverable 3, §3.1).",
     f"**Measured outbound:** {outd['trailers_per_day_mean']:.0f} trailers/day (p90 {outd['trailers_per_day_p90']:.0f}), "
     f"carrying on average only {outd['pallets_per_trailer_mean']} pallets + {outd['cartons_per_trailer_mean']:.0f} "
     f"cartons; {outd['share_trailers_zero_pallets_pct']:.0f}% of trailers carry no pallets at all (DHL Parcel routes).",
@@ -231,6 +235,7 @@ bullets([
     f"the outbound staging lanes, not in parked trailers; {N_OUT} shipping doors on the east wall (Section 4.4).",
 ])
 figure("flow_pack_ship.png", "Fig 5. Consolidation, packing & shipping flow.", 12)
+figure("putwall_layout.png", "Fig 5b. Put-to-light wall: the packing area from above with the worker steps, and the front of the wall.", 17)
 doc.add_heading("2.5 Returns (reverse logistics)", level=2)
 bullets([
     "**Steps:** customer return arrives through the receiving doors → receive & scan (RMA) → inspect and grade in "
@@ -562,7 +567,7 @@ table(["Option", "Fit with our profile", "Decision"], [
     ["RF handheld / ring scanner", "scan-to-confirm location and item; works for receiving, put-away, trolleys and pallets", "Used in all processes"],
     ["Voice picking", "hands-free, good for heavy case picking, but item check still needs a scan", "Option for large-order picking"],
     ["Pick-to-light", "fastest per pick, but a light on thousands of faces is costly for ~640 lines/day", "Not used in pick zones"],
-    ["Put-to-light wall", f"sorts batch-picked small orders ({segs['small']['pct_orders']:.0f}% of orders) into orders at packing", "Used at packing"],
+    ["Put-to-light wall", f"sorts batch-picked small orders ({segs['small']['pct_orders']:.0f}% of orders) into orders at packing; {PWW['slots']} tote slots", "Used at packing"],
 ], widths=[3.6, 8.4, 4.0], arr=9)
 
 doc.add_heading("6.3 Machinery — Jungheinrich fleet", level=2)

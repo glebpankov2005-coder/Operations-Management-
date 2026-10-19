@@ -89,9 +89,9 @@ WAVES = len(DM["departure_plan"]["waves"])
 # fast-pick faces: one row of 2 m carton-flow bays along the module front (A/B items), 5 levels x ~6 lanes
 flow_bays = int((core_w - 4.0) // 2.0)
 flow_lanes = flow_bays * 5 * 6
-# put-to-light wall: one slot per small order open in a wave on the peak day (+20%)
+# put-to-light wall: one tote slot per tote of the small orders open in a wave on the peak day (+20%)
 small_orders_wave_pk = seg["small"]["orders_day"] * LINES_PEAKF / WAVES
-ptl_slots = int(np.ceil(small_orders_wave_pk * 1.2 / 10) * 10)
+ptl_slots = PK["putwall"]["slots"]                      # one tote per slot; 2-4-tote orders use adjacent slots (picking_plan.py)
 # RF terminals: one per person on the peak day + 20% spare
 rf_units = int(np.ceil(np.ceil(fte_pk + C["indirect_fte"]) * 1.2))
 pack_stations = int(np.ceil(float(labour.loc["Packing / consolidation", "FTE peak"])))

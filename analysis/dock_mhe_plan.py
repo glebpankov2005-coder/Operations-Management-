@@ -394,7 +394,7 @@ pk_fte = [r for r in CP["labour_table"] if r["Process"].startswith("Packing")][0
 stations = int(np.ceil(pk_fte)); V = M["picking"]["small_parts"]
 large_wave_pk = M["picking"]["large_orders"]["orders_day"] * M["peak"]["orders"]["peak_over_avg"] / 3
 pack_parts = {f"Pack stations ({stations} x 10 m2: bench, scale, printer, working space)": stations * 10.0,
-              "Put-to-light wall (90 slots, both sides)": 22.0,
+              f"Put-to-light wall ({M['picking']['putwall']['slots']} tote slots, {M['picking']['putwall']['length_m']} m, work strip both sides)": M["picking"]["putwall"]["area_m2"],
               "Put-wall: room for the small-parts shelving is added below": 0.0,
               f"Large orders waiting to be packed (peak wave {large_wave_pk:.0f} pallets x {PALLET_FLOOR} m2)": large_wave_pk * PALLET_FLOOR,
               "Stretch wrapper incl. safety zone": 12.0,

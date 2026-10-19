@@ -1400,16 +1400,16 @@
     "packing_area": {
       "parts_m2": {
         "Pack stations (4 x 10 m2: bench, scale, printer, working space)": 40.0,
-        "Put-to-light wall (90 slots, both sides)": 22.0,
+        "Put-to-light wall (120 tote slots, 10.8 m, work strip both sides)": 39.0,
         "Large orders waiting to be packed (peak wave 13 pallets x 1.9 m2)": 25.0,
         "Stretch wrapper incl. safety zone": 12.0,
         "Trolleys and empty totes": 10.0,
         "Packaging material (one day of cartons, film, labels)": 40.0,
         "Small-parts bin shelving (188 bays, incl. aisles)": 207.0
       },
-      "need_m2": 401.0,
+      "need_m2": 423.0,
       "planned_m2": 450,
-      "spare_m2": 49.0
+      "spare_m2": 27.0
     },
     "load_checks": {
       "weight": {
@@ -1507,6 +1507,24 @@
       }
     ],
     "orders_per_trolley": 4.4,
+    "totes_per_small_order": 1.35,
+    "putwall": {
+      "slots": 120,
+      "columns": 24,
+      "levels": 5,
+      "length_m": 10.8,
+      "depth_m": 0.6,
+      "area_m2": 39.0,
+      "small_orders_wave_avg": 40.0,
+      "small_orders_wave_peak": 73.0,
+      "put_s_per_line": 8.0
+    },
+    "small_order_totes_share": {
+      "1": 78.1,
+      "2": 12.7,
+      "3": 5.3,
+      "4": 3.9
+    },
     "small_orders": [
       {
         "Zone": "Fast-pick area (A/B)",
@@ -2332,7 +2350,7 @@
       "positions": 8960,
       "flow_bays": 31,
       "flow_lanes": 930,
-      "ptl_slots": 90,
+      "ptl_slots": 120,
       "rf_units": 14,
       "pack_stations": 4,
       "roll_cages": 41,
@@ -2344,16 +2362,16 @@
       "containers_year": 244,
       "move_hours": 437.0
     },
-    "capex_total": 1617276.0,
+    "capex_total": 1622226.0,
     "capex_by_group": {
       "Storage": 1232640.0,
       "Small-item storage": 69184.0,
       "Picking": 59262.0,
-      "Sorting & packing": 45499.0,
+      "Sorting & packing": 49999.0,
       "Loose-container zone": 6349.0,
       "IT": 46000.0,
       "One-off": 11317.0,
-      "Contingency": 147025.0
+      "Contingency": 147475.0
     },
     "capex_table": [
       {
@@ -2447,13 +2465,13 @@
       {
         "Group": "Sorting & packing",
         "Item": "Put-to-light wall (slots)",
-        "Qty": 90,
+        "Qty": 120,
         "Unit": "slots",
         "Unit price EUR": 150.0,
         "Source": "A035 / S025",
-        "Total EUR": 13500.0,
+        "Total EUR": 18000.0,
         "Life (yrs)": 7,
-        "Depreciation EUR/yr": 1928.57
+        "Depreciation EUR/yr": 2571.43
       },
       {
         "Group": "Sorting & packing",
@@ -2559,19 +2577,19 @@
         "Item": "Contingency 10%",
         "Qty": 1,
         "Unit": "lot",
-        "Unit price EUR": 147025.12,
+        "Unit price EUR": 147475.12,
         "Source": "A037",
-        "Total EUR": 147025.12,
+        "Total EUR": 147475.12,
         "Life (yrs)": 7,
-        "Depreciation EUR/yr": 21003.59
+        "Depreciation EUR/yr": 21067.87
       }
     ],
-    "depreciation_year": 139753.0,
-    "opex_total": 340873.0,
+    "depreciation_year": 140460.0,
+    "opex_total": 341548.0,
     "opex_by_group": {
       "Labour": 290588.0,
       "Machinery": 37060.0,
-      "Upkeep": 13225.0
+      "Upkeep": 13900.0
     },
     "opex_table": [
       {
@@ -2651,18 +2669,18 @@
         "Item": "IT support, licences, device spares",
         "Qty / yr": 1.0,
         "Unit": "per year",
-        "Unit cost EUR": 10725.0,
+        "Unit cost EUR": 11400.0,
         "Source": "A040",
-        "Total EUR/yr": 10725.0
+        "Total EUR/yr": 11400.0
       }
     ],
-    "annual_cost": 480625.0,
+    "annual_cost": 482007.0,
     "unit_cost": {
-      "per_order_line": 3.08,
-      "per_order": 13.68,
-      "per_inbound_pallet": 19.92,
-      "per_position_month": 4.47,
-      "labour_share_pct": 60.46
+      "per_order_line": 3.09,
+      "per_order": 13.72,
+      "per_inbound_pallet": 19.97,
+      "per_position_month": 4.48,
+      "labour_share_pct": 60.29
     },
     "volumes_year": {
       "lines": 156160.0,
@@ -2688,10 +2706,10 @@
     ],
     "saving_year": 101208.0,
     "payback_years": 16.0,
-    "capex_reuse_racking": 507772.0,
-    "payback_reuse_years": 5.0,
-    "capex_process": 143838.0,
-    "payback_process_years": 1.42,
+    "capex_reuse_racking": 512722.0,
+    "payback_reuse_years": 5.1,
+    "capex_process": 148788.0,
+    "payback_process_years": 1.47,
     "small_item_options": [
       {
         "Option": "Keep in pallet racks (today)",
@@ -2954,7 +2972,7 @@
         "Type": "own",
         "How it is measured": "(OPEX + depreciation) \u00f7 lines",
         "Today (data)": "\u2014",
-        "Future (design)": "\u20ac3.08",
+        "Future (design)": "\u20ac3.09",
         "Target / benchmark": "\u2014"
       },
       {
@@ -2963,7 +2981,7 @@
         "Type": "own",
         "How it is measured": "(OPEX + depreciation) \u00f7 orders",
         "Today (data)": "\u2014",
-        "Future (design)": "\u20ac13.68",
+        "Future (design)": "\u20ac13.72",
         "Target / benchmark": "\u2014"
       },
       {
@@ -3017,30 +3035,30 @@
     "sensitivity": [
       {
         "Driver": "Reach-truck lease (\u20ac495\u20131,550/month)",
-        "Low EUR/yr": 470905.0,
-        "High EUR/yr": 496225.0,
+        "Low EUR/yr": 472287.0,
+        "High EUR/yr": 497607.0,
         "Swing EUR/yr": 25320.0
       },
       {
         "Driver": "Productivity \u00b120% (labour hours)",
-        "Low EUR/yr": 443980.0,
-        "High EUR/yr": 517271.0,
+        "Low EUR/yr": 445362.0,
+        "High EUR/yr": 518653.0,
         "Swing EUR/yr": 73291.0
       },
       {
         "Driver": "Racking price (\u20ac80\u2013200/position)",
-        "Low EUR/yr": 446129.0,
-        "High EUR/yr": 528920.0,
+        "Low EUR/yr": 447511.0,
+        "High EUR/yr": 530302.0,
         "Swing EUR/yr": 82790.0
       },
       {
         "Driver": "Labour rate (\u20ac20\u201328/h)",
-        "Low EUR/yr": 480625.0,
-        "High EUR/yr": 566409.0,
+        "Low EUR/yr": 482007.0,
+        "High EUR/yr": 567791.0,
         "Swing EUR/yr": 85784.0
       }
     ],
-    "sensitivity_base": 480625.0,
+    "sensitivity_base": 482007.0,
     "storage": {
       "occupied_peak": 8512,
       "occupied_mean": 8125.0,
@@ -3060,7 +3078,7 @@
       "small_orders_day": 120.0,
       "small_orders_wave_avg": 40.0,
       "small_orders_wave_peak": 73.0,
-      "ptl_slots": 90,
+      "ptl_slots": 120,
       "trolley_tours_day": 9.0,
       "lines_per_tour": 31.0,
       "staging_lanes": 14,
@@ -3071,5 +3089,24 @@
       "container_loads_median": 20.0,
       "build_spots": 12
     }
+  },
+  "putwall_design": {
+    "wall": {
+      "slots": 120,
+      "columns": 24,
+      "levels": 5,
+      "length_m": 10.8,
+      "depth_m": 0.6,
+      "area_m2": 39.0,
+      "small_orders_wave_avg": 40.0,
+      "small_orders_wave_peak": 73.0,
+      "put_s_per_line": 8.0
+    },
+    "packing_area_m": [
+      9.5,
+      47.3
+    ],
+    "shelf_rows": 12,
+    "pack_stations": 4
   }
 }
