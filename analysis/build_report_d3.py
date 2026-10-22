@@ -21,6 +21,9 @@ ASSUM = json.load(open(os.path.join(DATA, "assumptions.json"), encoding="utf-8")
 
 RED = RGBColor(0xD4, 0x00, 0x11); DARK = RGBColor(0x22, 0x22, 0x22); GREY = RGBColor(0x66, 0x66, 0x66)
 doc = Document()
+from references import cite_text, add_reference_list
+from team import TEAM, team_line, tag_headings, update_fields_on_open, responsibility_box as _rbox
+USED = set()                                   # APA: works cited in this document
 normal = doc.styles["Normal"]; normal.font.name = "Calibri"; normal.font.size = Pt(10.5); normal.font.color.rgb = DARK
 for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5), ("Heading 3", 11)]:
     st = doc.styles[lvl]; st.font.name = "Calibri"; st.font.size = Pt(sz)
@@ -28,7 +31,8 @@ for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5), ("Heading 3", 11)]:
 
 
 def para(t, size=10.5, color=DARK, bold=False, italic=False, align=None, sa=6):
-    """Paragraph; '**text**' segments are bold (markers are not printed)."""
+    """Paragraph; '**text**' segments are bold (markers are not printed). Source IDs become APA citations."""
+    t = cite_text(t, USED)
     p = doc.add_paragraph()
     for i, seg in enumerate(t.split("**")):
         if not seg:
@@ -42,6 +46,7 @@ def para(t, size=10.5, color=DARK, bold=False, italic=False, align=None, sa=6):
 
 def bullets(items):
     for it in items:
+        it = cite_text(it, USED)
         p = doc.add_paragraph(style="List Bullet")
         for i, seg in enumerate(it.split("**")):
             r = p.add_run(seg); r.bold = (i % 2 == 1); r.font.size = Pt(10.5)
@@ -54,7 +59,7 @@ def table(headers, rows, widths=None, arr=1, bold_last=False):
     for ri, row in enumerate(rows):
         cells = t.add_row().cells
         for i, v in enumerate(row):
-            cells[i].text = ""; p = cells[i].paragraphs[0]; r = p.add_run(str(v)); r.font.size = Pt(9.5)
+            cells[i].text = ""; p = cells[i].paragraphs[0]; r = p.add_run(cite_text(str(v), USED)); r.font.size = Pt(9.5)
             r.bold = bold_last and ri == len(rows) - 1
             if i >= arr: p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     if widths:
@@ -115,13 +120,14 @@ table(["Field", "Detail"], [
     ["Due date", "21-10-2026"],
     ["Concept", "Option B — single-deep racks, fast-pick area, small-parts shelving, zone + batch picking, wave release"],
     ["Envelope", f"≤ 7,000 m² · ≤ 12.2 m (design uses {LAY['total_area_m2']:,} m²)"],
-    ["Team", "Group 3 — Gleb, Rachel Selvarathnam, Arnau, Vidhi"],
-    ["Version", "v2 — includes the feedback of the last session (space checks, lengths, small parts, own KPIs, €20/h, hazmat)"],
+    ["Team", team_line()],
+    ["Version", "Final portfolio version — includes all feedback (space checks, lengths, small parts, own KPIs, €20/h, hazmat)"],
     ["Supporting files", "Deliverable_3_Calculations.xlsx (all cost formulas) · Deliverables 1 and 2 (updated) · analysis/*.py"],
 ], widths=[4.5, 11], arr=9)
 para("Expected performance and cost of the Option B design. Volumes are measured in the Assa Abloy Q2-2025 data; "
      "prices are public benchmarks or labelled assumptions (Section 9), never quotes. Every number can be rebuilt with "
      "analysis/performance_cost.py and checked in the calculation workbook.", size=9, color=GREY, italic=True)
+_rbox(doc, "D3")
 doc.add_page_break()
 
 doc.add_heading("Contents", level=1)
@@ -199,15 +205,41 @@ para("We made our own KPIs: each one measures something our design promises to d
      "in the fast-pick area, walk little, unpack containers inside their zone, ship within a day, …). The four W3 lecture "
      "KPIs (dock-to-stock, put-away time, pick rate, on-time shipment, S017) are included too. For every KPI we give how "
      "to calculate it, today's value where the data shows it, the value we expect from the design, and a target.", sa=4)
+KPI_CLASS = {   # KPI -> (performance objective, owning process); None = whole team
+    "Rack fill at peak": ("Cost", "Storage"), "Storage headroom": ("Flexibility", "Storage"),
+    "Small-item density": ("Cost", "Storage"), "Floor area used": ("Cost", None),
+    "Dock-to-stock time": ("Speed", "Receiving"), "Containers unpacked inside their zone": ("Flexibility", "Receiving"),
+    "Container door time": ("Speed", "Receiving"), "Put-away cycle time": ("Speed", "Storage"),
+    "Pick rate": ("Cost", "Picking"), "Fast-pick hit rate": ("Cost", "Picking"), "Walking per picked line": ("Cost", "Picking"),
+    "Trolley fill": ("Cost", "Picking"), "Small-parts picking time": ("Cost", "Picking"), "Picking hours per day": ("Cost", "Picking"),
+    "Pick accuracy": ("Quality", "Picking"), "Order lead time (per order)": ("Speed", "Shipping"),
+    "Orders out within 24 h": ("Speed", "Shipping"), "On-time shipment": ("Dependability", "Shipping"),
+    "Trailers at the doors at once": ("Dependability", "Shipping"), "Outbound staging fill": ("Flexibility", "Shipping"),
+    "Direct labour": ("Cost", None), "Labour productivity": ("Cost", None), "Truck utilisation (average day)": ("Cost", None),
+    "Cost per order line": ("Cost", None), "Cost per order": ("Cost", None), "Trucks and pickers separated": ("Quality", None),
+}
+missing = [k["KPI"] for k in PC["kpis"] if k["KPI"] not in KPI_CLASS]
+assert not missing, f"KPIs without objective/owner: {missing}"
+def _who(proc):
+    return f"{TEAM[proc]} ({proc})" if proc else "whole team"
+para("Each KPI is linked to one of the five performance objectives that Deliverable 1 (§11) ranked for this operation "
+     "(S031), and to the process owner who watches it:", sa=4)
+OBJ_ORDER = ["Dependability", "Speed", "Quality", "Cost", "Flexibility"]
+table(["Objective (D1 rank)", "KPIs that measure it", "Owners"],
+      [[f"{o} ({i + 1})", "; ".join(k for k, v in KPI_CLASS.items() if v[0] == o),
+        ", ".join(sorted({_who(v[1]) for v in KPI_CLASS.values() if v[0] == o}))] for i, o in enumerate(OBJ_ORDER)],
+      widths=[3.2, 9.0, 3.8], arr=9)
 for grp in ["Space", "Inbound", "Picking", "Service", "Docks", "People", "Machinery", "Cost", "Safety"]:
-    rows = [[k["KPI"] + (" ★" if k["Type"] == "own" else ""), k["How it is measured"], k["Today (data)"], k["Future (design)"], k["Target / benchmark"]]
+    rows = [[k["KPI"] + (" ★" if k["Type"] == "own" else "") + f"\n{KPI_CLASS[k['KPI']][0]} · {_who(KPI_CLASS[k['KPI']][1])}",
+             k["How it is measured"], k["Today (data)"], k["Future (design)"], k["Target / benchmark"]]
             for k in PC["kpis"] if k["Group"] == grp]
     if not rows:
         continue
     para(f"**{grp}**", sa=2).paragraph_format.keep_with_next = True
     table(["KPI", "How we calculate it", "Today (data)", "Expected (design)", "Target"], rows,
           widths=[3.0, 3.6, 3.0, 3.8, 2.6], arr=9)
-para("★ = our own design KPI; the others are the W3 lecture KPIs.", size=9, color=GREY, italic=True)
+para("★ = our own design KPI; the others are the W3 lecture KPIs. Under each KPI: its performance objective and owner. How the "
+     "KPIs are used to control the operation: Deliverable 2 §7.", size=9, color=GREY, italic=True)
 
 doc.add_heading("2.1 Order lead time", level=2)
 figure("d3_leadtime.png", "Fig 2. Share of orders shipped within X hours — today (measured) vs future (wave plan, modelled).", 15)
@@ -650,7 +682,7 @@ table(["Document", "What it contains"], [
      "zone and R2 overflow, long-goods module, small-parts shelving, area checks and the hazmat classes"],
     ["Deliverable_3_Calculations.xlsx", "Every price, quantity and formula of this report; change an input and all totals update"],
     ["data/assumptions.json", "All assumptions A001–A047, each with reason, source and impact"],
-    ["documentation/sources.md", "All sources S001–S030 with links and what they support"],
+    ["documentation/sources.md", "All sources with links and what they support (cited in APA; reference list at the end)"],
     ["analysis/*.py", "Scripts that turn the raw data into every table and figure (run order in README.md)"],
 ], widths=[5.4, 10.6], arr=9)
 
@@ -659,23 +691,6 @@ doc.add_heading("9. Cost assumptions and open points", level=1)
 para("Assumptions added for Deliverable 3 (full register in data/assumptions.json):", sa=4)
 rows = [[a["id"], a["assumption"], a["value"], a["source"]] for a in ASSUM["assumptions"] if a["id"] >= "A030"]
 table(["ID", "Assumption", "Value", "Source"], rows, widths=[1.2, 3.6, 7.4, 3.8], arr=9)
-para("Sources for prices and benchmarks:", sa=4)
-src = {
-    "S018": "CBS — labour cost per worked hour 2024 (transport & storage)",
-    "S019": "Cao Beroepsgoederenvervoer — wage scales 2025",
-    "S020": "IndexBox / T-Racking — pallet racking price per position",
-    "S021": "Dutch reach-truck lease and rental offers (Liftlease, Beekmans, Itolang, Solid Lift)",
-    "S022": "Eurostat nrg_pc_205 — NL non-household electricity price H1 2025",
-    "S023": "WERC DC Measures 2024/2025 — pick accuracy and dock-to-stock benchmarks",
-    "S024": "Prestatie — loose-load container unloading (2–4 h, fixed price per container)",
-    "S025": "Public equipment listings (trolley, tote, wrapper, conveyor, carton flow, put-to-light, RF terminal)",
-    "S026": "Teacher feedback session 2 — space checks, ~2 m max length, small parts vs Kardex, own KPIs, €20/h, hazmat",
-    "S027": "Relevator Group — Kardex Shuttle XP 500 specifications and prices",
-    "S028": "Cisco-Eagle / Kardex LogiMat / MMH Van Meter — picking rates at lifts and shelving",
-    "S029": "Evofenedex / Specialcargo / BOVAG — PGS 37-2 storage of lithium batteries",
-    "S030": "Manutan — steel shelving section prices",
-}
-table(["ID", "Source"], [[k, v] for k, v in src.items()], widths=[1.4, 14.6], arr=9)
 bullets([
     "**To get from DHL:** real hourly labour cost and pick/pack times (A006, A025, A030); type and condition of today's racking "
     "(re-use); container numbers per week (A019).",
@@ -685,6 +700,9 @@ bullets([
     "in the master data (A043).",
 ])
 
+add_reference_list(doc, USED)
+tag_headings(doc, "D3")
+update_fields_on_open(doc)
 footer()
 DELIV = os.path.join(BASE, "deliverables"); os.makedirs(DELIV, exist_ok=True)
 out = os.path.join(DELIV, "Deliverable_3_Performance_Overview.docx")

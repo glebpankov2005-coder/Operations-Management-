@@ -29,6 +29,10 @@ DARK = RGBColor(0x22, 0x22, 0x22)
 GREY = RGBColor(0x66, 0x66, 0x66)
 
 doc = Document()
+from references import cite_text, add_reference_list
+from team import TEAM, team_line, tag_headings, update_fields_on_open, responsibility_box as _rbox
+responsibility_box = lambda which: _rbox(doc, which)
+USED = set()                                   # APA: works cited in this document
 
 # ---- base style ----
 normal = doc.styles["Normal"]
@@ -45,7 +49,8 @@ for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5), ("Heading 3", 11)]:
 
 
 def para(text, size=10.5, color=DARK, bold=False, italic=False, align=None, space_after=6):
-    """Paragraph; '**text**' segments are bold (markers are not printed)."""
+    """Paragraph; '**text**' segments are bold (markers are not printed). Source IDs become APA citations."""
+    text = cite_text(text, USED)
     p = doc.add_paragraph()
     for i, seg in enumerate(text.split("**")):
         if not seg:
@@ -60,6 +65,7 @@ def para(text, size=10.5, color=DARK, bold=False, italic=False, align=None, spac
 
 def bullets(items):
     for it in items:
+        it = cite_text(it, USED)
         p = doc.add_paragraph(style="List Bullet")
         # allow simple **bold:** prefix
         if "**" in it:
@@ -83,13 +89,22 @@ def table(headers, rows, widths=None, align_right_from=1):
         for i, v in enumerate(row):
             cells[i].text = ""
             p = cells[i].paragraphs[0]
-            r = p.add_run(str(v)); r.font.size = Pt(9.5)
+            r = p.add_run(cite_text(str(v), USED)); r.font.size = Pt(9.5)
             if i >= align_right_from:
                 p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     if widths:
+        t.autofit = False
+        grid = t._tbl.tblGrid
         for i, w in enumerate(widths):
+            grid.gridCol_lst[i].w = Cm(w)                          # grid widths: honoured by Word and LibreOffice
             for row in t.rows:
                 row.cells[i].width = Cm(w)
+    for ri, row in enumerate(t.rows):                              # rows never split; the table stays together
+        row._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
+        if ri < len(t.rows) - 1:
+            for c in row.cells:
+                for q in c.paragraphs:
+                    q.paragraph_format.keep_with_next = True
     doc.add_paragraph().paragraph_format.space_after = Pt(2)
     return t
 
@@ -126,15 +141,16 @@ table(["Field", "Detail"], [
     ["Data period analysed", "Q2 2025 (01 Apr – 30 Jun)"],
     ["Site constraints", "≤ 7,000 m² footprint · ≤ 12.2 m height"],
     ["Scope", "Receiving · Storage · Picking · Shipping (end-to-end)"],
-    ["Author", "________________________"],
-    ["Version", "v2 — analysis, design options, policies & recommendation (updated with teacher feedback)"],
+    ["Team", team_line()],
+    ["Version", "Final portfolio version — analysis, operations strategy, design options, policies & recommendation"],
 ], widths=[4.5, 11])
 
 para("This draft covers Deliverable 1 end-to-end: data analysis, storage-capacity feasibility, three "
      "design options, policy pre-selection, equipment, and a recommended concept with a decision matrix. "
      "All figures are measured from the provided Assa Abloy data or computed by the analysis scripts; "
-     "nothing is fabricated, and open assumptions are listed in Section 13.",
+     "nothing is fabricated, and open assumptions are listed in Section 16. Sources are cited in APA 7 (reference list at the end).",
      size=9, color=GREY, italic=True, space_after=6)
+responsibility_box("D1")
 doc.add_page_break()
 
 # ============================ CONTENTS ============================
@@ -152,17 +168,18 @@ para("DHL Supply Chain previously ran warehouse operations for four clients in T
      "relocated to a new site in Bemmel under significant time pressure. The Operations Manager "
      "considers the current (post-move) design sub-optimal. The objective of this project is to "
      "develop an alternative, more efficient and effective warehouse design for the Assa Abloy "
-     "operation, based on a thorough analysis of the operational data.")
+     "operation, based on a thorough analysis of the operational data (S001).")
 para("The design covers four processes end-to-end — receiving, storage, picking and shipping — "
      "with all choices aligned across them. Facility architecture is out of scope; legal aspects "
      "(fire safety, compliance) are considered. The site envelope is a maximum footprint of "
-     "7,000 m² and a maximum height of 12.2 m.")
+     "7,000 m² and a maximum height of 12.2 m (S001). Each process has one owner in the team (table on the cover page); "
+     "the choices across the four processes were made together.")
 
 # ============================ 2. DATA & METHOD ============================
 doc.add_heading("2. Data sources & method", level=1)
 inv = M["inventory"]["snapshots"]
 o = M["orders"]
-para("Two datasets from the Assa Abloy operation (warehouse NL_0032) form the primary source of truth:")
+para("Two datasets from the Assa Abloy operation (warehouse NL_0032) form the primary source of truth (S002):")
 table(["Dataset", "Files", "Grain", "Volume"], [
     ["Storage / inventory", "3 snapshots (01-04/05/06-2025)", "Inventory detail (DTLNUM)",
      f"{inv[0]['detail_records']:,}–{inv[-1]['detail_records']:,} records"],
@@ -171,7 +188,8 @@ table(["Dataset", "Files", "Grain", "Volume"], [
 ], widths=[3.8, 4.6, 3.6, 3.5])
 para("Analysis is performed in Python (pandas). Every headline number is reproducible from the "
      "scripts in /analysis and cached in outputs/reports/phase1_metrics.json. Data-quality issues "
-     "are flagged (Section 8), not silently corrected.", size=9.5, color=GREY, italic=True)
+     "are flagged (Section 10), not silently corrected. The design approach follows the structured warehouse-design steps "
+     "of the Week 3 lecture (S017, S032).", size=9.5, color=GREY, italic=True)
 
 # ============================ 3. SKU PROFILE ============================
 doc.add_heading("3. SKU profile", level=1)
@@ -216,8 +234,32 @@ bullets([
 figure("inventory_trend.png", "Fig 2. Inventory footprint trend, Q2 2025 (loads and occupied locations).", 13)
 figure("report_stock_ageing.png", "Fig 2b. Stock ageing — 21% of loads have been in stock >1 year (dead-stock signal).", 13)
 
-# ============================ 5. ORDER PROFILE ============================
-doc.add_heading("5. Order & picking profile and lead time", level=1)
+# ============================ 5. INBOUND PROFILE (RECEIVING) ============================
+doc.add_heading("5. Inbound profile (receiving)", level=1)
+CPM = M["capacity_plan"]["measured"]; LZ = M["dock_mhe"]["loose_zone"]; LCK = M["dock_mhe"]["load_checks"]
+para("No receiving file was provided, so receipts are measured from the storage snapshots: loads with an ADD DATE in the "
+     "14 days before each snapshot (A007). Loads that already left before the snapshot are not visible, so these are lower bounds.",
+     space_after=4)
+table(["Snapshot", "Receiving days", "Loads booked in", "Loads / day", "Busiest day", "From Asia"],
+      [[w["snapshot"], w["receiving_days"], f"{w['loads']:,}", f"{w['loads_per_day']:.0f}", w["max_day"], f"{w['asia_origin_pct']:.0f}%"]
+       for w in M["capacity_plan"]["inbound_windows"]], widths=[2.8, 2.6, 2.8, 2.4, 2.4, 2.4])
+bullets([
+    f"**~{CPM['inbound_loads_day']:.0f} loads are received per working day; the busiest day reached {CPM['inbound_max_day']:.0f} "
+    f"(×{CPM['inbound_peak_factor']:.2f}).** Two shipments a day come straight from Assa Abloy factories (S004).",
+    f"**~{CPM['inbound_asia_origin_pct']:.0f}% of loads come from Asia and arrive loose in sea containers** — cartons stacked on "
+    f"the container floor. A container brings a median of {LZ['loads_per_container_median']:.0f} pallets of "
+    f"{LZ['skus_per_container_median']:.0f} SKUs (p75: {LZ['loads_per_container_p75']:.0f} pallets, {LZ['skus_per_container_p75']:.0f} SKUs) "
+    f"that must be unpacked, sorted per SKU and palletised.",
+    f"**Pallet mix:** EURO, K3 and XLONG pallets; {LCK['long']['loads_long_capped']} loads are 1.3–2.05 m long, "
+    f"{LCK['weight']['over_1000']} loads weigh over 1 t and {LCK['tall']['loads_over_1_68']} are taller than 1.68 m.",
+    f"**Hazardous goods:** {M['design_evaluation']['hazmat']['loads']:,} loads carry the hazmat flag — they must be identified "
+    "at receiving and stored by the rules (Section 10, D2 §5.3).",
+    "**Requirement for receiving:** two trailer doors plus one container door; a separate zone to unpack containers; a check "
+    "bench and pallet labels; capacity for a 1.7× busy day.",
+])
+
+# ============================ 6. ORDER PROFILE ============================
+doc.add_heading("6. Order & picking profile and lead time", level=1)
 lpo, upl = o["lines_per_order"], o["units_per_line"]
 ptl = M["capacity_plan"]["pick_type_order_derived"]["share_lines_pct"]
 ptu = M["capacity_plan"]["pick_type_order_derived"]["share_units_pct"]
@@ -256,8 +298,30 @@ table(["Country", "Orders", "Median h", "Mean h", "p90 h", "≤ 48 h"],
 bullets(["**NL, BE, DE, LU and FR ship in about a day** (median 8–25 h); **Switzerland (~140 h) and Poland (~120 h) take 5–6 "
          "days**, pointing at customs or weekly consolidation for export — a service question to raise with DHL."])
 
-# ============================ 6. ABC ============================
-doc.add_heading("6. Demand-based ABC classification", level=1)
+# ============================ 7. OUTBOUND PROFILE (SHIPPING) ============================
+doc.add_heading("7. Outbound profile (shipping)", level=1)
+OD = M["dock_mhe"]["outbound_doors"]
+para("Measured from the 912 outbound trailers in Q2 2025 (trailer number and dispatch time per order line, S002):", space_after=4)
+table(["Measure", "Value"], [
+    ["Trailers per day (mean / p90 / max)", f"{OD['trailers_per_day_mean']:.0f} / {OD['trailers_per_day_p90']:.0f} / {OD['trailers_per_day_max']}"],
+    ["Load per trailer (mean)", f"{OD['pallets_per_trailer_mean']} pallets + {OD['cartons_per_trailer_mean']:.0f} cartons"],
+    ["Trailers without any pallet (parcel only)", f"{OD['share_trailers_zero_pallets_pct']:.0f}%"],
+    ["Dock time per trailer (mean / p90)", f"{OD['dock_min_mean']:.0f} / {OD['dock_min_p90']:.0f} min"],
+    ["Trailers in the busiest hour (p90 / max)", f"{OD['busiest_hour_trailers_p90']:.0f} / {OD['busiest_hour_trailers_max']}"],
+    ["Trailers parked at the doors at the same time today (median / p90)",
+     f"{OD['current_drop_trailer_concurrent_median']:.0f} / {OD['current_drop_trailer_concurrent_p90']:.0f}"],
+], widths=[10.0, 5.0])
+bullets([
+    "**Shipping is parcel-heavy:** most trailers carry a few cartons for a parcel network (DHL Parcel, DSV, DHL4YOU …) and "
+    "only about one pallet — so packing and sorting cartons per carrier matter more than pallet loading.",
+    f"**Today trailers wait at the doors all day** (p90 {OD['current_drop_trailer_concurrent_p90']:.0f} at once): goods are loaded "
+    "whenever they are ready, so doors are blocked and the departure time is not planned.",
+    "**Requirement for shipping:** a fixed departure plan per carrier, staging lanes so goods wait on the floor and not in "
+    "trailers, enough doors for the busiest hour, and carton sorting per carrier.",
+])
+
+# ============================ 8. ABC ============================
+doc.add_heading("8. Demand-based ABC classification", level=1)
 a = M["abc"]
 para("ABC is recomputed from actual outbound demand (picked quantity), not assumed. The distribution "
      "is steeper than the classic 80/20 rule:")
@@ -280,7 +344,7 @@ figure("abc_pareto.png", "Fig 4. Demand Pareto — cumulative picked quantity vs
 figure("report_top20_products.png", "Fig 4b. Top-20 SKUs by demand — note several high-demand items still WMS-classed C.", 15)
 
 # ============================ 7. PEAK ============================
-doc.add_heading("7. Peak activity analysis", level=1)
+doc.add_heading("9. Peak activity analysis", level=1)
 p = M["peak"]
 rl = M["dock_mhe"]["order_release"]
 table(["Metric", "Average / day", "PEAK / day", "Peak ÷ Avg", "Peak date"], [
@@ -304,7 +368,7 @@ figure("order_release_profile.png", "Fig 6. Order arrival vs release vs picking 
        "release backlog.", 15)
 
 # ============================ 8. DATA QUALITY ============================
-doc.add_heading("8. Data-quality flags", level=1)
+doc.add_heading("10. Data-quality flags", level=1)
 para("Raised, not silently corrected:")
 bullets([
     f"**PA WGT sentinel/impossible values** — median {s['pallet_weight_kg']['median']:.0f} kg is fine, "
@@ -321,24 +385,100 @@ para("Data checks requested in class (Week 3):", space_after=4)
 table(["Question", "Answer", "Note"], [[c["Question (W3)"], c["Answer"], c["Note"]] for c in M["design_evaluation"]["w3_checks"]],
       widths=[4.2, 5.4, 6.4], align_right_from=9)
 
-# ============================ 9. DESIGN REQUIREMENTS ============================
-doc.add_heading("9. Headline design requirements (input to design options)", level=1)
+# ============================ 11. OPERATIONS STRATEGY ============================
+PCo = M["performance_cost"]; LTO = PCo["leadtime"]; STO = PCo["storage"]; OD = M["dock_mhe"]["outbound_doors"]
+RLS = M["dock_mhe"]["order_release"]; n_days = round(o["n_order_lines"] / p["lines"]["mean"])
+web = sum(v for k, v in o["order_type_mix"].items() if k.startswith("WEB")) / o["n_order_lines"] * 100
+doc.add_heading("11. Operations strategy — process types, performance objectives and current alignment", level=1)
+para("Before choosing a design, this section asks what the operation is, what it must be good at for its customer, and whether "
+     "it is good at that today. It uses the operations-strategy concepts of Slack et al.: the four V's, process types, the five "
+     "performance objectives and order winners versus qualifiers (S031).")
+doc.add_heading("11.1 The four processes and their type", level=2)
+para("The warehouse transforms inputs (pallets and containers from the factories, orders from customers) into outputs "
+     "(complete orders on the right trailer). It is a chain of four processes, each with an owner:", space_after=4)
+table(["Process (owner)", "Input → output", "Process type", "What drives its performance"], [
+    [f"Receiving ({TEAM['Receiving']})", "trailers and containers → checked pallets ready for putaway",
+     "batch: work arrives in loads, twice a day", f"~{CPM['inbound_loads_day']:.0f} loads/day, 41% loose in containers"],
+    [f"Storage ({TEAM['Storage']})", "pallets → stock in the right place, fast-pick faces filled", "stock (buffer) process",
+     f"{STO['occupied_peak']:,} occupied locations at the peak, {a['n_skus_shipped']:,} SKUs shipped"],
+    [f"Picking ({TEAM['Picking']})", "orders → picked items", "high-volume repetitive work with very high variety",
+     f"~{p['lines']['mean']:.0f} lines/day, {ptl.get('each', 0):.0f}% each-picks"],
+    [f"Shipping ({TEAM['Shipping']})", "picked items → packed orders on the booked trailer", "scheduled batch: by trailer departure",
+     f"~{OD['trailers_per_day_mean']:.0f} trailers/day, {OD['share_trailers_zero_pallets_pct']:.0f}% parcel-only"],
+], widths=[3.4, 4.6, 3.8, 4.2], align_right_from=9)
+doc.add_heading("11.2 The four V's of the Assa Abloy operation", level=2)
+table(["Dimension", "Measured (Q2 2025)", "Level", "What it means for the design"], [
+    ["Volume", f"~{p['lines']['mean']:.0f} order lines and ~{o['n_orders'] / n_days:.0f} orders a day; ~{CPM['inbound_loads_day']:.0f} "
+     f"inbound loads; ~{OD['trailers_per_day_mean']:.0f} trailers", "medium", "repeatable tasks → standard methods, scanning and batching pay off"],
+    ["Variety", f"{a['n_skus_shipped']:,} SKUs shipped, {s['n_skus']:,} in stock; small parts to 2 m long pallets; each, case and "
+     f"pallet picks; pallets and loose containers; {s['hazmat_skus']} hazardous SKUs", "high",
+     "several storage types and picking by order size; no single automated system fits all items"],
+    ["Variation", f"peak day {p['lines']['peak_over_avg']}× lines and {p['units']['peak_over_avg']}× units; 08:00 peak "
+     f"{RLS['pick_peak_over_mean_active_hour']}× the average hour; stock +{STO['growth_per_quarter_pct']:.0f}% per quarter", "high (partly self-made)",
+     "level the self-made peak with waves; flexible staff; storage headroom"],
+    ["Visibility", f"business customers and web shops ({web:.0f}% of lines are web orders) see only the result: complete, "
+     "correct and on time", "low", "efficiency can be designed in the back office, but the dispatch promise must be kept"],
+], widths=[2.2, 6.0, 2.2, 5.6], align_right_from=9)
+para("**Process type:** high variety with medium volume of small, repetitive tasks puts the operation between a batch and a "
+     "mass process on the product–process matrix (S031). That matches a people-based process supported by scanners, carton flow "
+     "and a put-to-light wall (Option B), not full automation (Option C), which suits high volume with low variety.")
+doc.add_heading("11.3 What the operation must be good at — performance objectives", level=2)
+para("For DHL, the Assa Abloy contract is won and kept on its service and its cost. We rank the five performance objectives "
+     "(S031) as follows — this ranking is our judgement, based on the data in the table:", space_after=4)
+table(["Rank", "Objective", "What it means here", "Order winner or qualifier", "Evidence (data)"], [
+    ["1", "Dependability", "every order leaves on the agreed trailer, every day", "order winner",
+     f"orders arrive 15:00–17:00 ({RLS['orders_arrive_15_17_pct']:.0f}%) and are expected out the next day"],
+    ["2", "Speed", "short time from order to trailer", "order winner",
+     f"today only {LTO['today_within_24h_pct']:.0f}% of orders leave within 24 h"],
+    ["3", "Quality", "right item, right quantity, safe and legal storage", "qualifier",
+     f"benchmark pick accuracy ≥ 99.3% (S023); {M['design_evaluation']['hazmat']['loads']:,} hazardous loads"],
+    ["4", "Cost", "low cost per order line for the contract", "order winner at contract renewal",
+     "labour is the largest cost; the 08:00 peak forces over-staffing"],
+    ["5", "Flexibility", "absorb peaks, growth and new items", "qualifier",
+     f"peak day {p['lines']['peak_over_avg']}× lines; stock +{STO['growth_per_quarter_pct']:.0f}% per quarter"],
+], widths=[1.1, 2.4, 4.4, 3.0, 5.1], align_right_from=9)
+doc.add_heading("11.4 Is the current operation aligned with these objectives?", level=2)
+table(["Objective", "Today (measured or modelled)", "Gap", "Design response"], [
+    ["Dependability", f"all orders released in the evening → 08:00 peak of {RLS['pick_peak_over_mean_active_hour']}× the average hour; "
+     f"trailers parked at the doors (p90 {OD['current_drop_trailer_concurrent_p90']:.0f} at once)", "large",
+     "3 waves planned backwards from a fixed trailer departure plan (D2 §4.5)"],
+    ["Speed", f"median {LTO['today_median_h']:.0f} h, slowest 10% {LTO['today_p90_h']:.0f} h; {LTO['today_within_24h_pct']:.0f}% within 24 h",
+     "large", f"same-day wave for orders before 12:00 → {LTO['future_within_24h_pct']:.0f}% within 24 h (D3)"],
+    ["Quality", f"slotting agrees with demand for only {a['agreement_with_wms_pct']}% of SKUs; master-data errors (Section 10)",
+     "medium", "slotting by demand, a scan at every move, the put-to-light wall checks every item"],
+    ["Cost", f"~{PCo['pick_today_staffed_h']:.0f} picker-hours a day (modelled: one order per tour, peak staffing)", "large",
+     f"batch picking from a fast-pick area → ~{PCo['pick_future_h']:.0f} h a day (D3 §2.2)"],
+    ["Flexibility", f"21% of loads older than one year; racks would be full in ~{STO['months_headroom']:.0f} months at the "
+     "April–June growth", "medium", "dead-stock clean-up, a reserved 12th rack module, flexible staff"],
+], widths=[2.4, 6.0, 1.6, 6.0], align_right_from=9)
 bullets([
-    f"**Storage:** ~{sb['peak_occupied_locations']:,} pallet positions at peak → target ~{sb['target_positions']:,} "
-    "(÷ 0.90 working utilisation); growth (+8%/quarter in loads) is absorbed by extra rack levels, not by an "
-    "inflated count. Must fit the 12.2 m / 7,000 m² envelope (A008).",
-    f"**Long slow tail:** {a['class_summary_volume'][2]['sku_pct']}% C-SKUs and {ii['single_load_skus_pct']}% "
-    "single-load SKUs → high-density/deep storage for the tail, fast forward-pick for A/B.",
-    f"**Picking is each-dominant by lines** ({ptl.get('each', 0):.0f}% each, {ptl.get('case', 0):.0f}% case, "
-    f"{ptl.get('full pallet', 0):.0f}% full pallet — derived from the orders) and half of all orders are single-line "
-    "→ batch picking from an easy-reach fast-pick area is the key labour lever.",
-    f"**Re-slot to demand** — only {a['agreement_with_wms_pct']}% ABC agreement today.",
-    f"**Capacity to peak** — {p['lines']['peak']:.0f} lines / {p['units']['peak']:.0f} units on the peak day; the "
-    f"{p['peak_hour']:02d}:00 peak is a release effect that waves can level.",
+    "**Conclusion:** the current operation is organised around storing (positions filled after a rushed move) instead of "
+    "around the flow the customer pays for: dispatch on time, fast, at low cost. The biggest gaps are dependability, speed and "
+    "cost — all three are caused by how work is released and picked, not by a lack of space.",
+    "**So the design aims first at flow** (waves, fast-pick area, batch picking, departure plan) and then at storage density. "
+    "Section 12 turns these objectives into requirements per process; Deliverable 3 measures them with KPIs.",
 ])
 
-# ============================ 10. CAPACITY FEASIBILITY ============================
-doc.add_heading("10. Storage capacity feasibility", level=1)
+# ============================ 12. DESIGN REQUIREMENTS ============================
+doc.add_heading("12. Design requirements per process (input to design options)", level=1)
+para("The data (Sections 3–10) and the performance objectives (Section 11) give these requirements. Each process owner "
+     "checked that the design meets them:", space_after=4)
+table(["Process (owner)", "Requirement", "From"], [
+    [f"Receiving ({TEAM['Receiving']})", f"~{CPM['inbound_loads_day']:.0f} loads/day, {CPM['inbound_max_day']:.0f} on the busiest day; "
+     "2 trailer doors + 1 container door; a zone to unpack and palletise containers", "Section 5"],
+    [f"Storage ({TEAM['Storage']})", f"~{sb['peak_occupied_locations']:,} pallet positions at the peak → target ~{sb['target_positions']:,} "
+     f"(÷ 0.90); room for long pallets up to 2.05 m; {ii['single_load_skus_pct']}% single-load SKUs; re-slot to demand "
+     f"(only {a['agreement_with_wms_pct']}% agreement today); within 7,000 m² and 12.2 m", "Sections 3, 4, 8"],
+    [f"Picking ({TEAM['Picking']})", f"{ptl.get('each', 0):.0f}% each-pick lines and half of the orders single-line → batch picking "
+     f"from a fast-pick area; capacity for {p['lines']['peak']:.0f} lines on the peak day; level the 08:00 peak", "Sections 6, 8, 9"],
+    [f"Shipping ({TEAM['Shipping']})", f"~{OD['trailers_per_day_mean']:.0f} trailers/day, mostly parcels; a departure plan per carrier; "
+     "staging lanes instead of parked trailers; doors for the busiest hour", "Section 7"],
+    ["All (group)", "dependability and speed first, then quality and cost (Section 11); choices aligned across the four processes",
+     "Section 11"],
+], widths=[3.4, 10.2, 2.4], align_right_from=9)
+
+# ============================ 13. CAPACITY FEASIBILITY ============================
+doc.add_heading("13. Storage capacity feasibility", level=1)
 cap = M2["capacity"]
 para(f"Design target: peak **{sb['peak_occupied_locations']:,} occupied locations ÷ 0.90 working utilisation ≈ "
      f"{sb['target_positions']:,} pallet positions** (A010). This replaces the earlier "
@@ -364,8 +504,9 @@ figure("capacity_feasibility_corrected.png", "Fig 7. Floor area to hold the corr
        "vs the 7,000 m² envelope.", 14)
 
 # ============================ 11. DESIGN OPTIONS ============================
-doc.add_heading("11. Design options", level=1)
-para("Three end-to-end options (storage × picking × MHE × policies), each aligned across the four processes.")
+doc.add_heading("14. Design options", level=1)
+para("Three end-to-end options (storage × picking × MHE × policies), each aligned across the four processes. Storage "
+     "systems and picking methods are taken from the Week 3 lecture and the order-picking literature (S017, S014).")
 
 doc.add_heading("Option A — Conventional+ (improve the current concept)", level=2)
 bullets([
@@ -382,7 +523,8 @@ bullets([
     f"forward-pick module (carton-flow / shelving) for fast case/each; a long-goods module for XLONG pallets; bin shelving for small slow parts. "
     f"≈{pct['Selective - narrow aisle']:.0f}% of the envelope for storage + working areas.",
     "**Update (Deliverable 3):** first drafted as double-deep; changed to single-deep back-to-back (team decision: no two-deep racks). "
-    "The drawn layout already holds 9,504 positions (target ~9,500), and no telescopic forks are needed.",
+    f"The drawn layout holds {M['layout']['positions_total']:,} positions; moving {M['picking']['small_parts']['skus']:,} small slow "
+    f"parts to bins frees {M['picking']['small_parts']['freed_rack_locations']:,} locations, so the peak need fits — and no telescopic forks are needed.",
     "**Picking:** zone + batch/wave picking (batches the 50% single-line orders); A-movers in a golden-zone "
     "forward pick; voice/RF; put-to-light consolidation at pack.",
     "**MHE:** reach trucks with standard forks (Jungheinrich ETV 216i), pick trolleys for small orders and walkie "
@@ -402,7 +544,7 @@ bullets([
 ])
 
 # ============================ 12. DECISION MATRIX ============================
-doc.add_heading("12. Decision matrix & recommendation", level=1)
+doc.add_heading("15. Decision matrix & recommendation", level=1)
 dec = M2["decision"]
 wt = dec["weighted_totals"]
 order = dec["ranking"]
@@ -430,15 +572,15 @@ para("Recommended concept preview (detailed layout and 3D in Deliverable 2):", s
 figure("layout_floorplan.png", "Fig 9. Recommended Option B — warehouse floor plan (rack-level, to scale).", 16)
 
 # ============================ 13. ASSUMPTIONS ============================
-doc.add_heading("13. Assumptions & open questions", level=1)
+doc.add_heading("16. Assumptions & open questions", level=1)
 para("Logged in data/assumptions.json. Items that materially affect the design:")
 rows = [[a_["id"], a_["assumption"], a_["impact"].upper()]
         for a_ in ASSUM["assumptions"] if a_["impact"] == "high"]
 table(["ID", "Assumption / open question", "Impact"], rows, widths=[1.5, 11.5, 2.0], align_right_from=2)
 
-para("Sources: project brief, the Assa Abloy data files, teacher/DHL feedback and external references "
-     "(Gadeyne on peak slotting; Jungheinrich equipment data) — full list in documentation/sources.md.",
-     size=9, color=GREY, italic=True)
+add_reference_list(doc, USED)
+tag_headings(doc, "D1")
+update_fields_on_open(doc)
 
 page_number_footer()
 

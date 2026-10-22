@@ -21,6 +21,9 @@ ASSUM = json.load(open(os.path.join(DATA, "assumptions.json"), encoding="utf-8")
 
 RED = RGBColor(0xD4, 0x00, 0x11); DARK = RGBColor(0x22, 0x22, 0x22); GREY = RGBColor(0x66, 0x66, 0x66)
 doc = Document()
+from references import cite_text, add_reference_list
+from team import TEAM, team_line, tag_headings, update_fields_on_open, responsibility_box as _rbox
+USED = set()                                   # APA: works cited in this document
 normal = doc.styles["Normal"]; normal.font.name = "Calibri"; normal.font.size = Pt(10.5); normal.font.color.rgb = DARK
 for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5), ("Heading 3", 11)]:
     st = doc.styles[lvl]; st.font.name = "Calibri"; st.font.size = Pt(sz)
@@ -29,6 +32,7 @@ for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5), ("Heading 3", 11)]:
 
 def para(t, size=10.5, color=DARK, bold=False, italic=False, align=None, sa=6):
     """Paragraph; '**text**' segments are bold (markers are not printed)."""
+    t = cite_text(t, USED)
     p = doc.add_paragraph()
     for i, seg in enumerate(t.split("**")):
         if not seg:
@@ -41,6 +45,7 @@ def para(t, size=10.5, color=DARK, bold=False, italic=False, align=None, sa=6):
 
 def bullets(items):
     for it in items:
+        it = cite_text(it, USED)
         p = doc.add_paragraph(style="List Bullet")
         if "**" in it:
             for i, seg in enumerate(it.split("**")):
@@ -56,7 +61,7 @@ def table(headers, rows, widths=None, arr=1):
     for row in rows:
         cells = t.add_row().cells
         for i, v in enumerate(row):
-            cells[i].text = ""; p = cells[i].paragraphs[0]; r = p.add_run(str(v)); r.font.size = Pt(9.5)
+            cells[i].text = ""; p = cells[i].paragraphs[0]; r = p.add_run(cite_text(str(v), USED)); r.font.size = Pt(9.5)
             if i >= arr: p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     if widths:
         t.autofit = False
@@ -97,6 +102,7 @@ PK = M["picking"]; segs = {r["segment"]: r for r in PK["segments"]}; dep = dm["d
 DE = M["design_evaluation"]
 LZ = dm["loose_zone"]; SP = PK["small_parts"]; PWW = PK["putwall"]; LGC = dm["load_checks"]["long"]; FPK = PK["fast_pick"]
 N_IN, N_OUT = ind["doors_recommended"], outd["doors_recommended"]
+CP_IN = cp["inbound_pattern"]
 
 # COVER
 doc.add_paragraph().paragraph_format.space_before = Pt(55)
@@ -108,13 +114,14 @@ table(["Field", "Detail"], [
     ["Due date", "07-10-2026"],
     ["Concept", "Option B — Hybrid density + velocity slotting + zone/batch picking"],
     ["Envelope", "≤ 7,000 m² · ≤ 12.2 m"],
-    ["Team", "Group 3 — Gleb, Rachel Selvarathnam, Arnau, Vidhi"],
-    ["Version", "v3 (with Deliverable 3) — single-deep back-to-back racks, loose-container zone, machinery review"],
+    ["Team", team_line()],
+    ["Version", "Final portfolio version — processes, layout, capacity plan, planning and control (Section 7)"],
 ], widths=[4.5, 11], arr=9)
 para("Future-state design for the recommended Option B (Deliverable 1). Workload drivers are measured "
      "from the Assa Abloy Q2-2025 data; equipment data come from Jungheinrich; productivities and handling "
      "allowances are documented assumptions (Section 7) to be validated with DHL. Reproducible from analysis/*.py.",
      size=9, color=GREY, italic=True)
+_rbox(doc, "D2")
 doc.add_page_break()
 
 # CONTENTS
@@ -161,7 +168,7 @@ table(["Topic", "Before", "Now (this version)"], [
     ["08:00 peak", "Treated as customer demand", "Caused by the order-release routine → release in waves"],
 ], widths=[3.0, 5.0, 8.0], arr=9)
 
-para("The design follows the steps of the Week 3 design approach (Baker & Canessa, 2009, S017) and was iterated "
+para("The design follows the steps of the Week 3 design approach (S017, S032) and was iterated "
      "after each feedback round:", sa=4)
 table(["Design step (W3)", "Where it is done"], [
     ["Define requirements and objective", "D1 §9 requirements; brief limits 7,000 m² / 12.2 m"],
@@ -290,7 +297,7 @@ table(["Policy", "Decision", "Why (data)"], [
 
 ps = M.get("peak_slotting", {})
 doc.add_heading("3.1 Peak-season slotting (congestion control)", level=2)
-para("At peak, congestion — not walk distance — becomes the dominant cost (Gadeyne, S003). Because the peak "
+para("At peak, congestion — not walk distance — becomes the dominant cost (S003). Because the peak "
      "is spiky (1.83× lines / 2.85× units) and picks are concentrated, clustering all fast movers in one golden "
      "zone would jam a single area. We therefore adopt peak-aware slotting:")
 bullets([
@@ -334,7 +341,7 @@ table(["Snapshot", "Receiving days", "Loads booked in", "Loads / day", "Busiest 
 bullets([
     f"**~{meas['inbound_loads_day']:.0f} loads are received per working day; the busiest day reached "
     f"{meas['inbound_max_day']:.0f} (×{meas['inbound_peak_factor']:.1f}).**",
-    "**2 shipments a day, direct from Assa Abloy factories** (teacher/DHL, S004) — in China, Germany, Romania, the "
+    "**2 shipments a day, direct from Assa Abloy factories** (S004) — in China, Germany, Romania, the "
     "Netherlands, Spain, Finland and others.",
     f"**~{meas['inbound_asia_origin_pct']:.0f}% of loads come from Asia** and arrive loose in sea containers. The "
     "largest receipts (70–100 loads, all from China) take 1–3 days to book in — consistent with de-stuffing and "
@@ -483,8 +490,8 @@ figure("layout_worker_render.png", "Fig 13. Worker and truck movement (Blender, 
 
 doc.add_heading("5.1 Layout concept: U-shaped or flow-through?", level=2)
 para("W3 asks to produce a few basic concepts, evaluate them on travel distance and select the best. The two dock "
-     "configurations of Huertas et al. (2007) were compared on the Option B layout, with class-based storage and the "
-     "measured inbound mix:", sa=4)
+     "configurations from the literature — flow-through and U-shaped (S033) — were compared on the Option B layout, with "
+     "class-based storage and the measured inbound mix:", sa=4)
 table(["Criterion", "Flow-through (chosen)", "U-shaped"],
       [[r["Criterion"], r["Flow-through"], r["U-shaped"]] for r in DE["concept_table"]], widths=[5.0, 5.5, 5.5], arr=9)
 para(f"**Verdict:** {DE['concept_verdict']}", sa=6)
@@ -635,9 +642,106 @@ para("W3 names the KPIs that layout, storage and picking design drive. Expected 
 table(["KPI (W3)", "Expected", "Basis"],
       [[k["KPI (W3)"], k["Expected"], k["Basis"]] for k in DE["kpis"]], widths=[3.4, 6.2, 6.4], arr=9)
 
-# 7 ASSUMPTIONS
-doc.add_heading("7. Assumptions & open questions", level=1)
-para("Full register in data/assumptions.json; sources in documentation/sources.md. High-impact items:")
+# 7 PLANNING AND CONTROL
+lab = {r["Process"]: r for r in cp["labour_table"]}
+cyc = {c["Move"]: c for c in dm["cycle_times"]}
+small_rows = {r["Zone"]: r for r in PK["small_orders"]}
+lines_wave = M["peak"]["lines"]["mean"] / len(dep["waves"])
+doc.add_heading("7. Planning and control — how the operation is run", level=1)
+para("Planning and control makes sure that the capacity of each process (people, trucks, doors, space) meets the demand, "
+     "now and later. We use the four activities of operations planning and control — loading (how much work for each resource), "
+     "sequencing (in which order), scheduling (when) and monitoring and control (are we on plan, and what if not) — on three "
+     "time horizons (S031). Each process owner plans and controls their own process; the team leader joins the four plans into "
+     "one plan for the day.", sa=4)
+table(["Horizon", "What is planned", "Method", "Owner"], [
+    ["Long term (quarter–year)", "storage capacity, fleet size, departure plan with the carriers",
+     "monthly trend of occupied locations against a 90% trigger; yearly fleet and departure-plan review",
+     f"{TEAM['Storage']} (storage), {TEAM['Shipping']} (departures)"],
+    ["Medium term (weeks)", "staff per process and per day",
+     "a fixed core team plus flexible staff for busy days: capacity that partly follows demand (a mix of level and chase "
+     "capacity, S031), planned from the order forecast and the 1.8× peak factor", "team leader with all four owners"],
+    ["Short term (the day)", "inbound bookings, waves, pickers per zone, refills, packing, trailer loading",
+     "the daily plan before the first wave (06:00) and a check after each wave", "each owner for their process"],
+], widths=[3.0, 4.2, 6.2, 2.6], arr=9)
+bullets([
+    "**Push and pull:** orders are pushed to the floor in planned waves (scheduled release); the fast-pick area is pulled — a lane "
+    "is refilled only when picks take it below its minimum; inbound is pushed by the factories' shipping plan but levelled by "
+    "booking each delivery in a time slot.",
+    "**One plan, four owners:** the waves link the processes — wave times are planned backwards from the trailer departures "
+    "(Shipping), which fixes when picking must finish (Picking), when lanes must be full (Storage) and when the receiving "
+    "doors must be free for the putaway trucks (Receiving).",
+])
+
+doc.add_heading("7.1 Receiving — booking, unloading and checking", level=2)
+table(["Activity", "Method and decision", "Factors considered (data)"], [
+    ["Scheduling", "every delivery gets a time slot from the advance shipping notice (ASN); containers are booked on R1 in the "
+     "morning so they are unpacked before the afternoon", f"2 shipments a day; ~{CP_IN['containers_avg']} container a day "
+     f"(peak {CP_IN['containers_peak']}); a container occupies a door ~{ind['container_door_h']:.1f} h, a trailer ~{ind['trailer_door_h']:.1f} h"],
+    ["Loading", f"{N_IN} doors for a need of {LZ['doors_needed_base']}; container crew of {LZ['crew']} for ~{LZ['hours_per_container']:.0f} h; "
+     "receiving operator with the ERE 225", f"~{meas['inbound_loads_day']:.0f} loads/day, busiest day {meas['inbound_max_day']:.0f}; "
+     f"{lab['Receiving - palletised (unload+check)']['Hours (avg)']:.1f} h/day of receiving work on average"],
+    ["Sequencing", "trailers first come, first served; R2 is lent to container unpacking only when no second trailer is booked (A044)",
+     f"{LZ['share_fit_zone_pct']:.0f}% of containers fit the zone, {LZ['share_fit_with_r2_pct']:.0f}% with R2's half"],
+    ["Control", "KPIs dock-to-stock time, container door time and containers unpacked inside their zone (Deliverable 3), checked daily",
+     "late or early arrivals are re-booked into the next free slot"],
+], widths=[2.9, 7.0, 6.1], arr=9)
+
+doc.add_heading("7.2 Storage — putaway, slotting, refills and stock control", level=2)
+table(["Activity", "Method and decision", "Factors considered (data)"], [
+    ["Loading (putaway)", f"system-directed putaway by fixed rules (Section 2.1); {fleet['ETV 216i']['Units recommended']} reach trucks",
+     f"~{meas['inbound_loads_day']:.0f} pallets/day at ~{cyc['Putaway (receiving -> reserve)']['Moves/h']:.0f} putaways per truck-hour"],
+    ["Replenishment", "min/max per lane: a refill task is created when a pick takes a lane below its minimum (pull); refills run "
+     "between the waves", f"~{meas['replen_pallets_day']:.0f} refill pallets/day; {FPK['flow_lanes']} carton-flow lanes"],
+    ["Slotting", "re-slot every month on demand (ABC and cube-per-order index); second lanes for the busiest 1% before the peak season",
+     f"WMS slotting matches demand for only 48.6% of SKUs today; top 1% of SKUs = 15% of picks"],
+    ["Stock control", "cycle counts by class (A every month, B every quarter, C once a year) and a quarterly list of loads older "
+     "than one year for Assa Abloy to clear (our proposal)", "21% of loads are older than one year; master-data errors (D1 §10)"],
+    ["Capacity", "monthly count of occupied locations; at 90% full the reserved 12th rack module is ordered",
+     "occupied locations +16% per quarter (April–June)"],
+], widths=[2.9, 7.0, 6.1], arr=9)
+
+doc.add_heading("7.3 Picking — waves, loading of pickers and order sequence", level=2)
+table(["Activity", "Method and decision", "Factors considered (data)"], [
+    ["Scheduling (order release)", "three waves planned backwards from the trailer departures: " +
+     ", ".join(f"{w['wave']} {w['start']}–{w['end']}" for w in dep["waves"]) + "; orders received before 12:00 go in W3 and leave the same day",
+     f"{rel['orders_arrive_15_17_pct']:.0f}% of orders arrive 15:00–17:00; today's 08:00 peak is {rel['pick_peak_over_mean_active_hour']}× the "
+     "average hour because everything is released at once"],
+    ["Loading", "pickers per wave = the wave's lines ÷ the pick rate of each zone; the WMS fills each trolley up to its volume "
+     f"and weight limit", f"~{lines_wave:.0f} lines per wave; ~{small_rows['Fast-pick area (A/B)']['Lines/h']:.0f} lines/h in the "
+     f"fast-pick area, ~{small_rows['Reserve low levels (C)']['Lines/h']:.0f} in the reserve aisles"],
+    ["Sequencing", "within a wave: earliest departure first; small orders batched per zone, large orders one per pallet",
+     f"{segs['small']['pct_orders']:.0f}% small orders, {segs['large']['pct_orders']:.0f}% large orders (by volume and weight)"],
+    ["Control", "lines picked against the plan per hour; the put-to-light wall only releases complete, correct orders; KPIs pick "
+     "rate, pick accuracy and picking hours per day", "a wave that runs late gets a picker from another zone, and its orders for the "
+     "earliest departures are picked first"],
+], widths=[2.9, 7.0, 6.1], arr=9)
+
+doc.add_heading("7.4 Shipping — departure plan, packing and loading", level=2)
+table(["Activity", "Method and decision", "Factors considered (data)"], [
+    ["Scheduling", f"a fixed departure plan: {dep['trailers_planned']} trailer slots booked by the carriers between "
+     f"{dep['departures'][0]['Departure']} and {dep['departures'][-1]['Departure']}", f"~{outd['trailers_per_day_mean']:.0f} trailers/day; "
+     f"p90 {outd['busiest_hour_trailers_p90']:.0f} in the busiest hour; max {dep['plan_max_doors_busy']} doors busy at once in the plan"],
+    ["Loading", f"packers per wave from the packing lines (~45 lines/h per packer); {M['putwall_design']['pack_stations']} pack stations",
+     f"{lab['Packing / consolidation']['Hours (avg)']:.0f} packing hours on an average day, {lab['Packing / consolidation']['Hours (peak)']:.0f} on the peak day"],
+    ["Sequencing", "pack and stage in the order of the departure slots; each door has its own staging lane; trailers are loaded "
+     "live at the booked time", f"{outd['share_trailers_zero_pallets_pct']:.0f}% of trailers carry parcels only"],
+    ["Control", "KPIs on-time shipment, orders out within 24 h and trailers at the doors at once, checked after each departure",
+     "a missed slot is moved to the carrier's next slot the same day"],
+], widths=[2.9, 7.0, 6.1], arr=9)
+
+doc.add_heading("7.5 Monitoring and control — the control loop", level=2)
+bullets([
+    "**Every day:** a short start-of-day meeting with the four process owners: yesterday's KPIs against target, today's inbound "
+    "bookings, wave sizes, staff and departures. Each owner explains a red KPI and the action.",
+    "**Every week:** the KPI overview of Deliverable 3 with the DHL operations manager; actions are given to an owner with a date.",
+    "**Every month:** review with Assa Abloy — service KPIs, stock growth, dead stock and the slotting update.",
+    "**The loop:** measure (scanner data in the WMS) → compare with the target → act (re-plan staff, re-slot, re-book a slot) → "
+    "check that the KPI is back on target. This turns the design into a controlled process instead of a one-off layout.",
+])
+
+# 8 ASSUMPTIONS
+doc.add_heading("8. Assumptions & open questions", level=1)
+para("Full register in data/assumptions.json; sources in documentation/sources.md (cited in APA in the text). High-impact items:")
 rows = [[a["id"], a["assumption"], a["impact"].upper()] for a in ASSUM["assumptions"] if a["impact"] == "high"]
 table(["ID", "Assumption / open question", "Impact"], rows, widths=[1.5, 11.5, 2.0], arr=2)
 bullets([
@@ -647,6 +751,9 @@ bullets([
     "**To confirm with Assa Abloy:** the hazard class of the 138 flagged SKUs, which decides the hazmat section (A028).",
 ])
 
+add_reference_list(doc, USED)
+tag_headings(doc, "D2")
+update_fields_on_open(doc)
 footer()
 DELIV = os.path.join(BASE, "deliverables"); os.makedirs(DELIV, exist_ok=True)
 out = os.path.join(DELIV, "Deliverable_2_Future_State.docx")

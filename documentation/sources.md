@@ -1,6 +1,6 @@
 # SOURCE REGISTER
 
-Every external factual assumption used in the report must be traceable here.
+Every external factual assumption used in the report must be traceable here. The reports cite these sources in APA 7 (author, year) via `analysis/references.py`, which also writes the APA reference list of each report.
 
 | ID | Source | URL | What it supports | Date accessed |
 |---|---|---|---|---|
@@ -34,6 +34,10 @@ Every external factual assumption used in the report must be traceable here.
 | S028 | Cisco-Eagle, "Vertical lift modules vs horizontal carousels"; Kardex LogiMat product page; MMH, "Van Meter optimizes with vertical lift modules" | https://www.cisco-eagle.com/blog/?p=2003 ; https://www.commander.ca/product-logimat-vertical-lift-module/ ; https://www.mmh.com/article/van_meter_optimizes_with_vertical_lift_modules_vlms | Picking rates: VLM ~75 lines/h per unit (up to 100); grey shelving ~50 lines/h (A042) | 2026-10-18 |
 | S029 | Evofenedex, "PGS 37-2 opslag lithiumbatterijen"; Specialcargo, "PGS 37-2 onder de loep"; BOVAG FAQ PGS 37-2 | https://www.evofenedex.nl/kennis/gevaarlijke-stoffen/pgs-37-opslag-lithiumbatterijen ; https://services.specialcargo.com/nl-nl/blog/kennisbank/pgs-372/ ; https://mijn.bovag.nl/dossiers/veelgestelde-vragen-over-pgs-37-2 | Dutch guideline for storing lithium energy carriers (incl. batteries in equipment, UN3481): applies from 333 kg, group 1 (ADR special provision 188) from 1,000 kg per fire compartment; 30 kg for damaged batteries (A028) | 2026-10-18 |
 | S030 | Manutan, steel shelving 2,000 mm high x 1,000 mm wide | https://www.manutan.be/nl/mab/open-stelling-van-plaatstaal-quick-fix-plus-hoogte-2000-mm-breedte-1000-mm | Shelving section EUR 153-245 excl. VAT, 150 kg per shelf (A042) | 2026-10-18 |
+| S025a–h | Sub-IDs of S025 used for APA citations: a boxic24 (Fetra trolley), b Logistiekdirect (Euronorm tote), d Machineseeker (Vogel Starter wrapper; used Bito flow rack), e Cromwell (extendable roller conveyor), f Shelving.com (carton-flow price list), g LatestCost (put-to-light), h Bechtle (Zebra MC3300 cradle) | see S025 | One listing per CAPEX item | 2026-10-22 |
+| S031 | N. Slack, A. Brandon-Jones & N. Burgess (2022), *Operations management* (10th ed.), Pearson | — | Four V's of processes, process types, five performance objectives, order winners and qualifiers, planning and control (loading, sequencing, scheduling, monitoring), capacity strategies | 2026-10-22 |
+| S032 | P. Baker & M. Canessa (2009), "Warehouse design: A structured approach", *European Journal of Operational Research* 193(2), 425–436 | https://doi.org/10.1016/j.ejor.2007.11.045 | Structured sequence of warehouse design steps (used in the W3 lecture) | 2026-10-22 |
+| S033 | J.I. Huertas, J. Díaz Ramírez & F. Trigos Salazar (2007), "Layout evaluation of large capacity warehouses", *Facilities* 25(7/8), 259–270 | https://www.emerald.com/f/article/25/7-8/259/106959/Layout-evaluation-of-large-capacity-warehouses | Docks on opposite long sides (flow-through) vs U-shape; layout cost evaluation | 2026-10-22 |
 
 <!-- Add external sources (equipment specs, Dutch/EU safety & fire codes, labour rates,
      racking prices, DHL/Assa Abloy public info, logistics benchmarks) as they are used.

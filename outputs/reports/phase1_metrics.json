@@ -2172,7 +2172,7 @@
         "high": 12.0,
         "unit": "EUR per half-bin slot (bin + divider)",
         "id": "A042",
-        "basis": "half of a 600x400 tote EUR 14.56-19.95 (S025)"
+        "basis": "half of a 600x400 tote EUR 14.56-19.95 (S025b)"
       },
       "vlm_integr": {
         "value": 10000.0,
@@ -2204,7 +2204,7 @@
         "high": 2300.0,
         "unit": "EUR per carton-flow bay (2 m, 5 levels)",
         "id": "A034",
-        "basis": "new USD 1,200-2,500 per bay (S025) at ~0.9 EUR/USD; used EUR 650/bay (S025) = floor"
+        "basis": "new USD 1,200-2,500 per bay (S025f) at ~0.9 EUR/USD; used EUR 650/bay (S025d) = floor"
       },
       "ptl_slot": {
         "value": 150.0,
@@ -2212,7 +2212,7 @@
         "high": 200.0,
         "unit": "EUR per put-to-light slot",
         "id": "A035",
-        "basis": "USD 60-200 per station (S025)"
+        "basis": "USD 60-200 per station (S025g)"
       },
       "ptl_integr": {
         "value": 12000.0,
@@ -2220,7 +2220,7 @@
         "high": 30000.0,
         "unit": "EUR one-off",
         "id": "A035",
-        "basis": "installation + WMS integration USD 3,000-18,000 + software (S025)"
+        "basis": "installation + WMS integration USD 3,000-18,000 + software (S025g)"
       },
       "rf_unit": {
         "value": 1500.0,
@@ -2228,7 +2228,7 @@
         "high": 2300.0,
         "unit": "EUR per RF terminal incl. cradle",
         "id": "A036",
-        "basis": "Zebra MC3300 listings EUR 435-2,326 + cradle EUR 182 (S025)"
+        "basis": "Zebra MC3300 listings EUR 435-2,326 + cradle EUR 182 (S025h)"
       },
       "pack_station": {
         "value": 2500.0,
@@ -2244,7 +2244,7 @@
         "high": 600.0,
         "unit": "EUR per pick trolley",
         "id": "A036",
-        "basis": "Fetra picking trolley EUR 432.86 net (S025)"
+        "basis": "Fetra picking trolley EUR 432.86 net (S025a)"
       },
       "tote": {
         "value": 16.0,
@@ -2252,7 +2252,7 @@
         "high": 20.0,
         "unit": "EUR per tote 600x400x320",
         "id": "A036",
-        "basis": "EUR 14.56-19.95 (S025)"
+        "basis": "EUR 14.56-19.95 (S025b)"
       },
       "wrapper": {
         "value": 3849.0,
@@ -2260,7 +2260,7 @@
         "high": 9000.0,
         "unit": "EUR per semi-automatic stretch wrapper",
         "id": "A036",
-        "basis": "Vogel Starter EUR 3,849 new (S025)"
+        "basis": "Vogel Starter EUR 3,849 new (S025d)"
       },
       "conveyor": {
         "value": 1250.0,
@@ -2268,7 +2268,7 @@
         "high": 2500.0,
         "unit": "EUR per extendable roller conveyor (4.5 m)",
         "id": "A036",
-        "basis": "Cromwell GBP 1,049 ex VAT (S025)"
+        "basis": "Cromwell GBP 1,049 ex VAT (S025e)"
       },
       "roll_cage": {
         "value": 150.0,
@@ -2308,7 +2308,7 @@
         "high": 250.0,
         "unit": "EUR per month, full-service lease",
         "id": "A038",
-        "basis": "assumption: Li-ion pallet truck new ~EUR 2,500-3,500 (S025) over 72 months + service"
+        "basis": "assumption: Li-ion pallet truck new ~EUR 2,500-3,500 over 72 months + service"
       },
       "lease_ere": {
         "value": 350.0,
@@ -2454,7 +2454,7 @@
         "Qty": 3948,
         "Unit": "slots",
         "Unit price EUR": 8.0,
-        "Source": "A042 / S025",
+        "Source": "A042 / S025b",
         "Total EUR": 31584.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 4512.0
@@ -2465,7 +2465,7 @@
         "Qty": 31,
         "Unit": "bays",
         "Unit price EUR": 1800.0,
-        "Source": "A034 / S025",
+        "Source": "A034 / S025f",
         "Total EUR": 55800.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 7971.43
@@ -2487,7 +2487,7 @@
         "Qty": 6,
         "Unit": "trolleys",
         "Unit price EUR": 433.0,
-        "Source": "S011 / S025",
+        "Source": "S011 / S025a",
         "Total EUR": 2598.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 371.14
@@ -2498,7 +2498,7 @@
         "Qty": 54,
         "Unit": "totes",
         "Unit price EUR": 16.0,
-        "Source": "S025",
+        "Source": "S025b",
         "Total EUR": 864.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 123.43
@@ -2509,7 +2509,7 @@
         "Qty": 120,
         "Unit": "slots",
         "Unit price EUR": 150.0,
-        "Source": "A035 / S025",
+        "Source": "A035 / S025g",
         "Total EUR": 18000.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 2571.43
@@ -2520,7 +2520,7 @@
         "Qty": 1,
         "Unit": "lot",
         "Unit price EUR": 12000.0,
-        "Source": "A035 / S025",
+        "Source": "A035 / S025g",
         "Total EUR": 12000.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 1714.29
@@ -2542,7 +2542,7 @@
         "Qty": 1,
         "Unit": "units",
         "Unit price EUR": 3849.0,
-        "Source": "S025",
+        "Source": "S025d",
         "Total EUR": 3849.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 549.86
@@ -2564,7 +2564,7 @@
         "Qty": 2,
         "Unit": "units",
         "Unit price EUR": 1250.0,
-        "Source": "S025",
+        "Source": "S025e",
         "Total EUR": 2500.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 357.14
@@ -2575,7 +2575,7 @@
         "Qty": 1,
         "Unit": "units",
         "Unit price EUR": 3849.0,
-        "Source": "S025",
+        "Source": "S025d",
         "Total EUR": 3849.0,
         "Life (yrs)": 7,
         "Depreciation EUR/yr": 549.86
@@ -2586,7 +2586,7 @@
         "Qty": 14,
         "Unit": "units",
         "Unit price EUR": 1500.0,
-        "Source": "A036 / S025",
+        "Source": "A036 / S025h",
         "Total EUR": 21000.0,
         "Life (yrs)": 5,
         "Depreciation EUR/yr": 4200.0
