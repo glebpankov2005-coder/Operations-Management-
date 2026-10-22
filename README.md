@@ -8,7 +8,7 @@ Covers receiving → storage → picking → shipping, with every decision trace
 > If ever made public, re-exclude `data/raw/` in `.gitignore` first.
 
 ## 📦 Deliverables (the graded documents)
-**Final portfolio (hand-in):** one file per student in [`deliverables/portfolio/`](deliverables/portfolio/) — the whole design (Part 1 Analysis, Part 2 Future state, Part 3 Performance overview) with a personal cover, who owns which process (Vidhi – Receiving, Gleb – Storage, Arnau – Picking, Rachel – Shipping), a check against the assessment form and test grid, and APA references. Word and PDF.
+**Final portfolio (hand-in):** [`deliverables/portfolio/Portfolio_Group3_Final.docx`](deliverables/portfolio/Portfolio_Group3_Final.docx) (+ PDF) — the same file for all four students: the whole design (Part 1 Analysis, Part 2 Future state, Part 3 Performance overview), who owns which process (Vidhi – Receiving, Gleb – Storage, Arnau – Picking, Rachel – Shipping) with every section listed per person and the owner's name in each section heading, a check against the assessment form and test grid, and APA references. Word and PDF.
 
 | # | Document | Status | Due |
 |---|---|---|---|
@@ -48,7 +48,7 @@ The Word files and the workbook are **generated** from the analysis by `analysis
 | `geometry.py` | Shared Option B layout geometry: zones, rack modules, doors, and the inside of the fast-pick area, container zone and packing |
 | `references.py` | APA 7: turns source IDs into (author, year) citations and writes each report's reference list |
 | `team.py` | Who owns which process and which report sections (owner tags in headings, responsibility tables) |
-| `build_portfolio.py` · `docx_to_pdf.py` | Final portfolio per student (cover, responsibilities, assessment check, D1–D3) and PDFs with a refreshed table of contents |
+| `build_portfolio.py` · `docx_to_pdf.py` | Final group portfolio (cover, responsibilities and sections per person, assessment check, D1–D3) and its PDF with a refreshed table of contents |
 | `layout_draw.py` | Shared drawing of the layout and every zone's inside (used by the floor plan and all explanation figures) |
 | `picking_plan.py` | Order volume segmentation, pick-time model (lines/h, FTE), picking equipment, tugger evaluation |
 | `dock_mhe_plan.py` | Dock doors, trailer departure plan, Jungheinrich fleet, turning checks, machinery justification, container options, 08:00 release |
@@ -84,7 +84,7 @@ python analysis/build_report.py        # Deliverable 1 .docx
 python analysis/build_report_d2.py     # Deliverable 2 .docx
 python analysis/build_report_d3.py     # Deliverable 3 .docx
 python analysis/build_workbook_d3.py   # Deliverable 3 calculation workbook .xlsx
-python analysis/build_portfolio.py     # final portfolio per student (needs docxcompose)
+python analysis/build_portfolio.py     # final group portfolio (needs docxcompose)
 python3 analysis/docx_to_pdf.py deliverables/portfolio/*.docx   # PDFs (system python3 with LibreOffice UNO)
 ```
 

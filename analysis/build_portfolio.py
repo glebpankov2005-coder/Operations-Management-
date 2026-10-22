@@ -1,13 +1,13 @@
 """
-FINAL PORTFOLIO - one Word file per student with the whole warehouse design.
+FINAL PORTFOLIO - one Word file for the whole group (all four students hand in the same file).
 Teacher: "each student submits every portfolio entry containing the entire warehouse design, do indicate clearly which
 process you are responsible for (receiving, storage, picking or shipping)".
 
-  front matter  cover (student + process), who owns what across D1-D3, the student's own sections,
+  front matter  cover (students + their process), who owns what across D1-D3, every section per person,
                 check against the assessment form and the test grid, contents
   Part 1-3      Deliverable 1, 2 and 3 exactly as generated (each with its own APA reference list)
 
-Writes deliverables/portfolio/Portfolio_Group3_<Name>_<Process>.docx.
+Writes deliverables/portfolio/Portfolio_Group3_Final.docx.
 Run after build_report.py, build_report_d2.py and build_report_d3.py (and docx_to_pdf.py for the PDFs).
 """
 import os
@@ -105,55 +105,59 @@ def title_of(which, key):
     return h.get(key) or h.get(key + ".") or key
 
 
-def build(student_proc):
-    name = TEAM[student_proc]; full = FULL_NAMES[name]
+def build():
     doc = Document()
     st = doc.styles["Normal"]; st.font.name = "Calibri"; st.font.size = Pt(10.5)
     for lvl, sz in [("Heading 1", 15), ("Heading 2", 12.5)]:
         s = doc.styles[lvl]; s.font.name = "Calibri"; s.font.size = Pt(sz); s.font.bold = True
         s.font.color.rgb = RED if lvl == "Heading 1" else DARK
     F = Front(doc)
-    # ---------------- cover
-    doc.add_paragraph().paragraph_format.space_before = Pt(50)
+    # ---------------- cover: the same file for all four students
+    doc.add_paragraph().paragraph_format.space_before = Pt(40)
     F.para("PROJECT OTM — DHL ON THE MOVE", size=13, color=RED, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, sa=2)
     F.para("Final Portfolio — Warehouse Redesign", size=24, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, sa=2)
     F.para("Assa Abloy operation · DHL Supply Chain, Bemmel (NL_0032)", size=12, color=GREY, align=WD_ALIGN_PARAGRAPH.CENTER, sa=4)
-    F.para("OPERMB04 Operations Management · HAN University of Applied Sciences", size=10.5, color=GREY,
-           align=WD_ALIGN_PARAGRAPH.CENTER, sa=24)
+    F.para("OPERMB04 Operations Management · HAN University of Applied Sciences · Group 3", size=10.5, color=GREY,
+           align=WD_ALIGN_PARAGRAPH.CENTER, sa=20)
+    F.table(["Process", "Responsible student", "Student number", "Class"],
+            [[p, FULL_NAMES[n], "________________", "________________"] for p, n in TEAM.items()],
+            widths=[3.2, 5.0, 4.0, 3.8], color_col=1)
     F.table(["Field", "Detail"], [
-        ["Student", full], ["Student number", "____________________"], ["Class", "____________________"],
-        ["My process", f"**{student_proc}** — {PROCESS_SCOPE[student_proc]}"],
-        ["Group", "Group 3 — " + ", ".join(f"{FULL_NAMES[n]} ({p})" for p, n in TEAM.items())],
         ["Contents", "Part 1 Analysis · Part 2 Future state · Part 3 Performance overview — the whole warehouse design"],
         ["Supporting files", "Deliverable_3_Calculations.xlsx (all cost formulas); analysis/*.py, data/assumptions.json, "
                              "documentation/sources.md in the group repository"],
     ], widths=[4.0, 12.0])
-    F.para("Every student of Group 3 hands in this same complete design. The process each student is responsible for is "
-           "marked in the heading of every section that belongs to it, for example “4.2 Refilling the fast-pick area   "
-           "Gleb (Storage)”. Sections without a name were made by the whole group.", size=9.5, color=GREY, italic=True)
+    F.para("All four students hand in this same file. **Whose section is whose:** every section that belongs to one process "
+           "carries the name of its owner in its heading, in the colour of that person — for example “4.2 Refilling the "
+           "fast-pick area   Gleb (Storage)”. The names also appear in the contents. A section with two names was made "
+           "together; a section without a name was made by the whole group. The next pages list every section per person.",
+           size=9.5, color=GREY)
     doc.add_page_break()
-    # ---------------- responsibilities
+    # ---------------- responsibilities: overview + every section per person
     doc.add_heading("Who is responsible for what", level=1)
-    F.para("The project covers four processes end-to-end (project brief). Each team member owns one process and wrote, "
-           "calculated and checked its sections; the choices across the four processes were aligned together.", sa=4)
+    F.para("The project covers four processes end-to-end (project brief). Each student owns one process and wrote, calculated "
+           "and checked its sections; the choices across the four processes were aligned together.", sa=4)
     rows = []
     for p, n in TEAM.items():
         rows.append([p, FULL_NAMES[n], PROCESS_SCOPE[p]] +
                     [", ".join(k.rstrip(".") for k, v in OWNERS[w].items() if p in v) for w in ("D1", "D2", "D3")])
     F.table(["Process", "Owner", "Scope", "Part 1 §", "Part 2 §", "Part 3 §"], rows, widths=[2.2, 3.0, 4.6, 1.8, 2.6, 1.8], color_col=1)
-    F.para("Joint work of the whole group: data preparation and quality checks, the operations-strategy analysis, design "
-           "options and the decision matrix (Part 1); concept, layout and zoning, labour plan, machinery and monitoring & "
-           "control (Part 2); KPI framework, zone guide, costs, payback and sensitivity (Part 3).", size=9.5, color=GREY)
-    doc.add_heading(f"My part — {full} ({student_proc})", level=2)
-    my = []
-    for w in ("D1", "D2", "D3"):
-        for k, v in OWNERS[w].items():
-            if student_proc in v:
-                key = k.rstrip(".")
-                shared = [f"{TEAM[o]}" for o in v if o != student_proc]
-                my.append([f"Part {w[1]} ({DOC_NAME[w].split(' — ')[1]})", title_of(w, key),
-                           "with " + ", ".join(shared) if shared else "own section"])
-    F.table(["Part", "Section", "Shared?"], my, widths=[4.8, 8.6, 2.6])
+    F.para("**Whole group (no name in the heading):** data preparation and quality checks, the operations-strategy analysis, "
+           "design requirements, design options and the decision matrix (Part 1); concept, policies overview, layout and zoning, "
+           "labour plan, machinery and the control loop (Part 2); summary, KPI framework, zone guide, stress test, costs, payback "
+           "and sensitivity (Part 3).", size=9.5)
+    for proc, name in TEAM.items():
+        h = doc.add_heading(f"Sections of {FULL_NAMES[name]} — {proc}", level=2)
+        for r_ in h.runs:
+            r_.font.color.rgb = COLOR[proc]
+        mine = []
+        for w in ("D1", "D2", "D3"):
+            for k, v in OWNERS[w].items():
+                if proc in v:
+                    others = [f"{TEAM[o]} ({o})" for o in v if o != proc]
+                    mine.append([f"Part {w[1]} ({DOC_NAME[w].split(' — ')[1]})", title_of(w, k.rstrip(".")),
+                                 "with " + ", ".join(others) if others else "own section"])
+        F.table(["Part", "Section", "Made"], mine, widths=[4.4, 8.6, 3.0])
     doc.add_page_break()
     # ---------------- assessment check
     doc.add_heading("How this portfolio meets the assessment form", level=1)
@@ -200,7 +204,8 @@ def build(student_proc):
     r.append(t); fld.append(r); p._p.append(fld)
     # footer
     f = doc.sections[0].footer.paragraphs[0]; f.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = f.add_run(f"Project OTM — Group 3 final portfolio  ·  {full} ({student_proc})  ·  Page ")
+    run = f.add_run("Project OTM — Group 3 final portfolio  ·  " +
+                    "  ·  ".join(f"{n} ({p})" for p, n in TEAM.items()) + "  ·  Page ")
     run.font.size = Pt(8); run.font.color.rgb = GREY
     pf = OxmlElement("w:fldSimple"); pf.set(qn("w:instr"), "PAGE"); run._r.addnext(pf)
     # ---------------- parts
@@ -213,11 +218,10 @@ def build(student_proc):
         strip_contents(part)
         comp.append(part)
     update_fields_on_open(comp.doc)
-    out = os.path.join(OUT, f"Portfolio_Group3_{name}_{student_proc}.docx")
+    out = os.path.join(OUT, "Portfolio_Group3_Final.docx")
     comp.save(out)
     return out
 
 
 if __name__ == "__main__":
-    for proc in TEAM:
-        print("Saved", build(proc))
+    print("Saved", build())
