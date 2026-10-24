@@ -1,0 +1,11 @@
+{
+  "name": "project-otm-presentation",
+  "private": true,
+  "description": "Builds the final presentation (deliverables/Presentation_Group3_Project_OTM.pptx) with analysis/build_presentation.js",
+  "scripts": {
+    "deck": "python analysis/presentation_data.py && node analysis/build_presentation.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "3.12.0"
+  }
+}

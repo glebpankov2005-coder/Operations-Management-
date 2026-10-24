@@ -16,6 +16,7 @@ Covers receiving → storage → picking → shipping, with every decision trace
 | 2 | [`deliverables/Deliverable_2_Future_State.docx`](deliverables/Deliverable_2_Future_State.docx) — processes, docks, MHE, 3D layout, capacity plan | ✅ v3 | 07-10-2026 |
 | 3 | [`deliverables/Deliverable_3_Performance_Overview.docx`](deliverables/Deliverable_3_Performance_Overview.docx) — KPIs, zone guide, storage (where + how), sorting, machinery review, CAPEX/OPEX, payback, sensitivity | ✅ v2 | 21-10-2026 |
 | 3 | [`deliverables/Deliverable_3_Calculations.xlsx`](deliverables/Deliverable_3_Calculations.xlsx) — every cost as a live formula (change an input, totals update) | ✅ v1 | 21-10-2026 |
+| – | [`deliverables/Presentation_Group3_Project_OTM.pptx`](deliverables/Presentation_Group3_Project_OTM.pptx) — 15-minute final presentation: 15 slides + 3 backup, takeaway titles, editable charts, source line per slide, speaker notes with presenter and timing (Gleb ~3:40, Arnau ~3:30, Vidhi ~3:10, Rachel ~3:10) | ✅ v1 | 24-10-2026 |
 
 The Word files and the workbook are **generated** from the analysis by `analysis/build_report.py`,
 `build_report_d2.py`, `build_report_d3.py` and `build_workbook_d3.py`, so they always match the underlying numbers.
@@ -48,6 +49,7 @@ The Word files and the workbook are **generated** from the analysis by `analysis
 | `geometry.py` | Shared Option B layout geometry: zones, rack modules, doors, and the inside of the fast-pick area, container zone and packing |
 | `references.py` | APA 7: turns source IDs into (author, year) citations and writes each report's reference list |
 | `team.py` | Who owns which process and which report sections (owner tags in headings, responsibility tables) |
+| `presentation_data.py` · `build_presentation.js` | Final presentation: numbers, citations and figure crops from the metrics (`presentation_data.json`), then the .pptx (Node + pptxgenjs, `npm install` once) |
 | `build_portfolio.py` · `docx_to_pdf.py` | Final group portfolio (cover, responsibilities and sections per person, assessment check, D1–D3) and its PDF with a refreshed table of contents |
 | `layout_draw.py` | Shared drawing of the layout and every zone's inside (used by the floor plan and all explanation figures) |
 | `picking_plan.py` | Order volume segmentation, pick-time model (lines/h, FTE), picking equipment, tugger evaluation |
@@ -86,6 +88,7 @@ python analysis/build_report_d3.py     # Deliverable 3 .docx
 python analysis/build_workbook_d3.py   # Deliverable 3 calculation workbook .xlsx
 python analysis/build_portfolio.py     # final group portfolio (needs docxcompose)
 python3 analysis/docx_to_pdf.py deliverables/portfolio/*.docx   # PDFs (system python3 with LibreOffice UNO)
+npm install && npm run deck            # final presentation .pptx (Node 18+; runs presentation_data.py first)
 ```
 
 ## 🔑 Headline findings
