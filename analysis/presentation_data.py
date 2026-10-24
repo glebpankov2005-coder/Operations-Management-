@@ -31,7 +31,12 @@ from references import cite_text, reference_list
 DECK_SOURCES = ["S001", "S002", "S031", "S017", "S014", "S023", "S020", "S026", "S006", "S008", "S010"]
 used = set()
 cites = {s: cite_text(s, used) for s in DECK_SOURCES}
-out = {"metrics": M, "hourly": profile, "stock_age": stock_age, "cites": cites, "references": reference_list(used)}
+# size of the assumption and source registers (the "where our numbers come from" slide)
+BASE = os.path.join(os.path.dirname(__file__), "..")
+n_assumptions = len(json.load(open(os.path.join(BASE, "data", "assumptions.json"), encoding="utf-8"))["assumptions"])
+n_sources = sum(1 for line in open(os.path.join(BASE, "documentation", "sources.md"), encoding="utf-8") if line.startswith("| S0"))
+out = {"metrics": M, "hourly": profile, "stock_age": stock_age, "cites": cites, "references": reference_list(used),
+       "registers": {"assumptions": n_assumptions, "sources": n_sources}}
 def no_nan(v):   # JSON has no NaN (JavaScript cannot read it): write null instead
     if isinstance(v, float) and v != v:
         return None
