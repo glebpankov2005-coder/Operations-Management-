@@ -52,4 +52,13 @@ for src, box, dst in [("layout_orderflow.png", (40, 39, 1085, 765), "layout_flow
                       ("inbound_zones.png", (58, 452, 527, 1340), "receiving_zoom.png"),
                       ("storage_how.png", (520, 108, 1219, 345), "fastpick_cut.png")]:
     Image.open(os.path.join(FIGS, src)).crop(box).save(os.path.join(DECK, dst))
+# DHL logo for the cover (the client): the same file the group used in its Milestone 1 deck, cropped to the yellow field
+import io, zipfile
+M1 = os.path.join(os.path.dirname(__file__), "..", "deliverables", "DHL Group 3 Milestone 1 (v2).pptx")
+with zipfile.ZipFile(M1) as z:
+    logo = Image.open(io.BytesIO(z.read("ppt/media/image2.png"))).convert("RGB").crop((83, 91, 555, 390))
+# keep only the red wordmark (yellow field -> transparent), so no box edge shows on the yellow cover in any renderer
+g = logo.getchannel("G").point(lambda v: max(0, min(255, round((204 - v) / 199 * 255))))
+mark = Image.new("RGBA", logo.size, (0xD4, 0x05, 0x11, 0)); mark.putalpha(g)
+mark.save(os.path.join(DECK, "dhl_logo.png"))
 print("Saved deck crops in", DECK)
