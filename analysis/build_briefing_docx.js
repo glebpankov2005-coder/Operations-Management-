@@ -48,6 +48,15 @@ function table(rows) {
     Math.min(60, Math.max(...cells.map((r) => (r[j] || "").replace(/\*\*|`/g, "").length))) + 6);
   const total = weight.reduce((a, b) => a + b, 0);
   const widths = weight.map((w) => Math.round(w / total * CONTENT_W));
+  // every column at least as wide as its longest word, so no word is broken over two lines
+  const minW = Array.from({ length: nCol }, (_, j) =>
+    Math.max(...cells.map((r) => Math.max(0, ...(r[j] || "").replace(/\*\*|`/g, "").split(/\s+/).map((w) => w.length)))) * 105 + 220);
+  const short = widths.reduce((a, w, j) => a + Math.max(0, minW[j] - w), 0);
+  if (short > 0) {
+    const slack = widths.map((w, j) => Math.max(0, w - minW[j]));
+    const totalSlack = slack.reduce((a, b) => a + b, 0);
+    if (totalSlack > short) widths.forEach((w, j) => { widths[j] = w < minW[j] ? minW[j] : w - Math.round(slack[j] / totalSlack * short); });
+  }
   widths[nCol - 1] += CONTENT_W - widths.reduce((a, b) => a + b, 0);
   const border = { style: BorderStyle.SINGLE, size: 4, color: LINE };
   const borders = { top: border, bottom: border, left: border, right: border };

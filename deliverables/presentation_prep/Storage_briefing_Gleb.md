@@ -1,6 +1,6 @@
 # Storage — briefing for the final presentation (Gleb)
 
-Everything about storage in one place: what the data shows, what we designed and why, every number with how we got it, the risks, and the questions you may get. All numbers come from the project's own analysis (Deliverables 1–3 and the deck), so they match the slides.
+Everything about storage in one place: what the data shows, what we designed and why, every number with how we got it, the risks, and the questions you may get. The words that may be new are explained in the glossary at the end. All numbers come from the project's own analysis (Deliverables 1–3 and the deck), so they match the slides.
 
 ---
 
@@ -402,3 +402,65 @@ In the stress test, 150% volume needs 3 reach trucks instead of 2, still through
 | Demand ABC | 13% of items = 80% of volume; WMS matches demand for only 48.6% |
 | Hazmat | 138 SKUs, 2,197 loads, ~385 t → PGS 37-2 (lithium) |
 | Storage investment | **€1.23M** of €1.63M (racks €130/place); re-use option → €0.52M total |
+
+---
+
+## 12. Glossary — the words in plain language
+
+### Storage words
+
+| Word | What it means |
+|---|---|
+| Reach truck | a truck whose forks reach forward to put pallets into high racks (the ETV 216i) |
+| Back-to-back racks | two rows of single-deep racks standing against each other, each facing its own aisle |
+| Double-deep rack | two pallets behind each other; the back one can only be reached by moving the front one (not chosen) |
+| Level / beam | a level is one floor of the rack; the beam is the horizontal bar the pallets stand on |
+| Load centre | the distance from the back of the forks to the middle of the load; the truck's 1,600 kg is rated at 600 mm |
+| Rack fill | the share of rack places in use |
+| Headroom | how many months until the racks are full at the current growth |
+| 12th module | an extra block of racks (+864 places) kept in reserve for growth |
+| Long-goods module | racks for long pallets (up to 2.05 m) with a 3.2 m aisle |
+| Dead stock | stock that has not moved for a long time (21% of loads are over a year old) |
+| Bin shelving | low shelves with plastic bins for small parts, picked by hand |
+| Kardex lift | an automatic vertical storage lift for small parts; compared, not chosen |
+| COI (cube-per-order index) | the space an item needs ÷ how often it is picked; a low COI means: put it closest to packing |
+| FIFO | first in, first out: the oldest stock is used first |
+| Min/max refill | a pick face is refilled when it drops below a minimum, up to a maximum |
+| Cycle count | counting part of the stock regularly instead of everything at once (A items monthly, B quarterly, C yearly) |
+| EN 15512 / EN 15635 | European standards for designing racks / for using and inspecting them (inspection every year) |
+| PGS 15 / PGS 37-2 | Dutch guidelines for storing hazardous goods / lithium batteries |
+
+### General words (the same in all four briefings)
+
+| Word | What it means |
+|---|---|
+| WMS | the warehouse management system: the computer system that knows where every pallet is and tells people what to do. Almost all our data comes from it |
+| Item (SKU) | one specific product, e.g. one type of lock. There are 5,291 in stock |
+| Load | one pallet (or other carrier) of stock with its own number in the WMS |
+| Order / order line | an order is what one customer asks for; each different item on it is one order line |
+| Average vs median | the average adds everything up and divides; the median is the middle value (half are lower, half higher), so a few extreme values don't pull it up |
+| p90 / p95 | the value that 90% (or 95%) of cases stay under. "The slowest 10%" means everything above p90 |
+| 1.83× (peak factor) | the busiest day divided by an average day |
+| FTE | full-time equivalent: one person working a full day (7.5 productive hours out of 8 paid) |
+| Picker-hours | hours of picking work in a day; 11.7 picker-hours is about 1.6 people |
+| KPI | key performance indicator: a number we track to see if the operation works as planned |
+| Measured / modelled / assumption / benchmark / target | measured = straight from Assa Abloy's data; modelled = our calculation on that data; assumption = a value we chose and wrote down with its reason; benchmark = a typical value from a public source; target = what the design is built to reach |
+| Assumption register | our list of 46 assumptions (data/assumptions.json), each with its reason, source and impact |
+| Option A / B / C | the three designs we compared: A = today's way tidied up; B = hybrid (chosen); C = semi-automated |
+| Four V's | volume, variety, variation and visibility: four ways to describe an operation (Slack et al., 2022) |
+| Fast-pick area | the zone along the south wall where the 1,409 best-sellers each have a pick face, close to packing |
+| Reserve (pallet racks) | the high racks where full pallets are stored until they are needed |
+| Single-deep rack | a rack with one pallet behind each face, so every pallet can be taken out without moving another |
+| Wave | a portion of the day's orders released to the floor together; we use 3 a day |
+| Put-to-light wall | a wall of 120 slots with lights at packing; it sorts batch-picked items into their orders |
+| Staging lane | floor area in front of a shipping door where goods wait for their trailer |
+| R1–R3 / S1–S5 | the receiving doors (west wall) / the shipping doors (east wall) |
+| ETV 216i | Jungheinrich reach truck: puts pallets away in the racks (lifts up to 10.7 m) and refills the fast-pick area |
+| EJE 120i | Jungheinrich walkie pallet truck (the operator walks with it): used to pick large orders onto a pallet |
+| ERE 225 | Jungheinrich rider pallet truck (the operator stands on it): used to unload and load trailers |
+| CAPEX | one-off investment: racks, equipment, set-up |
+| OPEX | running cost every year: staff, truck lease, energy, upkeep |
+| Depreciation | the investment spread over the years it lasts (racks 15 years, equipment 7, IT 5) |
+| Payback | how many years of savings it takes to earn back an investment |
+| Sensitivity | how much the result changes if an assumption is wrong (e.g. labour at €28 instead of €20 an hour) |
+| Stress test | checking the design at 150%, 200% and 250% of today's volume |

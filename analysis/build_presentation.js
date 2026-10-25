@@ -412,7 +412,7 @@ notes(s, "Arnau (Picking)", "1:30",
 // ================================================================ 5. OUR SOLUTION - LAYOUT
 pres.addSection({ title: "Our solution" });
 s = slide("Our solution", `One-way flow from dock to trailer in ${n0(LAY.total_area_m2)} m² — the design fits the current 7,000 m² building`,
-  `Source: team layout drawing, to scale (Deliverable 2 §2); option choice: team decision matrix (Deliverable 1 §15)`,
+  `Source: team layout drawing, to scale (Deliverable 2 §5); option choice: team decision matrix (Deliverable 1 §15)`,
   { owner: "Receiving", ownerLabel: "presenter" });
 const imgH = 4.15, imgW = imgH * 1045 / 726;
 s.addImage({ path: FIG("layout_flow.png"), x: L, y: Y0, w: imgW, h: imgH, altText: "Warehouse layout with the numbered route of an order line" });
@@ -588,7 +588,7 @@ notes(s, "Rachel (Shipping)", "1:30",
 // ================================================================ 10. VALUE FOR DHL
 pres.addSection({ title: "Value for DHL" });
 s = slide("Value for DHL", `For DHL: a kept service promise, ${eurK(PC.saving_year)} lower labour cost a year, and process changes that pay back in ~${PC.payback_process_years.toFixed(1)} years`,
-  `Source: cost model (Deliverable 3 §3): racking prices ${src("S020")}; labour €20 per hour ${src("S026")}; benchmark prices, not quotes; step by step: appendix "How we calculated: money"`,
+  `Source: cost model (Deliverable 3 §7): racking prices ${src("S020")}; labour €20 per hour ${src("S026")}; benchmark prices, not quotes; step by step: appendix "How we calculated: money"`,
   { owner: "Shipping", ownerLabel: "presenter" });
 txt(s, "What changes for DHL", { x: L, y: Y0, w: 6.6, h: 0.3, fontSize: 13, bold: true, color: C.text2 });
 const VR = [
@@ -633,7 +633,7 @@ notes(s, "Rachel (Shipping)", "1:30",
 // ================================================================ 11. ROADMAP
 pres.addSection({ title: "Roadmap" });
 s = slide("Roadmap", "Start with the low-cost process changes, then build the fast-pick area — the racking decision comes last",
-  `Source: proposed sequence based on the cost model (Deliverable 3 §3) and the hours saved per change; open points in the appendix`,
+  `Source: proposed sequence based on the cost model (Deliverable 3 §7) and the hours saved per change; open points in the appendix`,
   { owner: "Storage", ownerLabel: "presenter" });
 chevrons(s, ["Step 1  Change how work flows", "Step 2  Build the fast-pick area", "Step 3  Decide the racking"], Y0, 0.6, { size: 14 });
 const COLW = (CW - 2 * 0.3) / 3;
@@ -678,7 +678,7 @@ const legend = "Type: data = measured in Assa Abloy's WMS data · model = our ca
 
 // C1 storage
 s = slide("Appendix: calculations", `Storage: ${n0(ST.occupied_peak)} occupied − ${n0(SP.freed_rack_locations)} freed = ${n0(ST.rack_need_peak)} needed of ${n0(LAY.positions_total)} places (${RACK_FILL}%); at +${r0(ST.growth_per_quarter_pct)}% a quarter the racks are full in ~${r0(ST.months_headroom)} months`,
-  `Source: stock snapshots 1 April, 1 May, 1 June 2025 ${src("S002")}; layout drawing (Deliverable 2 §2); performance_cost.py`, { appendix: true, tracker: "How we calculated: storage", owner: "Storage", ownerLabel: "answers" });
+  `Source: stock snapshots 1 April, 1 May, 1 June 2025 ${src("S002")}; layout drawing (Deliverable 2 §5); performance_cost.py`, { appendix: true, tracker: "How we calculated: storage", owner: "Storage", ownerLabel: "answers" });
 calcTable(s, [
   ["Occupied places at the peak", `highest of the three stock snapshots: 1 Apr ${n0(SNAP[0])} · 1 May ${n0(SNAP[1])} · 1 Jun ${n0(SNAP[2])}`, n0(ST.occupied_peak), "data"],
   ["Places freed by small parts", `rack places holding only small, slow items (whole stock ≤ ${SP.criteria.stock_l_max} L; each ≤ ${SP.criteria.each_l_max} L, ≤ ${SP.criteria.each_kg_max} kg, ≤ ${SP.criteria.each_cm_max} cm; class C) — their ${n0(SP.skus)} items move to bin shelving`, n0(SP.freed_rack_locations), "data + rule"],
@@ -731,7 +731,7 @@ notes(s, "Rachel (Shipping)", "-", "Use when asked how the 65% and the lead time
 
 // C4 money
 s = slide("Appendix: calculations", `Money: ${n1(SAVED_H)} picker-hours saved a day = ${eurK(PC.saving_year)} a year; the ${eurM(PC.capex_process)} process changes pay that back in ${n2(PC.payback_process_years)} years`,
-  `Source: cost register (Deliverable 3 §3, data/assumptions.json A030–A046); prices ${src("S020")} and other benchmarks; labour ${src("S026")}; performance_cost.py`, { appendix: true, tracker: "How we calculated: money", owner: "Shipping", ownerLabel: "answers" });
+  `Source: cost register (Deliverable 3 §9, data/assumptions.json A030–A046); prices ${src("S020")} and other benchmarks; labour ${src("S026")}; performance_cost.py`, { appendix: true, tracker: "How we calculated: money", owner: "Shipping", ownerLabel: "answers" });
 const ci = (p) => item(p);
 calcTable(s, [
   ["Hours saved a day", `${n3(LEVER.batch.h)} h (batching + fast-pick area) + ${n3(LEVER.waves.h)} h (no peak staffing)`, `${n3(SAVED_H)} h`, "model"],
@@ -749,7 +749,7 @@ notes(s, "Rachel (Shipping)", "-", "Use when asked how the saving, the investmen
 
 // C5 running cost
 s = slide("Appendix: calculations", `Running cost: ${eurK(PC.opex_total)} a year plus ${eurK(PC.depreciation_year)} depreciation, over ${n0(PC.volumes_year.lines)} order lines = €${UC.per_order_line.toFixed(2)} per line`,
-  `Source: capacity plan (Deliverable 2 §6) and cost register (Deliverable 3 §3); lease and price benchmarks ${src("S020")}; labour ${src("S026")}; performance_cost.py`, { appendix: true, tracker: "How we calculated: running cost", owner: "Shipping", ownerLabel: "answers" });
+  `Source: capacity plan (Deliverable 2 §6) and cost register (Deliverable 3 §9); lease and price benchmarks ${src("S020")}; labour ${src("S026")}; performance_cost.py`, { appendix: true, tracker: "How we calculated: running cost", owner: "Shipping", ownerLabel: "answers" });
 calcTable(s, [
   ["Direct labour", `${n1(DIR_H_DAY)} work-hours a day, receiving to loading (capacity plan) ÷ 7.5 × ${PAID_H} × ${DAYS} days = ${n1c(DIR["Qty / yr"])} paid h × €${RATE}`, eur(DIR["Total EUR/yr"]), "model"],
   ["Container crew", `2 people × 3 h × 1 container a day ÷ 7.5 × ${PAID_H} × ${DAYS} days = ${n1c(CREW["Qty / yr"])} paid h × €${RATE}`, eur(CREW["Total EUR/yr"]), "assumption"],
@@ -880,7 +880,7 @@ notes(s, "Appendix", "-", "Use if asked how the design is measured, or who owns 
 
 // A4 - cost detail
 s = slide("Appendix", `The full fit-out costs ${eurM(PC.capex_total)}, mostly new racking; running the warehouse costs ${eurK(PC.opex_total)} a year`,
-  `Source: cost model (Deliverable 3 §3): racking prices ${src("S020")}; labour €20 per hour ${src("S026")}; benchmark prices, not supplier quotes`, { appendix: true, tracker: "Cost detail" });
+  `Source: cost model (Deliverable 3 §7): racking prices ${src("S020")}; labour €20 per hour ${src("S026")}; benchmark prices, not supplier quotes`, { appendix: true, tracker: "Cost detail" });
 chartHead(s, L, Y0, 6.4, "Investment (CAPEX) by group, € thousand");
 const CAP = Object.entries(PC.capex_by_group).sort((a, b) => b[1] - a[1]);
 const CAP_LAB = { "Storage": "Storage racks", "Loose-container zone": "Container zone", "One-off": "One-off (moving, training)" };
@@ -952,7 +952,7 @@ notes(s, "Appendix", "-", "Use if asked how the design is planned and controlled
 
 // A7 - equipment and stress test
 s = slide("Appendix", `Equipment: the fleet covers the peak day; at double volume the ${DOORS_OUT} outbound doors, not the trucks, become the limit`,
-  `Source: Deliverable 2 §5 and Deliverable 3 stress test; equipment data (Jungheinrich, ${[CITE.S010, CITE.S008, CITE.S006].map((c) => c.replace("Jungheinrich, ", "")).join(", ")})`,
+  `Source: Deliverable 2 §6.3 and Deliverable 3 §2.4 (stress test); equipment data (Jungheinrich, ${[CITE.S010, CITE.S008, CITE.S006].map((c) => c.replace("Jungheinrich, ", "")).join(", ")})`,
   { appendix: true, tracker: "Equipment" });
 txt(s, "Equipment plan", { x: L, y: Y0, w: 6, h: 0.3, fontSize: 13, bold: true, color: C.text2 });
 const fr = [[th("Equipment"), th("Task"), th("Units", "center"), th("Busy, avg day", "center")]];
